@@ -437,6 +437,50 @@ func normalizeGachaTeams(s *GachaGameState) {
 	dedupeGachaTeams(s)
 }
 
+// validateGachaTeamMembers rejects a squad the player cannot field: unknown,
+// unowned, duplicated or under-levelled entries.
+func validateGachaTeamMembers(s *GachaGameState, team []string) error {
+	for i, id := range team {
+		own := s.Girls[id]
+		if own == nil || own.Star < 1 || own.Level < 1 || gachaGirl(id) == nil || slices.Contains(team[:i], id) {
+			return ErrGachaTeam
+		}
+	}
+	return nil
+}
+
+// gachaTeamConflict lists the girls a squad shares with any other preset.
+func gachaTeamConflict(s *GachaGameState, slot int, team []string) []string {
+	conflict := make([]string, 0, len(team))
+	for _, id := range team {
+		if gachaGirlInOtherTeam(s, slot, id) {
+			conflict = append(conflict, id)
+		}
+	}
+	return conflict
+}
+
+// setGachaActiveSquad is the one write path for the live preset. Every entry
+// point (the squad editor, the growth page's dual-team save) goes through it so
+// a girl can never be parked in two presets and then silently dropped on load.
+func setGachaActiveSquad(s *GachaGameState, team []string) error {
+	if s.TeamOn < 1 || s.TeamOn > 4 {
+		s.TeamOn = 1
+	}
+	for len(s.Teams) < 4 {
+		s.Teams = append(s.Teams, []string{})
+	}
+	if err := validateGachaTeamMembers(s, team); err != nil {
+		return err
+	}
+	if len(gachaTeamConflict(s, s.TeamOn-1, team)) > 0 {
+		return ErrGachaTeamShared
+	}
+	s.Teams[s.TeamOn-1] = slices.Clone(team)
+	s.Squad = slices.Clone(team)
+	return nil
+}
+
 // gachaGirlInOtherTeam reports whether another preset already fields the girl.
 func gachaGirlInOtherTeam(s *GachaGameState, slot int, id string) bool {
 	for i, team := range s.Teams {
@@ -450,12 +494,20 @@ func gachaGirlInOtherTeam(s *GachaGameState, slot int, id string) bool {
 	return false
 }
 
-// dedupeGachaTeams keeps a girl in exactly one preset. The active slot wins;
-// later slots lose any girl already claimed by an earlier slot so legacy saves
-// written before presets shared no ownership still load cleanly.
+// dedupeGachaTeams keeps a girl in exactly one preset. The active slot wins:
+// a save that lists her twice keeps her where the player is actually fighting
+// and repairs the other slot, so loading never strips the live team.
 func dedupeGachaTeams(s *GachaGameState) {
 	used := map[string]bool{}
-	for i, team := range s.Teams {
+	order := make([]int, 0, len(s.Teams))
+	order = append(order, s.TeamOn-1)
+	for i := range s.Teams {
+		if i != s.TeamOn-1 {
+			order = append(order, i)
+		}
+	}
+	for _, i := range order {
+		team := s.Teams[i]
 		kept := make([]string, 0, len(team))
 		for _, id := range team {
 			// Drop stale entries before validation: an older save can still list
@@ -1094,27 +1146,9 @@ func ApplyGachaAction(userID int, intent GachaActionIntent, now time.Time) (*Gac
 			if team == nil {
 				team = []string{}
 			}
-			if state.TeamOn < 1 || state.TeamOn > 4 {
-				state.TeamOn = 1
+			if err := setGachaActiveSquad(state, team); err != nil {
+				return err
 			}
-			if len(state.Teams) < 4 {
-				for len(state.Teams) < 4 {
-					state.Teams = append(state.Teams, []string{})
-				}
-			}
-			for i, id := range team {
-				own := state.Girls[id]
-				if own == nil || own.Star < 1 || own.Level < 1 || gachaGirl(id) == nil || slices.Contains(team[:i], id) {
-					return ErrGachaTeam
-				}
-				// A girl may fight for exactly one preset: the other slots must
-				// give her up before she can join this one.
-				if gachaGirlInOtherTeam(state, state.TeamOn-1, id) {
-					return ErrGachaTeamShared
-				}
-			}
-			state.Squad = team
-			state.Teams[state.TeamOn-1] = slices.Clone(team)
 		case "team_select":
 			if len(state.Teams) < 4 || *intent.Count < 1 || *intent.Count > 4 {
 				return ErrGachaIntent

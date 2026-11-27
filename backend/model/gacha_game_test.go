@@ -576,6 +576,67 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				assert.Equal(t, []string{"c08", "c06"}, out.Save.Squad)
 			})
 
+			t.Run("growth_page_save_of_team_two_is_checked_at_save_time_not_at_load", func(t *testing.T) {
+				user := gachaUser(t)
+				state := gachaState(t, user.Id, now)
+				for _, id := range []string{"c04", "c07", "c09", "c28", "c11", "c05", "c13", "c10"} {
+					branch := model.GachaAwakeningBranches(id)[0].ID
+					state.Girls[id] = &model.GachaOwnedGirl{Level: 60, Star: 5, Awakening: 3, Branch: branch, Gems: make([]string, 3)}
+				}
+				state.Cleared["s6"] = true
+				state.Teams = [][]string{{"c04", "c07", "c11", "c05"}, {"c09", "c28", "c13", "c10"}, {}, {}}
+				state.TeamOn = 2
+				state.Squad = slices.Clone(state.Teams[1])
+				seedGachaState(t, user.Id, state)
+
+				// Trial girls may also belong to ordinary presets; saving never edits them.
+				shared := []string{"c09", "c04", "c13", "c10", "c11", "c05", "c07", "c28"}
+				out, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "teams_save", Squad: &shared}, now)
+				require.NoError(t, err)
+				assert.Equal(t, shared[:4], out.Save.Progression.TrialSquad)
+				assert.Equal(t, shared[4:], out.Save.Progression.ReserveSquad)
+				after := gachaState(t, user.Id, now)
+				assert.Equal(t, []string{"c09", "c28", "c13", "c10"}, after.Squad)
+				assert.Equal(t, []string{"c04", "c07", "c11", "c05"}, after.Teams[0])
+				_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "team_select", Count: ptrTo(1)}, now)
+				require.NoError(t, err)
+				after = gachaState(t, user.Id, now)
+				assert.Equal(t, shared[:4], after.Progression.TrialSquad)
+				assert.Equal(t, shared[4:], after.Progression.ReserveSquad)
+				_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "team_select", Count: ptrTo(2)}, now)
+				require.NoError(t, err)
+
+				// The squad editor rejects the same girl, so both entries agree.
+				editor := []string{"c09", "c04"}
+				_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "squad", Squad: &editor}, now)
+				assert.ErrorIs(t, err, model.ErrGachaTeamShared)
+
+				// A reload changes nothing: no ghost write reached the save.
+				reloaded := gachaState(t, user.Id, now)
+				assert.Equal(t, 2, reloaded.TeamOn)
+				assert.Equal(t, []string{"c09", "c28", "c13", "c10"}, reloaded.Teams[1])
+			})
+
+			t.Run("legacy_duplicate_is_repaired_in_favour_of_the_team_that_is_fighting", func(t *testing.T) {
+				user := gachaUser(t)
+				state := gachaState(t, user.Id, now)
+				for _, id := range []string{"c04", "c07", "c09", "c28"} {
+					state.Girls[id] = &model.GachaOwnedGirl{Level: 20, Star: 3}
+				}
+				// A save written before the save-time check existed: preset two is
+				// live and shares c04 with preset one. Loading must keep her where
+				// the player is fighting, not strip the live team.
+				state.Teams = [][]string{{"c04", "c07"}, {"c04", "c09"}, {}, {}}
+				state.TeamOn = 2
+				state.Squad = []string{"c04", "c09"}
+				seedGachaState(t, user.Id, state)
+				out, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "team_select", Count: ptrTo(2)}, now)
+				require.NoError(t, err)
+				assert.Equal(t, []string{"c07"}, out.Save.Teams[0])
+				assert.Equal(t, []string{"c04", "c09"}, out.Save.Teams[1])
+				assert.Equal(t, []string{"c04", "c09"}, out.Save.Squad)
+			})
+
 			t.Run("parallel_run_start_produces_only_one_active_run_and_stamina_charge", func(t *testing.T) {
 				user := gachaUser(t)
 				daily := model.GachaDaily{UserID: user.Id, Day: now.In(time.FixedZone("CST", 8*3600)).Format("2006-01-02"), Runs: 20}
@@ -2671,7 +2732,7 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 		for _, id := range team {
 			state.Girls[id] = &model.GachaOwnedGirl{Level: 60, Star: 5, Awakening: 3, Branch: model.GachaAwakeningBranches(id)[0].ID, Gems: make([]string, 3)}
 		}
-		state.Squad, state.Progression.ReserveSquad = slices.Clone(team[:4]), slices.Clone(team[4:])
+		state.Progression.TrialSquad, state.Progression.ReserveSquad = slices.Clone(team[:4]), slices.Clone(team[4:])
 		state.Cleared["s6"] = true
 		seedGachaState(t, user.Id, state)
 		run, err := model.StartGachaRun(user.Id, "dual_trial", uuid.NewString(), when)

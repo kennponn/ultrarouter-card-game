@@ -126,6 +126,7 @@ type GachaProgressionState struct {
 	StarterClaimed bool                   `json:"starter_claimed"`
 	MainlineClaims []string               `json:"mainline_claims"`
 	TrialWins      map[string]int         `json:"trial_wins"`
+	TrialSquad     []string               `json:"trial_squad"`
 	ReserveSquad   []string               `json:"reserve_squad"`
 	Dual           GachaDualTrialState    `json:"dual"`
 	Milestones     map[string]int64       `json:"milestones"`
@@ -293,6 +294,12 @@ func normalizeGachaProgression(state *GachaGameState, now time.Time, rules Gacha
 	}
 	if p.Dual.Week != gachaWeekKey(now) {
 		p.Dual = GachaDualTrialState{Week: gachaWeekKey(now)}
+	}
+	if p.TrialSquad == nil {
+		p.TrialSquad = append([]string{}, state.Squad...)
+	}
+	if len(p.TrialSquad) > 4 {
+		return ErrGachaRunState
 	}
 	if len(p.Days) > 7 || len(p.Weeks) > 2 || len(p.MainlineClaims) > 3 || len(p.ReserveSquad) > 4 || len(p.ActiveDays) > 90 {
 		return ErrGachaRunState
@@ -718,7 +725,9 @@ func applyGachaProgressionAction(tx *gorm.DB, userID int, state *GachaGameState,
 				return ErrGachaDualTeam
 			}
 		}
-		state.Squad, p.ReserveSquad = slices.Clone(team[:4]), slices.Clone(team[4:])
+		// Trial presets are independent of the four ordinary squads.
+		p.TrialSquad = slices.Clone(team[:4])
+		p.ReserveSquad = slices.Clone(team[4:])
 		result.Drops = append(result.Drops, "\u4e24\u652f\u5e38\u7528\u961f\u4f0d\u5df2\u4fdd\u5b58\uff1b\u8bd5\u70bc\u5f00\u5c40\u540e\u4f7f\u7528\u5f53\u65f6\u9501\u5b9a\u7684\u516b\u540d\u89d2\u8272")
 	case "sigil_refine":
 		sigil := state.Sigils[*intent.ItemID]
@@ -845,8 +854,8 @@ func specialGachaProgressionStage(stageID string, state *GachaGameState, now tim
 			return nil, snapshot, ErrGachaProgressionLimit
 		}
 		if len(p.Dual.Squads) == 0 {
-			all := append(slices.Clone(state.Squad), p.ReserveSquad...)
-			if len(state.Squad) != 4 || len(p.ReserveSquad) != 4 {
+			all := append(slices.Clone(p.TrialSquad), p.ReserveSquad...)
+			if len(p.TrialSquad) != 4 || len(p.ReserveSquad) != 4 {
 				return nil, snapshot, ErrGachaDualTeam
 			}
 			for i, id := range all {
