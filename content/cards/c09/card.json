@@ -1,0 +1,44 @@
+{
+  "id": "c09",
+  "name": "时雨",
+  "rarity": "SSR",
+  "elem": "time",
+  "role": "support",
+  "atkType": "magic",
+  "img": "content/cards/c09/assets/portrait.webp",
+  "base": {
+    "hp": 1300,
+    "atk": 260,
+    "def": 95,
+    "spd": 118,
+    "cr": 8,
+    "cd": 150,
+    "ehr": 20,
+    "res": 25
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "时之振子",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "回溯指针",
+      "mult": 0,
+      "target": "ally",
+      "extraTurn": true,
+      "healMult": 1,
+      "desc": "使攻击最高的队友立即再次行动，并恢复其（100%攻击）生命"
+    }
+  },
+  "desc": "持有怀表的时之少女，让队友再动。",
+  "battleImg": "content/cards/c09/assets/portrait-cut.webp",
+  "fxColor": "#c9a2ff",
+  "legacyImages": {
+    "assets/c09-shiyu.webp": "content/cards/c09/assets/portrait.webp",
+    "assets/c09-shiyu-cut.webp": "content/cards/c09/assets/portrait-cut.webp"
+  }
+}

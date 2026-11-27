@@ -1,0 +1,44 @@
+{
+  "id": "c05",
+  "name": "霜音",
+  "rarity": "SR",
+  "elem": "water",
+  "role": "adps",
+  "atkType": "magic",
+  "img": "content/cards/c05/assets/portrait.webp",
+  "base": {
+    "hp": 1080,
+    "atk": 240,
+    "def": 78,
+    "spd": 104,
+    "cr": 8,
+    "cd": 150,
+    "ehr": 20,
+    "res": 15
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "霜刃",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "凛冬低语",
+      "mult": 1.8,
+      "target": "allEnemies",
+      "slow": 25,
+      "slowTurns": 2,
+      "desc": "对全体造成180%攻击伤害，并使目标速度降低25%，持续2回合"
+    }
+  },
+  "desc": "雪街的冰系少女，群体减速。",
+  "battleImg": "content/cards/c05/assets/portrait-cut.webp",
+  "fxColor": "#a8e0ff",
+  "legacyImages": {
+    "assets/c05-shuangyin.webp": "content/cards/c05/assets/portrait.webp",
+    "assets/c05-shuangyin-cut.webp": "content/cards/c05/assets/portrait-cut.webp"
+  }
+}

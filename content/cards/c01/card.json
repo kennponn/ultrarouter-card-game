@@ -1,0 +1,42 @@
+{
+  "id": "c01",
+  "name": "灯里",
+  "rarity": "R",
+  "elem": "fire",
+  "role": "adps",
+  "atkType": "magic",
+  "img": "content/cards/c01/assets/portrait.webp",
+  "base": {
+    "hp": 820,
+    "atk": 168,
+    "def": 62,
+    "spd": 102,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 10
+  },
+  "matBonus": 0,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "火苗拍击",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "火焰乱舞",
+      "mult": 1.6,
+      "target": "allEnemies",
+      "desc": "对全体造成160%攻击伤害"
+    }
+  },
+  "desc": "喜欢念书的火系见习魔法师，怒气技为全体火焰。",
+  "battleImg": "content/cards/c01/assets/portrait-cut.webp",
+  "fxColor": "#ff8a5c",
+  "legacyImages": {
+    "assets/c01-dengli.webp": "content/cards/c01/assets/portrait.webp",
+    "assets/c01-dengli-cut.webp": "content/cards/c01/assets/portrait-cut.webp"
+  }
+}

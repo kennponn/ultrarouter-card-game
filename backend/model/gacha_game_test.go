@@ -169,7 +169,7 @@ func gachaRequest(t *testing.T, userID int, session bool, handler gin.HandlerFun
 }
 
 func gachaSchemaModels() []any {
-	return []any{&model.GachaRun{}, &model.GachaCard{}, &model.GachaDaily{}, &model.GachaPlayer{}, &model.GachaAction{}, &model.GachaArenaGate{}, &model.GachaArenaSeat{}, &model.GachaArenaDuel{}, &model.GachaArenaEntry{}, &model.GachaArenaRoom{}}
+	return []any{&model.GachaRun{}, &model.GachaCard{}, &model.GachaDaily{}, &model.GachaPlayer{}, &model.GachaAction{}, &model.GachaArenaGate{}, &model.GachaArenaSeat{}, &model.GachaArenaDuel{}, &model.GachaArenaEntry{}, &model.GachaArenaRoom{}, &model.GachaLadderGate{}, &model.GachaLadderEntry{}, &model.GachaLadderMail{}, &model.GachaLadderBattle{}}
 }
 
 func gachaRoomPlayer(t *testing.T, now time.Time) model.User {
@@ -770,6 +770,7 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				strongGachaState(state)
 				state.Cleared["s1"] = true
 				state.Stars["s1"], state.Stars["s5"], state.Stars["s2"] = 3, 3, 2
+				state.Cleared["s1"], state.Cleared["s5"], state.Cleared["s2"] = true, true, true
 				state.MultiOn, state.Multi = true, 2
 				seedGachaState(t, user.Id, state)
 				key := "c1-story-1"
@@ -777,13 +778,10 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				chest, err := model.ApplyGachaAction(user.Id, claim, clock)
 				require.NoError(t, err)
 				require.True(t, chest.Save.VoyageClaims[key])
-				assert.Equal(t, state.Gold, chest.Save.Gold)
-				chestMail := requireGachaTestMail(t, chest.Save, "action:"+claim.RequestID)
-				assert.Equal(t, 150, chestMail.Resources["gold"])
+				assert.Equal(t, state.Gold+150, chest.Save.Gold)
 				repeatChest, err := model.ApplyGachaAction(user.Id, claim, clock)
 				require.NoError(t, err)
 				assert.Equal(t, chest, repeatChest)
-				assert.Equal(t, state.Gold+150, claimGachaTestMail(t, user.Id, chestMail, clock).Gold)
 				claim.RequestID = uuid.NewString()
 				_, err = model.ApplyGachaAction(user.Id, claim, clock)
 				require.ErrorIs(t, err, model.ErrGachaVoyageChest)
@@ -801,12 +799,10 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 					require.NoError(t, err)
 					require.Equal(t, attempt == 1, out.Win)
 					assert.Equal(t, run.Save.Captain, out.Save.Captain)
-					assert.Equal(t, run.Save.Mats["field_notes"], out.Save.Mats["field_notes"])
 					if attempt == 1 {
-						letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-						assert.Equal(t, 2, letter.Resources["field_notes"])
-						assert.Equal(t, 2, claimGachaTestMail(t, user.Id, letter, clock).Mats["field_notes"])
+						assert.Equal(t, run.Save.Mats["field_notes"]+2, out.Save.Mats["field_notes"])
 					} else {
+						assert.Equal(t, run.Save.Mats["field_notes"], out.Save.Mats["field_notes"])
 						assert.Equal(t, run.Save.Mailbox.Messages, out.Save.Mailbox.Messages)
 					}
 					assert.Zero(t, out.Quota)
@@ -895,11 +891,8 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				assert.Nil(t, result.Today.QuotaLimit)
 				assert.Nil(t, result.QuotaLeft)
 				assert.Equal(t, 100, result.Save.Daily.TokenGained)
-				assert.Zero(t, result.Save.Token)
+				assert.Equal(t, 1, result.Save.Token)
 				clock := time.UnixMilli(run.ReadyAt)
-				letter := requireGachaTestMail(t, result.Save, "battle:"+run.ID)
-				assert.Equal(t, 1, letter.Resources["token"])
-				assert.Equal(t, 1, claimGachaTestMail(t, user.Id, letter, clock).Token)
 				next, err := model.StartGachaRun(user.Id, "s1", uuid.NewString(), clock)
 				require.NoError(t, err)
 				uncapped, err := model.FinishGachaRun(user.Id, next.ID, false, time.UnixMilli(next.ReadyAt))
@@ -912,7 +905,6 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				assert.Nil(t, uncapped.QuotaLeft)
 				assert.Equal(t, 100, uncapped.Save.Daily.TokenGained)
 				assert.Equal(t, 1, uncapped.Save.Token)
-				assert.NotContains(t, requireGachaTestMail(t, uncapped.Save, "battle:"+next.ID).Resources, "token")
 				again, err := model.FinishGachaRun(user.Id, next.ID, false, time.UnixMilli(next.ReadyAt))
 				require.NoError(t, err)
 				assert.Equal(t, uncapped, again, "unlimited daily earnings must not duplicate a run's reward")
@@ -1893,17 +1885,9 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				assert.Equal(t, 2, out.Save.Expedition.Floor)
 				assert.Equal(t, 1, out.Save.Expedition.Best)
 				assert.Equal(t, 100, out.Save.Daily.TokenGained)
-				assert.Equal(t, run.Save.Token, out.Save.Token)
-				assert.Equal(t, run.Save.Gold, out.Save.Gold)
-				assert.Equal(t, run.Save.Mats["mat_r"], out.Save.Mats["mat_r"])
-				letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-				assert.Equal(t, 2, letter.Resources["token"])
-				assert.Positive(t, letter.Resources["gold"])
-				assert.Positive(t, letter.Resources["mat_r"])
-				collected := claimGachaTestMail(t, user.Id, letter, time.UnixMilli(run.ReadyAt))
-				assert.Equal(t, 2, collected.Token)
-				assert.Equal(t, 600+letter.Resources["gold"], collected.Gold)
-				assert.Equal(t, letter.Resources["mat_r"], collected.Mats["mat_r"])
+				assert.Equal(t, run.Save.Token+2, out.Save.Token)
+				assert.Greater(t, out.Save.Gold, run.Save.Gold)
+				assert.Greater(t, out.Save.Mats["mat_r"], run.Save.Mats["mat_r"])
 				assert.Zero(t, out.Quota)
 				assert.Equal(t, user.Quota, out.WalletQuota)
 				assert.Nil(t, out.Card)
@@ -1947,10 +1931,7 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 					assert.False(t, out.Save.WeeklyBoss.Cleared)
 					assert.Zero(t, out.Save.WeeklyBoss.Attempts)
 					assert.Zero(t, out.Quota)
-					assert.Equal(t, state.Gold, out.Save.Gold)
-					letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-					assert.Positive(t, letter.Resources["gold"])
-					assert.Equal(t, state.Gold+letter.Resources["gold"], claimGachaTestMail(t, user.Id, letter, time.UnixMilli(run.ReadyAt)).Gold)
+					assert.Greater(t, out.Save.Gold, state.Gold)
 				}
 			})
 
@@ -2024,21 +2005,35 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				intent := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_attack"}
 				attack, err := model.ApplyGachaAction(member.Id, intent, now)
 				require.NoError(t, err)
-				assert.Equal(t, 680, attack.Save.Gold)
+				assert.Equal(t, 600, attack.Save.Gold)
+				assert.Equal(t, 3, attack.Save.Mats["training_ink"])
+				assert.Equal(t, 25, attack.Save.GuildProgress.Coins)
 				assert.Equal(t, 110, attack.Save.Stamina)
 				assert.Equal(t, &model.GachaCaptain{Level: 1, XP: 10}, attack.Save.Captain)
-				assert.Equal(t, 24000, attack.Guild.BossHP+attack.Guild.TotalDamage)
+				assert.Equal(t, attack.Guild.RaidStages[0].MaxHP, attack.Guild.RaidStages[0].HP+attack.Guild.TotalDamage)
+				assert.Len(t, attack.Guild.RaidStages, 5)
+				assert.LessOrEqual(t, attack.GuildBattle.Report.Rounds, 20)
 				replay, err := model.ApplyGachaAction(member.Id, intent, now)
 				require.NoError(t, err)
 				assert.Equal(t, attack, replay)
+				live, err := model.GetGachaProfile(member.Id, now)
+				require.NoError(t, err)
+				require.NotEmpty(t, live.Guild.RaidDamageRanking.Entries)
+				assert.Equal(t, 1, live.Guild.RaidDamageRanking.Entries[0].Attempts, "receipt replay must not add another contribution")
+				assert.Equal(t, attack.GuildBattle.Damage, live.Guild.RaidDamageRanking.Entries[0].Damage)
 				_, err = model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_leave"}, now)
 				require.NoError(t, err)
 				_, err = model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_join", ItemID: &code}, now)
 				require.NoError(t, err)
+				second, err := model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_attack"}, now)
+				require.NoError(t, err)
+				assert.Equal(t, 2, second.Save.GuildProgress.Attempts)
 				_, err = model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_attack"}, now)
 				assert.ErrorIs(t, err, model.ErrGachaGuildLimit)
-				assert.Equal(t, 680, gachaState(t, member.Id, now).Gold)
-				assert.Equal(t, attack.Save.Captain, gachaState(t, member.Id, now).Captain)
+				assert.Equal(t, 600, gachaState(t, member.Id, now).Gold)
+				assert.Equal(t, 6, second.Save.Mats["training_ink"])
+				assert.Equal(t, 50, second.Save.GuildProgress.Coins)
+				assert.Equal(t, second.Save.Captain, gachaState(t, member.Id, now).Captain)
 				var wallet model.User
 				require.NoError(t, model.DB.First(&wallet, member.Id).Error)
 				assert.Equal(t, member.Quota, wallet.Quota)
@@ -2048,7 +2043,7 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				assert.Len(t, profile.Guild.Members, 10)
 			})
 
-			t.Run("guild_parallel_attacks_debit_one_daily_attempt", func(t *testing.T) {
+			t.Run("guild_parallel_attacks_debit_at_most_two_daily_attempts", func(t *testing.T) {
 				leader, member := gachaUser(t), gachaUser(t)
 				name := "并发旅团"
 				created, err := model.ApplyGachaAction(leader.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_create", ItemID: &name}, now)
@@ -2057,8 +2052,8 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				_, err = model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_join", ItemID: &code}, now)
 				require.NoError(t, err)
 				var wg sync.WaitGroup
-				failures := make([]error, 2)
-				for i := range 2 {
+				failures := make([]error, 3)
+				for i := range 3 {
 					wg.Go(func() {
 						_, failures[i] = model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_attack"}, now)
 					})
@@ -2072,14 +2067,17 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 						assert.ErrorIs(t, err, model.ErrGachaGuildLimit)
 					}
 				}
-				assert.Equal(t, 1, accepted)
+				assert.Equal(t, 2, accepted)
 				state := gachaState(t, member.Id, now)
-				assert.Equal(t, 110, state.Stamina)
-				assert.Equal(t, 680, state.Gold)
+				assert.Equal(t, 100, state.Stamina)
+				assert.Equal(t, 600, state.Gold)
+				assert.Equal(t, 6, state.Mats["training_ink"])
+				assert.Equal(t, 50, state.GuildProgress.Coins)
+				assert.Equal(t, 2, state.GuildProgress.Attempts)
 				assert.True(t, state.Daily.GuildAttacked)
 				view, err := model.GetGachaProfile(member.Id, now)
 				require.NoError(t, err)
-				assert.Equal(t, 24000, view.Guild.BossHP+view.Guild.MyDamage)
+				assert.Equal(t, view.Guild.RaidStages[0].MaxHP, view.Guild.RaidStages[0].HP+view.Guild.MyDamage)
 			})
 
 			t.Run("bond_power_refresh_preserves_released_gameplay_state", func(t *testing.T) {
@@ -2109,11 +2107,16 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 					require.NoError(t, err)
 				}
 				state := gachaState(t, leader.Id, now)
-				state.Guild.BossHP, state.Guild.TotalDamage = 1, 23999
+				state.Guild.BossHP, state.Guild.TotalDamage = 1, state.Guild.BossMaxHP-1
 				seedGachaState(t, leader.Id, state)
 				attack, err := model.ApplyGachaAction(member.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_attack"}, now)
 				require.NoError(t, err)
-				assert.Zero(t, attack.Guild.BossHP)
+				assert.Zero(t, attack.GuildBattle.BossHP)
+				assert.Equal(t, 1, attack.GuildBattle.Stage)
+				assert.True(t, attack.Guild.RaidStages[0].Cleared)
+				assert.Equal(t, 2, attack.Guild.RaidDamageRanking.Stage)
+				assert.Empty(t, attack.Guild.RaidDamageRanking.Entries, "clearing a boss starts a separate damage ranking")
+				assert.Equal(t, attack.Guild.RaidStages[1].MaxHP, attack.Guild.BossHP)
 				assert.Equal(t, 1, attack.Guild.MyDamage)
 				assert.True(t, attack.Guild.CanClaim)
 				_, err = model.ApplyGachaAction(spectator.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "guild_claim"}, now)
@@ -2122,12 +2125,11 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				out, err := model.ApplyGachaAction(member.Id, claim, now)
 				require.NoError(t, err)
 				assert.Equal(t, attack.Save.Gold, out.Save.Gold)
-				assert.Zero(t, out.Save.Mats["mat_sr"])
-				letter := requireGachaTestMail(t, out.Save, "action:"+claim.RequestID)
-				assert.Equal(t, map[string]int{"gold": 250, "mat_sr": 3}, letter.Resources)
-				collected := claimGachaTestMail(t, member.Id, letter, now)
-				assert.Equal(t, 930, collected.Gold)
-				assert.Equal(t, 3, collected.Mats["mat_sr"])
+				assert.Equal(t, attack.Save.Token, out.Save.Token)
+				for resource, amount := range map[string]int{"training_manual": 12, "training_ink": 30, "break_seal": 4, "mat_sr": 12} {
+					assert.Equal(t, attack.Save.Mats[resource]+amount, out.Save.Mats[resource], resource)
+				}
+				assert.Equal(t, attack.Save.GuildProgress.Coins+300, out.Save.GuildProgress.Coins)
 				assert.True(t, out.Guild.RewardClaimed)
 				again, err := model.ApplyGachaAction(member.Id, claim, now)
 				require.NoError(t, err)
@@ -2137,9 +2139,12 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				assert.ErrorIs(t, err, model.ErrGachaGuildLimit)
 				fresh, err := model.GetGachaProfile(member.Id, now.Add(7*24*time.Hour))
 				require.NoError(t, err)
-				assert.Equal(t, 24000, fresh.Guild.BossHP)
+				assert.Equal(t, fresh.Guild.RaidStages[0].MaxHP, fresh.Guild.BossHP)
 				assert.Zero(t, fresh.Guild.MyDamage)
 				assert.False(t, fresh.Guild.CanClaim)
+				assert.Equal(t, 1, fresh.Guild.RaidDamageRanking.Stage)
+				assert.Equal(t, fresh.Guild.BossWeek, fresh.Guild.RaidDamageRanking.Week)
+				assert.Empty(t, fresh.Guild.RaidDamageRanking.Entries)
 			})
 
 			t.Run("sigils_are_server_rolled_owned_and_replay_safe", func(t *testing.T) {
@@ -2293,13 +2298,8 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				require.NoError(t, err)
 				assert.Zero(t, out.Quota)
 				assert.Nil(t, out.Card)
-				assert.Zero(t, out.Save.Mats["essence_ember"])
-				letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-				assert.GreaterOrEqual(t, letter.Resources["essence_ember"], 2)
-				assert.LessOrEqual(t, letter.Resources["essence_ember"], 4)
-				assert.NotContains(t, letter.Resources, "essence_tide")
-				collected := claimGachaTestMail(t, user.Id, letter, clock)
-				assert.Equal(t, letter.Resources["essence_ember"], collected.Mats["essence_ember"])
+				assert.GreaterOrEqual(t, out.Save.Mats["essence_ember"], 2)
+				assert.LessOrEqual(t, out.Save.Mats["essence_ember"], 4)
 				assert.Zero(t, out.Save.Mats["essence_tide"])
 				for _, sigil := range out.Save.Sigils {
 					assert.Equal(t, "ember", sigil.Family)
@@ -2312,12 +2312,9 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 				more, err := model.FinishGachaRun(user.Id, next.ID, false, time.UnixMilli(next.ReadyAt))
 				require.NoError(t, err)
 				require.True(t, more.Win)
-				assert.Equal(t, collected.Mats["essence_ember"], more.Save.Mats["essence_ember"])
+				assert.Equal(t, out.Save.Mats["essence_ember"], more.Save.Mats["essence_ember"])
 				assert.Len(t, more.Save.Sigils, len(out.Save.Sigils))
-				secondLetter := requireGachaTestMail(t, more.Save, "battle:"+next.ID)
-				assert.NotContains(t, secondLetter.Resources, "essence_ember")
-				assert.Positive(t, secondLetter.Resources["gold"])
-				assert.Greater(t, claimGachaTestMail(t, user.Id, secondLetter, time.UnixMilli(next.ReadyAt)).Gold, collected.Gold)
+				assert.Greater(t, more.Save.Gold, out.Save.Gold)
 				var wallet model.User
 				require.NoError(t, model.DB.First(&wallet, user.Id).Error)
 				assert.Equal(t, user.Quota, wallet.Quota)
@@ -2602,10 +2599,7 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 		retry, err := model.ApplyGachaAction(user.Id, intents[success], now)
 		require.NoError(t, err)
 		assert.Equal(t, results[success], retry)
-		assert.Zero(t, retry.Save.Progression.Permits)
-		letter := requireGachaTestMail(t, retry.Save, "action:"+intents[success].RequestID)
-		assert.Equal(t, 5, letter.Resources["permits"])
-		assert.Equal(t, 5, claimGachaTestMail(t, user.Id, letter, now).Progression.Permits)
+		assert.Equal(t, 5, retry.Save.Progression.Permits)
 		out, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "gacha", Count: &count}, now)
 		require.NoError(t, err)
 		assert.Equal(t, 4, out.Save.Progression.Permits)
@@ -2720,11 +2714,8 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 			for _, intent := range []model.GachaActionIntent{{RequestID: uuid.NewString(), Action: "daily_contract_claim", ItemID: &day}, {RequestID: uuid.NewString(), Action: "weekly_claim", ItemID: &week, GirlID: &girl}} {
 				out, err := model.ApplyGachaAction(user.Id, intent, clock)
 				require.NoError(t, err)
-				letter := requireGachaTestMail(t, out.Save, "action:"+intent.RequestID)
-				assert.Positive(t, letter.Resources["marks"])
-				assert.Equal(t, state.Progression.Marks, out.Save.Progression.Marks)
-				state = claimGachaTestMail(t, user.Id, letter, clock)
-				assert.Equal(t, out.Save.Progression.Marks+letter.Resources["marks"], state.Progression.Marks)
+				assert.Greater(t, out.Save.Progression.Marks, state.Progression.Marks)
+				state = out.Save
 			}
 		}
 		state = gachaState(t, user.Id, when.AddDate(0, 0, 1).Add(time.Hour))
@@ -2805,13 +2796,8 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 		out, err = model.FinishGachaRun(user.Id, run.ID, false, time.UnixMilli(run.ReadyAt+1))
 		require.NoError(t, err)
 		assert.True(t, out.Save.Progression.Dual.Cleared)
-		assert.Equal(t, run.Save.Gold, out.Save.Gold)
-		assert.Zero(t, out.Save.Mats["sigil_dust"])
-		letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-		assert.Equal(t, map[string]int{"gold": 1500, "sigil_dust": 20}, letter.Resources)
-		collected := claimGachaTestMail(t, user.Id, letter, time.UnixMilli(run.ReadyAt+1))
-		assert.Equal(t, 2100, collected.Gold)
-		assert.Equal(t, 20, collected.Mats["sigil_dust"])
+		assert.Equal(t, run.Save.Gold+1500, out.Save.Gold)
+		assert.Equal(t, 20, out.Save.Mats["sigil_dust"])
 		assert.Zero(t, out.Quota)
 	})
 
@@ -2852,10 +2838,7 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 		require.NoError(t, err)
 		assert.Equal(t, 5, out.Save.Progression.Weeks[0].Completed)
 		assert.Len(t, out.Save.Progression.Weeks[0].Activities, 2)
-		assert.Zero(t, out.Save.Progression.Marks)
-		letter := requireGachaTestMail(t, out.Save, "action:"+weekly.RequestID)
-		assert.Equal(t, 120, letter.Resources["marks"])
-		assert.Equal(t, 120, claimGachaTestMail(t, user.Id, letter, now).Progression.Marks)
+		assert.Equal(t, 120, out.Save.Progression.Marks)
 	})
 
 	t.Run("progression_receipt_failure_rolls_back_the_claim_and_keeps_its_opportunity", func(t *testing.T) {
@@ -2881,10 +2864,7 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 		require.NoError(t, db.Callback().Create().Remove(callback))
 		out, err := model.ApplyGachaAction(user.Id, intent, now)
 		require.NoError(t, err)
-		assert.Zero(t, out.Save.Progression.Permits)
-		letter := requireGachaTestMail(t, out.Save, "action:"+intent.RequestID)
-		assert.Equal(t, 5, letter.Resources["permits"])
-		assert.Equal(t, 5, claimGachaTestMail(t, user.Id, letter, now).Progression.Permits)
+		assert.Equal(t, 5, out.Save.Progression.Permits)
 		assert.True(t, out.Save.Progression.Days[0].PermitsClaimed)
 	})
 
@@ -2960,13 +2940,8 @@ func runGachaProgressionMatrix(t *testing.T, now time.Time) {
 		assert.Equal(t, "2026-W48", out.Save.Progression.Dual.Week)
 		assert.Zero(t, out.Save.Progression.Dual.Phase)
 		assert.False(t, out.Save.Progression.Dual.Cleared)
-		assert.Equal(t, run.Save.Gold, out.Save.Gold)
-		assert.Zero(t, out.Save.Mats["sigil_dust"])
-		letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-		assert.Equal(t, map[string]int{"gold": 1500, "sigil_dust": 20}, letter.Resources)
-		collected := claimGachaTestMail(t, user.Id, letter, time.UnixMilli(run.ReadyAt+1))
-		assert.Equal(t, 2100, collected.Gold)
-		assert.Equal(t, 20, collected.Mats["sigil_dust"])
+		assert.Equal(t, run.Save.Gold+1500, out.Save.Gold)
+		assert.Equal(t, 20, out.Save.Mats["sigil_dust"])
 		assert.Zero(t, out.Quota)
 		retry, err := model.FinishGachaRun(user.Id, run.ID, false, time.UnixMilli(run.ReadyAt+1))
 		require.NoError(t, err)

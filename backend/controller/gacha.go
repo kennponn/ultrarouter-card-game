@@ -59,7 +59,7 @@ func writeGachaError(c *gin.Context, err error) {
 	case errors.Is(err, model.ErrGachaStage):
 		status, code, message = http.StatusBadRequest, "GACHA_STAGE_UNKNOWN", "关卡不存在"
 	case errors.Is(err, model.ErrGachaTeam):
-		status, code, message = http.StatusBadRequest, "GACHA_TEAM_INVALID", "请先上阵已拥有的少女，队伍最多四人且不能重复"
+		status, code, message = http.StatusBadRequest, "GACHA_TEAM_INVALID", "请先上阵已拥有的少女，队伍最多六人且不能重复"
 	case errors.Is(err, model.ErrGachaLocked):
 		status, code, message = http.StatusConflict, "GACHA_STAGE_LOCKED", "尚未满足关卡的前置通关或船长等级条件"
 	case errors.Is(err, model.ErrGachaVoyageLimit):
@@ -99,7 +99,7 @@ func writeGachaError(c *gin.Context, err error) {
 	case errors.Is(err, model.ErrGachaCultivationLocked):
 		status, code, message = http.StatusConflict, "GACHA_CULTIVATION_LOCKED", "尚未满足培养条件、已达上限或铭刻未改变，本次不消耗材料"
 	case errors.Is(err, model.ErrGachaDualTeam):
-		status, code, message = http.StatusConflict, "GACHA_DUAL_TEAM_REQUIRED", "请保存八名不同角色的两支队伍；双队试炼要求每名角色至少40级3星"
+		status, code, message = http.StatusConflict, "GACHA_DUAL_TEAM_REQUIRED", "请保存两支角色不重复的队伍，每队4至6人；双队试炼要求每名角色至少40级3星"
 	case errors.Is(err, model.ErrGachaProgressionAdmin):
 		status, code, message = http.StatusForbidden, "GACHA_PROGRESSION_ADMIN", "只有管理员可以修改成长配置"
 	case errors.Is(err, model.ErrGachaConfigVersion):

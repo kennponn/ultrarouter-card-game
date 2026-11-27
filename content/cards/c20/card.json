@@ -1,0 +1,44 @@
+{
+  "id": "c20",
+  "name": "暖弦",
+  "rarity": "R",
+  "elem": "plant",
+  "role": "support",
+  "atkType": "magic",
+  "img": "content/cards/c20/assets/portrait.webp",
+  "base": {
+    "hp": 910,
+    "atk": 135,
+    "def": 65,
+    "spd": 105,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 15
+  },
+  "matBonus": 0,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "拨弦轻响",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "风铃旅歌",
+      "mult": 0,
+      "target": "team",
+      "teamAtkUp": 12,
+      "buffTurns": 2,
+      "desc": "全队攻击提升12%，持续2回合"
+    }
+  },
+  "desc": "风铃旅人，抱着旧琴走过集市与花田，用轻快的歌声鼓舞同伴。",
+  "battleImg": "content/cards/c20/assets/portrait-cut.webp",
+  "fxColor": "#4fbf7f",
+  "legacyImages": {
+    "assets/c20-nuanxian.webp": "content/cards/c20/assets/portrait.webp",
+    "assets/c20-nuanxian-cut.webp": "content/cards/c20/assets/portrait-cut.webp"
+  }
+}

@@ -464,7 +464,7 @@ function drawArtifacts(count) { return changeArtifactPool(count, false); }
 function convertArtifactTicket() { return changeArtifactPool(1, true); }
 
 const WORKSHOP_BAG_TABS = { materials:"培养材料", gems:"宝石背包", chips:"芯片背包", sigils:"灵印", shards:"角色碎片" };
-function workshopBagTabs() { return { ...WORKSHOP_BAG_TABS, ...(Store.profile?.carry ? {carry:"随身道具"} : {}), ...(Store.profile?.cases && typeof dispatchEvidenceBag === "function" ? {evidence:"调查证物"} : {}) }; }
+function workshopBagTabs() { return { ...WORKSHOP_BAG_TABS, ...(Store.profile?.carry ? {carry:"随身奇物"} : {}), ...(Store.profile?.cases && typeof dispatchEvidenceBag === "function" ? {evidence:"调查证物"} : {}) }; }
 const WORKSHOP_MAT_GROUPS = { workshop:"工料与手记", stars:"升星与回收", tickets:"召唤券", sigils:"灵印打造" };
 let workshopBag = { epoch:-1, tab:"materials", group:"workshop", hero:"" };
 

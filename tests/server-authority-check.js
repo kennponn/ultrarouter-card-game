@@ -118,7 +118,7 @@ function harness(t, { signedIn = true, responder, url = "https://example.test/ga
       closeModal, retryGameAction, onSiteSessionEvent, battleEnd, syncSiteAccount,
       get save(){return SAVE;}, setSave(s){SAVE=s;}, get battle(){return BAT;},
       get running(){return battleRunning;},
-      setSleep(fn){sleep=fn;}, setStrike(fn){playStrike=fn;},
+      setSleep(fn){sleep=fn;}, setStrike(fn){playStrike=fn; if (window.BattleMotion) window.BattleMotion = { ...window.BattleMotion, beginBattleAction: fn };},
       battleControl(...args){return battleControl(...args);},
       stopPlayback(){playServerBattle=async()=>{};} };
   `);

@@ -30,17 +30,19 @@ type GachaLadderGate struct {
 }
 
 type GachaLadderEntry struct {
-	ID            int               `gorm:"primaryKey;autoIncrement:false" json:"id"` // user ID; negative IDs are NPCs
-	Rank          int               `gorm:"column:position;not null;uniqueIndex" json:"rank"`
-	BestRank      int               `json:"best_rank"`
-	Name          string            `gorm:"type:varchar(128);not null" json:"name"`
-	Power         int               `json:"power"`
-	Defense       GachaDocument     `gorm:"not null" json:"-"`
-	JoinedAt      int64             `json:"joined_at"`
-	Day           string            `gorm:"type:varchar(10)" json:"-"`
-	Used          int               `json:"-"`
-	CooldownUntil int64             `json:"cooldown_until"`
-	Squad         []GachaPublicGirl `gorm:"-" json:"squad"`
+	ID             int               `gorm:"primaryKey;autoIncrement:false" json:"id"` // user ID; negative IDs are NPCs
+	Rank           int               `gorm:"column:position;not null;uniqueIndex" json:"rank"`
+	BestRank       int               `json:"best_rank"`
+	BestRewardRank int               `gorm:"not null;default:0" json:"-"`
+	Name           string            `gorm:"type:varchar(128);not null" json:"name"`
+	Power          int               `json:"power"`
+	Defense        GachaDocument     `gorm:"not null" json:"-"`
+	JoinedAt       int64             `json:"joined_at"`
+	Day            string            `gorm:"type:varchar(10)" json:"-"`
+	Used           int               `json:"-"`
+	CooldownUntil  int64             `json:"cooldown_until"`
+	Squad          []GachaPublicGirl `gorm:"-" json:"squad"`
+	GuildName      string            `gorm:"-" json:"guild_name"`
 }
 
 type GachaLadderMaterials struct {
@@ -51,24 +53,51 @@ type GachaLadderMaterials struct {
 type GachaLadderRewardTier struct {
 	MaxRank   int                  `json:"max_rank"`
 	Materials GachaLadderMaterials `json:"materials"`
+	Token     int                  `json:"token"`
 }
 
+// These are game tokens. Ranked rewards never touch the host wallet or E quota.
 var gachaLadderRewards = []GachaLadderRewardTier{
-	{1, GachaLadderMaterials{120, 60, 20}},
-	{3, GachaLadderMaterials{100, 50, 15}},
-	{10, GachaLadderMaterials{80, 40, 12}},
-	{50, GachaLadderMaterials{60, 30, 8}},
-	{100, GachaLadderMaterials{40, 20, 5}},
-	{0, GachaLadderMaterials{30, 15, 3}},
+	{1, GachaLadderMaterials{120, 60, 20}, 300},
+	{3, GachaLadderMaterials{100, 50, 15}, 240},
+	{10, GachaLadderMaterials{80, 40, 12}, 180},
+	{50, GachaLadderMaterials{60, 30, 8}, 120},
+	{100, GachaLadderMaterials{40, 20, 5}, 80},
+	{0, GachaLadderMaterials{30, 15, 3}, 50},
+}
+
+type GachaLadderBestRewardTier struct {
+	MaxRank     int   `json:"max_rank"`
+	Token       int   `json:"token"`
+	Claimed     bool  `json:"claimed"`
+	CanClaim    bool  `json:"can_claim"`
+	DeliveredAt int64 `json:"delivered_at"`
+}
+
+var gachaLadderBestRewards = []GachaLadderBestRewardTier{
+	{MaxRank: 100, Token: 200}, {MaxRank: 50, Token: 400}, {MaxRank: 20, Token: 600},
+	{MaxRank: 10, Token: 1000}, {MaxRank: 3, Token: 1500}, {MaxRank: 1, Token: 2500},
+}
+
+func gachaLadderBestTier(id string) (GachaLadderBestRewardTier, bool) {
+	for _, tier := range gachaLadderBestRewards {
+		if id == fmt.Sprintf("best:%d", tier.MaxRank) {
+			return tier, true
+		}
+	}
+	return GachaLadderBestRewardTier{}, false
 }
 
 type GachaLadderMail struct {
-	UserID    int                  `gorm:"primaryKey;autoIncrement:false" json:"-"`
-	Day       string               `gorm:"type:varchar(10);primaryKey" json:"day"`
-	Rank      int                  `json:"rank"`
-	Materials GachaLadderMaterials `gorm:"embedded;embeddedPrefix:reward_" json:"materials"`
-	SettledAt int64                `json:"settled_at"`
-	Claimed   bool                 `gorm:"not null;default:false" json:"claimed"`
+	UserID      int                  `gorm:"primaryKey;autoIncrement:false" json:"-"`
+	Day         string               `gorm:"type:varchar(10);primaryKey" json:"day"`
+	Rank        int                  `json:"rank"`
+	Materials   GachaLadderMaterials `gorm:"embedded;embeddedPrefix:reward_" json:"materials"`
+	Kind        string               `gorm:"type:varchar(16);not null;default:daily" json:"kind"`
+	Token       int                  `gorm:"not null;default:0" json:"token"`
+	SettledAt   int64                `json:"settled_at"`
+	Claimed     bool                 `gorm:"not null;default:false" json:"claimed"`
+	DeliveredAt int64                `gorm:"not null;default:0" json:"delivered_at"`
 }
 
 type GachaLadderBattle struct {
@@ -97,18 +126,20 @@ type GachaLadderResult struct {
 }
 
 type GachaLadderView struct {
-	Me             *GachaLadderEntry       `json:"me"`
-	Remaining      int                     `json:"remaining"`
-	Limit          int                     `json:"limit"`
-	Total          int64                   `json:"total"`
-	NextSettlement int64                   `json:"next_settlement"`
-	NextReset      int64                   `json:"next_reset"`
-	ServerNow      int64                   `json:"server_now"`
-	Opponents      []GachaLadderEntry      `json:"opponents"`
-	Board          []GachaLadderEntry      `json:"board"`
-	History        []GachaLadderBattle     `json:"history"`
-	Mail           []GachaLadderMail       `json:"mail"`
-	Rewards        []GachaLadderRewardTier `json:"rewards"`
+	Me             *GachaLadderEntry           `json:"me"`
+	Remaining      int                         `json:"remaining"`
+	Limit          int                         `json:"limit"`
+	Total          int64                       `json:"total"`
+	NextSettlement int64                       `json:"next_settlement"`
+	NextReset      int64                       `json:"next_reset"`
+	ServerNow      int64                       `json:"server_now"`
+	Opponents      []GachaLadderEntry          `json:"opponents"`
+	Board          []GachaLadderEntry          `json:"board"`
+	History        []GachaLadderBattle         `json:"history"`
+	Mail           []GachaLadderMail           `json:"mail"`
+	Rewards        []GachaLadderRewardTier     `json:"rewards"`
+	BestRank       int                         `json:"best_rank"`
+	BestRewards    []GachaLadderBestRewardTier `json:"best_rewards"`
 }
 
 func gachaLadderBoundary(now time.Time, hour int) time.Time {
@@ -120,12 +151,123 @@ func gachaLadderBoundary(now time.Time, hour int) time.Time {
 	return boundary
 }
 func GachaLadderReward(rank int) GachaLadderMaterials {
+	return gachaLadderRewardTier(rank).Materials
+}
+func gachaLadderRewardTier(rank int) GachaLadderRewardTier {
 	for _, tier := range gachaLadderRewards {
 		if rank > 0 && (tier.MaxRank == 0 || rank <= tier.MaxRank) {
-			return tier.Materials
+			return tier
 		}
 	}
-	return GachaLadderMaterials{}
+	return GachaLadderRewardTier{}
+}
+
+func gachaLadderBestRank(best, rank int) int {
+	if best <= 0 {
+		return rank
+	}
+	return min(best, rank)
+}
+
+// Only a ladder-gate owner creates outbox rows. Read before inserting so an
+// existing row is never write-locked by ON CONFLICT while a profile transaction
+// holds that player's lock and is updating the delivery marker.
+func insertGachaLadderMail(tx *gorm.DB, mail *GachaLadderMail) error {
+	var count int64
+	if err := tx.Model(&GachaLadderMail{}).Where("user_id = ? AND day = ?", mail.UserID, mail.Day).Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	return tx.Create(mail).Error
+}
+
+// Gate owners only: historical rows record manual-claim entitlements, not mail.
+// Already delivered legacy rows keep their marker and remain in the old inbox.
+// The progress marker avoids rescanning every previously reached tier forever;
+// the stable primary keys remain the final duplicate barrier during upgrades.
+func queueGachaLadderBestRewards(tx *gorm.DB, now time.Time) error {
+	var entries []GachaLadderEntry
+	if err := tx.Select("id", "best_rank").Where("id > 0 AND best_rank > 0 AND (best_reward_rank = 0 OR best_rank < best_reward_rank)").Find(&entries).Error; err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		for _, tier := range gachaLadderBestRewards {
+			if entry.BestRank > tier.MaxRank {
+				continue
+			}
+			mail := GachaLadderMail{UserID: entry.ID, Day: fmt.Sprintf("best:%d", tier.MaxRank), Kind: "best", Rank: tier.MaxRank, Token: tier.Token, SettledAt: now.UnixMilli()}
+			if err := insertGachaLadderMail(tx, &mail); err != nil {
+				return err
+			}
+		}
+		if err := tx.Model(&GachaLadderEntry{}).Where("id = ?", entry.ID).Update("best_reward_rank", entry.BestRank).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func gachaLadderMailID(mail GachaLadderMail) string {
+	if mail.Kind == "best" {
+		return "ladder:" + mail.Day
+	}
+	return "ladder:daily:" + mail.Day
+}
+
+// Called only after the caller locks this player. It never reacquires the ladder
+// gate or loads another player, so ordinary profile/mail actions cannot invert
+// the gate -> player lock order. Mailbox append and delivery marker commit in
+// the same outer transaction; deleting a claimed public message cannot reissue it.
+func syncGachaLadderMailbox(tx *gorm.DB, userID int, state *GachaGameState, now time.Time) (bool, error) {
+	var pending []GachaLadderMail
+	// The existing player lock serializes delivery for this user. A plain read
+	// also avoids MySQL next-key locks blocking newly queued reward inserts.
+	if err := tx.Where("user_id = ? AND claimed = ? AND delivered_at = ? AND kind <> ? AND day NOT LIKE ?", userID, false, 0, "best", "best:%").Order("settled_at ASC, day ASC").Find(&pending).Error; err != nil {
+		return false, err
+	}
+	changed := false
+	for _, mail := range pending {
+		// A ladder request may have established a repeatable-read snapshot before
+		// waiting for the player lock. The conditional current write prevents a
+		// stale delivered_at=0 read from reissuing a since-claimed/deleted letter.
+		reserved := tx.Model(&GachaLadderMail{}).Where("user_id = ? AND day = ? AND claimed = ? AND delivered_at = ?", userID, mail.Day, false, 0).Update("delivered_at", now.UnixMilli())
+		if reserved.Error != nil {
+			return false, reserved.Error
+		}
+		if reserved.RowsAffected == 0 {
+			continue
+		}
+		id := gachaLadderMailID(mail)
+		exists := slices.ContainsFunc(state.Mailbox.Messages, func(message *GachaMailMessage) bool { return message.ID == id })
+		if !exists {
+			resources := map[string]int{}
+			for key, amount := range map[string]int{"token": mail.Token, "mat_r": mail.Materials.R, "mat_sr": mail.Materials.SR, "mat_ssr": mail.Materials.SSR} {
+				if amount < 0 || amount > gachaMaxResource {
+					return false, ErrGachaRunState
+				}
+				if amount > 0 {
+					resources[key] = amount
+				}
+			}
+			title := "竞技场每日排名奖励"
+			body := fmt.Sprintf("%s 北京时间21:00结算，排名第%d名。奖励已寄达，请领取附件。", mail.Day, mail.Rank)
+			if err := sendGachaMail(state, id, title, body, resources, 0, time.UnixMilli(mail.SettledAt)); err != nil {
+				if errors.Is(err, ErrGachaMailboxFull) || errors.Is(err, ErrGachaCapacity) {
+					// A full mailbox must not prevent login. Keep this durable outbox
+					// row for the next player load after attachments are collected.
+					if reset := tx.Model(&GachaLadderMail{}).Where("user_id = ? AND day = ?", userID, mail.Day).Update("delivered_at", 0).Error; reset != nil {
+						return false, reset
+					}
+					return changed, nil
+				}
+				return false, err
+			}
+		}
+		changed = true
+	}
+	return changed, nil
 }
 
 // Safe to call again after fresh or upgrade migrations. It never resets ranks.
@@ -146,11 +288,7 @@ func InitializeGachaLadder(now time.Time) error {
 			if count > 0 {
 				continue
 			}
-			state := newGachaState(now)
-			level := 1 + (GachaLadderBots-rank)*59/GachaLadderBots
-			for _, own := range state.Girls {
-				own.Level, own.Star = level, 1+(level-1)/15
-			}
+			state := gachaLadderBotState(now, rank)
 			entry := GachaLadderEntry{ID: -rank, Rank: rank, BestRank: rank, Name: fmt.Sprintf("星霜守卫 %03d", rank), JoinedAt: now.UnixMilli()}
 			if err := gachaLadderDefense(&entry, state); err != nil {
 				return err
@@ -161,6 +299,21 @@ func InitializeGachaLadder(now time.Time) error {
 		}
 		return nil
 	})
+}
+
+// New guards fill all six positions. Existing defenses are never rewritten by
+// initialization, so upgrades preserve old four-card guards and player rosters.
+func gachaLadderBotState(now time.Time, rank int) *GachaGameState {
+	state := newGachaState(now)
+	state.Squad = append(state.Squad, "c02", "c05")
+	level := 1 + (GachaLadderBots-rank)*59/GachaLadderBots
+	for _, id := range state.Squad {
+		if state.Girls[id] == nil {
+			state.Girls[id] = &GachaOwnedGirl{Gems: newGachaGemSlots()}
+		}
+		state.Girls[id].Level, state.Girls[id].Star = level, 1+(level-1)/15
+	}
+	return state
 }
 
 func lockGachaLadder(tx *gorm.DB) error {
@@ -183,6 +336,9 @@ func settleGachaLadder(tx *gorm.DB, now time.Time) error {
 	if err := removeGachaLadderSeats(tx, inactive); err != nil {
 		return err
 	}
+	if err := queueGachaLadderBestRewards(tx, now); err != nil {
+		return err
+	}
 	var gate GachaLadderGate
 	if err := tx.First(&gate, "id = ?", 1).Error; err != nil {
 		return err
@@ -200,9 +356,10 @@ func settleGachaLadder(tx *gorm.DB, now time.Time) error {
 			if player.JoinedAt > at.UnixMilli() {
 				continue
 			}
-			mail := GachaLadderMail{UserID: player.ID, Day: at.Format("2006-01-02"), Rank: player.Rank,
-				Materials: GachaLadderReward(player.Rank), SettledAt: at.UnixMilli()}
-			if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&mail).Error; err != nil {
+			reward := gachaLadderRewardTier(player.Rank)
+			mail := GachaLadderMail{UserID: player.ID, Day: at.Format("2006-01-02"), Kind: "daily", Rank: player.Rank,
+				Materials: reward.Materials, Token: reward.Token, SettledAt: at.UnixMilli()}
+			if err := insertGachaLadderMail(tx, &mail); err != nil {
 				return err
 			}
 		}
@@ -226,7 +383,7 @@ func removeGachaLadderSeats(tx *gorm.DB, ids []int) error {
 	for offset, entry := range active {
 		rank := offset + 1
 		if entry.Rank != rank {
-			if err := tx.Model(&entry).Updates(map[string]any{"position": rank, "best_rank": min(rank, entry.BestRank)}).Error; err != nil {
+			if err := tx.Model(&entry).Updates(map[string]any{"position": rank, "best_rank": gachaLadderBestRank(entry.BestRank, rank)}).Error; err != nil {
 				return err
 			}
 		}
@@ -308,7 +465,7 @@ func GetGachaLadder(userID int, now time.Time) (*GachaLadderView, error) {
 		}
 		*view = GachaLadderView{Limit: GachaLadderDailyLimit, Remaining: GachaLadderDailyLimit,
 			ServerNow: now.UnixMilli(), NextSettlement: gachaLadderBoundary(now, 21).AddDate(0, 0, 1).UnixMilli(),
-			NextReset: gachaLadderBoundary(now, 5).AddDate(0, 0, 1).UnixMilli(), Rewards: slices.Clone(gachaLadderRewards),
+			NextReset: gachaLadderBoundary(now, 5).AddDate(0, 0, 1).UnixMilli(), Rewards: slices.Clone(gachaLadderRewards), BestRewards: slices.Clone(gachaLadderBestRewards),
 			Opponents: []GachaLadderEntry{}, Board: []GachaLadderEntry{}, History: []GachaLadderBattle{}, Mail: []GachaLadderMail{}}
 		if err := tx.Model(&GachaLadderEntry{}).Where("position > 0").Count(&view.Total).Error; err != nil {
 			return err
@@ -317,11 +474,14 @@ func GetGachaLadder(userID int, now time.Time) (*GachaLadderView, error) {
 			return err
 		}
 		var me GachaLadderEntry
-		err := tx.First(&me, "id = ? AND position > 0", userID).Error
+		err := tx.First(&me, "id = ?", userID).Error
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 		if err == nil {
+			view.BestRank = me.BestRank
+		}
+		if err == nil && me.Rank > 0 {
 			view.Me = &me
 			if me.Day == gachaLadderBoundary(now, 5).Format("2006-01-02") {
 				view.Remaining = max(0, GachaLadderDailyLimit-me.Used)
@@ -360,10 +520,48 @@ func GetGachaLadder(userID int, now time.Time) (*GachaLadderView, error) {
 				}
 			}
 		}
+		ids := []int{userID}
+		for _, entries := range [][]GachaLadderEntry{view.Board, view.Opponents} {
+			for _, entry := range entries {
+				if entry.ID > 0 {
+					ids = append(ids, entry.ID)
+				}
+			}
+		}
+		guilds, err := gachaGuildNames(tx, ids)
+		if err != nil {
+			return err
+		}
+		if view.Me != nil {
+			view.Me.GuildName = guilds[userID]
+		}
+		for _, entries := range [][]GachaLadderEntry{view.Board, view.Opponents} {
+			for i := range entries {
+				entries[i].GuildName = guilds[entries[i].ID]
+			}
+		}
 		if err := tx.Select("id", "attacker_id", "defender_id", "attacker_name", "defender_name", "attacker_before", "attacker_after", "defender_before", "defender_after", "attack_win", "played_at").Where("attacker_id = ? OR defender_id = ?", userID, userID).Order("played_at DESC, id DESC").Limit(20).Find(&view.History).Error; err != nil {
 			return err
 		}
-		return tx.Where("user_id = ?", userID).Order("claimed ASC, day DESC").Limit(60).Find(&view.Mail).Error
+		if _, _, err := loadGachaPlayer(tx, userID, now); err != nil {
+			return err
+		}
+		var bestRewards []GachaLadderMail
+		if err := tx.Where("user_id = ? AND kind = ?", userID, "best").Find(&bestRewards).Error; err != nil {
+			return err
+		}
+		for i := range view.BestRewards {
+			tier := &view.BestRewards[i]
+			for _, reward := range bestRewards {
+				if reward.Day != fmt.Sprintf("best:%d", tier.MaxRank) {
+					continue
+				}
+				tier.Claimed, tier.DeliveredAt = reward.Claimed, reward.DeliveredAt
+				tier.CanClaim = view.BestRank > 0 && view.BestRank <= tier.MaxRank && !reward.Claimed && reward.DeliveredAt == 0
+				break
+			}
+		}
+		return tx.Where("user_id = ? AND kind <> ?", userID, "best").Order("day DESC").Limit(60).Find(&view.Mail).Error
 	})
 	return view, err
 }
@@ -386,6 +584,13 @@ func validateGachaLadderIntent(intent GachaActionIntent) error {
 			return ErrGachaIntent
 		}
 		if day, err := time.Parse("2006-01-02", *intent.ItemID); err != nil || day.Format("2006-01-02") != *intent.ItemID {
+			return ErrGachaIntent
+		}
+	case "ladder_best_claim":
+		if intent.OpponentID != nil || intent.Count != nil || intent.ItemID == nil {
+			return ErrGachaIntent
+		}
+		if _, ok := gachaLadderBestTier(*intent.ItemID); !ok {
 			return ErrGachaIntent
 		}
 	default:
@@ -438,9 +643,7 @@ func applyGachaLadderAction(userID int, intent GachaActionIntent, now time.Time)
 				return err
 			}
 			me.ID, me.Rank, me.Name, me.JoinedAt = userID, last.Rank+1, name, now.UnixMilli()
-			if me.BestRank == 0 {
-				me.BestRank = me.Rank
-			}
+			me.BestRank = gachaLadderBestRank(me.BestRank, me.Rank)
 			if err := gachaLadderDefense(&me, state); err != nil {
 				return err
 			}
@@ -469,24 +672,54 @@ func applyGachaLadderAction(userID int, intent GachaActionIntent, now time.Time)
 			if !active {
 				return ErrGachaLadder
 			}
+			me.Name = name
 			result.Ladder, err = challengeGachaLadder(tx, &me, state, *intent.OpponentID, *intent.Count, now)
 			if err != nil {
 				return err
 			}
+			if err := recordGuildPersonalActivity(state, "arena", now); err != nil {
+				return err
+			}
 		case "ladder_claim":
+			// Cached clients may still send the old action. It only ensures mailbox
+			// delivery; rewards are claimed exclusively through the public inbox.
 			var mail GachaLadderMail
 			if err := tx.First(&mail, "user_id = ? AND day = ?", userID, *intent.ItemID).Error; err != nil || mail.Claimed {
 				return ErrGachaLadder
 			}
-			for key, amount := range map[string]int{"mat_r": mail.Materials.R, "mat_sr": mail.Materials.SR, "mat_ssr": mail.Materials.SSR} {
-				if amount < 0 || state.Mats[key] < 0 || state.Mats[key] > gachaMaxResource-amount {
-					return ErrGachaCapacity
-				}
-				state.Mats[key] += amount
+		case "ladder_best_claim":
+			tier, ok := gachaLadderBestTier(*intent.ItemID)
+			if !ok || me.BestRank <= 0 || me.BestRank > tier.MaxRank {
+				return ErrGachaLadder
 			}
-			if err := tx.Model(&mail).Update("claimed", true).Error; err != nil {
+			var reward GachaLadderMail
+			if err := tx.First(&reward, "user_id = ? AND day = ? AND kind = ?", userID, *intent.ItemID, "best").Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return ErrGachaLadder
+				}
 				return err
 			}
+			if reward.Claimed || reward.DeliveredAt != 0 {
+				return ErrGachaLadder
+			}
+			if state.Token > gachaMaxResource-tier.Token {
+				return ErrGachaCapacity
+			}
+			claimed := tx.Model(&GachaLadderMail{}).Where("user_id = ? AND day = ? AND claimed = ? AND delivered_at = ?", userID, reward.Day, false, 0).Update("claimed", true)
+			if claimed.Error != nil {
+				return claimed.Error
+			}
+			if claimed.RowsAffected != 1 {
+				return ErrGachaLadder
+			}
+			state.Token += tier.Token
+			result.Drops = append(result.Drops, fmt.Sprintf("历史前%d名 · 代币 ×%d", tier.MaxRank, tier.Token))
+		}
+		if err := queueGachaLadderBestRewards(tx, now); err != nil {
+			return err
+		}
+		if _, err := syncGachaLadderMailbox(tx, userID, state, now); err != nil {
+			return err
 		}
 		if err := storeGachaPlayer(tx, player, state, now); err != nil {
 			return err
@@ -517,9 +750,11 @@ func challengeGachaLadder(tx *gorm.DB, me *GachaLadderEntry, attack *GachaGameSt
 		return nil, ErrGachaLadder
 	}
 	if opponentID > 0 {
-		if _, err := gachaLadderIdentity(tx, opponentID); err != nil {
+		name, err := gachaLadderIdentity(tx, opponentID)
+		if err != nil {
 			return nil, ErrGachaLadder
 		}
+		opponent.Name = name
 	}
 	var defense GachaGameState
 	if err := common.Unmarshal([]byte(opponent.Defense), &defense); err != nil {
@@ -538,7 +773,7 @@ func challengeGachaLadder(tx *gorm.DB, me *GachaLadderEntry, attack *GachaGameSt
 			return nil, err
 		}
 		me.Rank, opponent.Rank = opponent.Rank, me.Rank
-		me.BestRank = min(me.BestRank, me.Rank)
+		me.BestRank = gachaLadderBestRank(me.BestRank, me.Rank)
 		if err := tx.Save(&opponent).Error; err != nil {
 			return nil, err
 		}

@@ -2,6 +2,7 @@ package model_test
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -23,13 +24,13 @@ func runGachaLadderMatrix(t *testing.T, clock time.Time) {
 		local := clock.In(zone)
 		now := time.Date(local.Year(), local.Month(), local.Day(), 20, 59, 0, 0, zone)
 		tables := []any{&model.GachaLadderGate{}, &model.GachaLadderEntry{}, &model.GachaLadderMail{}, &model.GachaLadderBattle{}}
-		require.NoError(t, model.DB.Migrator().DropTable(tables...))
 		user := gachaUser(t)
 		state := gachaState(t, user.Id, now)
 		strongGachaState(state)
 		seedGachaState(t, user.Id, state)
 		var before model.GachaPlayer
 		require.NoError(t, model.DB.First(&before, "user_id = ?", user.Id).Error)
+		require.NoError(t, model.DB.Migrator().DropTable(tables...))
 		require.NoError(t, model.DB.AutoMigrate(tables...))
 		require.NoError(t, model.InitializeGachaLadder(now))
 		require.NoError(t, model.DB.AutoMigrate(tables...))
@@ -91,6 +92,13 @@ func runGachaLadderMatrix(t *testing.T, clock time.Time) {
 		require.True(t, out.Ladder.Win)
 		assert.Equal(t, 101, out.Ladder.OwnBefore)
 		assert.Equal(t, 100, out.Ladder.OwnAfter)
+		assert.Equal(t, state.Token, out.Save.Token, "historical rewards wait for explicit direct collection")
+		assert.Nil(t, ladderPublicMail(out.Save, "ladder:best:100"))
+		var breakthrough model.GachaLadderMail
+		require.NoError(t, model.DB.First(&breakthrough, "user_id = ? AND day = ?", user.Id, "best:100").Error)
+		assert.False(t, breakthrough.Claimed)
+		assert.Zero(t, breakthrough.DeliveredAt)
+		assert.Equal(t, 200, breakthrough.Token)
 		assert.Zero(t, out.Save.Daily.ArenaPlayed, "ranked challenges do not consume E matchmaking allowance")
 		retry, err := model.ApplyGachaAction(user.Id, challenge, now.Add(2*time.Second))
 		require.NoError(t, err)
@@ -153,20 +161,29 @@ func runGachaLadderMatrix(t *testing.T, clock time.Time) {
 		require.Len(t, view.Mail, 1)
 		assert.Equal(t, 100, view.Mail[0].Rank, "21:00 snapshot precedes the post-21:00 rank change")
 		assert.Equal(t, model.GachaLadderReward(100), view.Mail[0].Materials)
+		assert.Equal(t, 80, view.Mail[0].Token)
+		assert.Positive(t, view.Mail[0].DeliveredAt)
 		require.NoError(t, model.SettleGachaLadder(context.Background(), boundary.Add(3*time.Second)))
 		require.NoError(t, model.SettleGachaLadder(context.Background(), boundary.Add(3*time.Second)))
 		day := view.Mail[0].Day
-		claim := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_claim", ItemID: &day}
 		oldR := out.Save.Mats["mat_r"]
+		oldToken := out.Save.Token
+		legacy, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_claim", ItemID: &day}, boundary.Add(4*time.Second))
+		require.NoError(t, err)
+		assert.Equal(t, oldR, legacy.Save.Mats["mat_r"], "old claim buttons only deliver to the shared inbox")
+		assert.Equal(t, oldToken, legacy.Save.Token)
+		mailID := "ladder:daily:" + day
+		claim := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "mail_claim", ItemID: &mailID}
 		claimed, err := model.ApplyGachaAction(user.Id, claim, boundary.Add(4*time.Second))
 		require.NoError(t, err)
 		assert.Equal(t, oldR+40, claimed.Save.Mats["mat_r"])
+		assert.Equal(t, oldToken+80, claimed.Save.Token)
 		again, err := model.ApplyGachaAction(user.Id, claim, boundary.Add(5*time.Second))
 		require.NoError(t, err)
 		assert.Equal(t, claimed, again, "claim retries do not credit twice")
 		claim.RequestID = uuid.NewString()
 		_, err = model.ApplyGachaAction(user.Id, claim, boundary.Add(6*time.Second))
-		assert.ErrorIs(t, err, model.ErrGachaLadder)
+		assert.ErrorIs(t, err, model.ErrGachaMailUnavailable)
 		wallet := model.User{}
 		require.NoError(t, model.DB.First(&wallet, user.Id).Error)
 		assert.Equal(t, user.Quota, wallet.Quota, "ranked play and materials do not mutate E balance")
@@ -195,7 +212,7 @@ func runGachaLadderMatrix(t *testing.T, clock time.Time) {
 		view, err = model.GetGachaLadder(user.Id, later)
 		require.NoError(t, err)
 		require.Len(t, view.Mail, 3)
-		newDay := later.In(zone).Format("2006-01-02")
+		newDay := "ladder:daily:" + later.In(zone).Format("2006-01-02")
 		state = gachaState(t, user.Id, later)
 		oldR = state.Mats["mat_r"]
 		var errs [2]error
@@ -204,22 +221,29 @@ func runGachaLadderMatrix(t *testing.T, clock time.Time) {
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
-				_, errs[i] = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_claim", ItemID: &newDay}, later)
+				_, errs[i] = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "mail_claim", ItemID: &newDay}, later)
 			}(i)
 		}
 		wg.Wait()
 		assert.NotEqual(t, errs[0] == nil, errs[1] == nil)
 		assert.Equal(t, oldR+40, gachaState(t, user.Id, later).Mats["mat_r"])
 		previousDay := later.Add(-24 * time.Hour).In(zone).Format("2006-01-02")
+		previousMailID := "ladder:daily:" + previousDay
 		state = gachaState(t, user.Id, later)
 		state.Mats["mat_r"] = 1_000_000_000
 		seedGachaState(t, user.Id, state)
-		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_claim", ItemID: &previousDay}, later)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "mail_claim", ItemID: &previousMailID}, later)
 		assert.ErrorIs(t, err, model.ErrGachaCapacity)
 		var mail model.GachaLadderMail
 		require.NoError(t, model.DB.First(&mail, "user_id = ? AND day = ?", user.Id, previousDay).Error)
-		assert.False(t, mail.Claimed, "capacity failure rolls back entitlement consumption")
-		t.Log("100 NPCs; swap 101 -> 100 -> 99; replay uses 1 attempt; rank-100 award 40/20/5; 05:00 reset to 5; 1 of 2 concurrent claims; full inventory leaves entitlement unclaimed; E wallet unchanged")
+		assert.Positive(t, mail.DeliveredAt, "public inbox delivery is independent of asset capacity")
+		state = gachaState(t, user.Id, later)
+		for _, message := range state.Mailbox.Messages {
+			if message.ID == previousMailID {
+				assert.False(t, message.Claimed, "capacity failure leaves public attachments pending")
+			}
+		}
+		t.Log("100 NPCs; swap 101 -> 100 -> 99; replay uses 1 attempt; rank-100 daily mail 40/20/5 + 80 tokens; best-100 entitlement 200 tokens; 05:00 reset; concurrent public claim exactly once; E wallet unchanged")
 		require.NoError(t, model.InitializeGachaLadder(later))
 		var positions []int
 		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("position > 0").Order("position ASC").Pluck("position", &positions).Error)
@@ -232,6 +256,7 @@ func runGachaLadderMatrix(t *testing.T, clock time.Time) {
 		_, err = model.GetGachaLadderReplay(user.Id, out.Ladder.ID)
 		assert.Error(t, err)
 	})
+	runGachaLadderMailbox(t)
 }
 
 var ladderTestZone = time.FixedZone("UTC+8", 8*3600)
@@ -272,6 +297,11 @@ func ladderTestMail(t *testing.T, userID int, boundary time.Time) []model.GachaL
 	t.Helper()
 	var mail []model.GachaLadderMail
 	require.NoError(t, model.DB.Where("user_id = ? AND day = ?", userID, boundary.Format("2006-01-02")).Find(&mail).Error)
+	// Delivery may legitimately happen later on an ordinary profile load. These
+	// settlement assertions compare the immutable entitlement and cutoff only.
+	for i := range mail {
+		mail[i].DeliveredAt = 0
+	}
 	return mail
 }
 
@@ -397,5 +427,261 @@ func runGachaLadderEligibility(t *testing.T) {
 				t.Logf("%s: real win 2 -> 1, credited cutoff rank=%d and %d/%d/%d", scenario.name, scenario.mailRank, scenario.award.R, scenario.award.SR, scenario.award.SSR)
 			})
 		}
+	})
+}
+
+func ladderPublicMail(state *model.GachaGameState, id string) *model.GachaMailMessage {
+	for _, message := range state.Mailbox.Messages {
+		if message.ID == id {
+			return message
+		}
+	}
+	return nil
+}
+
+func runGachaLadderMailbox(t *testing.T) {
+	t.Run("historical_tiers_claim_directly_after_retirement_and_survive_rejoin", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-10 * time.Minute)
+		user := gachaUser(t)
+		join := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_join"}
+		_, err := model.ApplyGachaAction(user.Id, join, now)
+		require.NoError(t, err)
+		// Upgraded best ranks unlock all crossed tiers without mailing or paying.
+		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("id = ?", user.Id).Update("best_rank", 1).Error)
+		before := gachaState(t, user.Id, now)
+		view, err := model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		require.Equal(t, 1, view.BestRank)
+		require.Len(t, view.BestRewards, 6)
+		state := gachaState(t, user.Id, now)
+		assert.Equal(t, before.Token, state.Token)
+		assert.Equal(t, before.Mailbox, state.Mailbox)
+		var outbox []model.GachaLadderMail
+		require.NoError(t, model.DB.Where("user_id = ? AND kind = ?", user.Id, "best").Find(&outbox).Error)
+		require.Len(t, outbox, 6)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_leave"}, now)
+		require.NoError(t, err)
+		view, err = model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		assert.Nil(t, view.Me)
+		assert.Equal(t, 1, view.BestRank)
+		total := 0
+		for _, tier := range view.BestRewards {
+			assert.True(t, tier.CanClaim, "retired players can still collect reached tiers")
+			assert.False(t, tier.Claimed)
+			assert.Zero(t, tier.DeliveredAt)
+			id := "best:" + fmt.Sprint(tier.MaxRank)
+			claim := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}
+			claimed, err := model.ApplyGachaAction(user.Id, claim, now)
+			require.NoError(t, err)
+			total += tier.Token
+			assert.Equal(t, before.Token+total, claimed.Save.Token)
+			assert.Equal(t, before.Mailbox, claimed.Save.Mailbox)
+			replay, err := model.ApplyGachaAction(user.Id, claim, now)
+			require.NoError(t, err)
+			assert.Equal(t, claimed, replay, "same request replays the exact receipt")
+			claim.RequestID = uuid.NewString()
+			_, err = model.ApplyGachaAction(user.Id, claim, now)
+			assert.ErrorIs(t, err, model.ErrGachaLadder, "new requests cannot claim a tier twice")
+		}
+		assert.Equal(t, 6200, total)
+		require.NoError(t, model.DB.Model(&model.User{}).Where("id = ?", user.Id).Update("display_name", "更名后的旅人").Error)
+		join.RequestID = uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, join, now)
+		require.NoError(t, err)
+		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("id = ?", user.Id).Update("best_reward_rank", 0).Error)
+		view, err = model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		state = gachaState(t, user.Id, now)
+		assert.Equal(t, before.Token+6200, state.Token)
+		for _, tier := range view.BestRewards {
+			assert.True(t, tier.Claimed)
+			assert.False(t, tier.CanClaim)
+			assert.Zero(t, tier.DeliveredAt)
+			assert.Nil(t, ladderPublicMail(state, "ladder:best:"+fmt.Sprint(tier.MaxRank)))
+		}
+		var count int64
+		require.NoError(t, model.DB.Model(&model.GachaLadderMail{}).Where("user_id = ? AND kind = ?", user.Id, "best").Count(&count).Error)
+		assert.EqualValues(t, 6, count)
+		var wallet model.User
+		require.NoError(t, model.DB.First(&wallet, user.Id).Error)
+		assert.Equal(t, user.Quota, wallet.Quota)
+	})
+	t.Run("best_claim_rejects_forged_tiers_and_unreached_ranks", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-10 * time.Minute)
+		user := gachaUser(t)
+		_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_join"}, now)
+		require.NoError(t, err)
+		for _, id := range []string{"", "best:0", "best:2", "best:0100", "best:+100", "best:100 ", "ladder:best:100", "2026-11-27"} {
+			assert.ErrorIs(t, model.ValidateGachaAction(model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}), model.ErrGachaIntent)
+		}
+		id, extra := "best:100", 200
+		assert.ErrorIs(t, model.ValidateGachaAction(model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id, Count: &extra}), model.ErrGachaIntent)
+		before := gachaState(t, user.Id, now)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}, now)
+		assert.ErrorIs(t, err, model.ErrGachaLadder)
+		assert.Equal(t, before.Token, gachaState(t, user.Id, now).Token)
+	})
+	t.Run("best_claim_capacity_failure_leaves_entitlement_and_request_retryable", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-10 * time.Minute)
+		user := gachaUser(t)
+		_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_join"}, now)
+		require.NoError(t, err)
+		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("id = ?", user.Id).Update("best_rank", 100).Error)
+		_, err = model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		state := gachaState(t, user.Id, now)
+		state.Token = 1_000_000_000 - 199
+		seedGachaState(t, user.Id, state)
+		id := "best:100"
+		claim := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}
+		_, err = model.ApplyGachaAction(user.Id, claim, now)
+		assert.ErrorIs(t, err, model.ErrGachaCapacity)
+		var reward model.GachaLadderMail
+		require.NoError(t, model.DB.First(&reward, "user_id = ? AND day = ?", user.Id, id).Error)
+		assert.False(t, reward.Claimed)
+		assert.Zero(t, reward.DeliveredAt)
+		view, err := model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		assert.True(t, view.BestRewards[0].CanClaim)
+		state = gachaState(t, user.Id, now)
+		assert.Equal(t, 1_000_000_000-199, state.Token)
+		assert.Nil(t, ladderPublicMail(state, "ladder:best:100"))
+		state.Token--
+		seedGachaState(t, user.Id, state)
+		result, err := model.ApplyGachaAction(user.Id, claim, now)
+		require.NoError(t, err, "a failed capacity check does not consume the idempotency key")
+		assert.Equal(t, 1_000_000_000, result.Save.Token)
+	})
+	t.Run("concurrent_best_claims_pay_exactly_once", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-10 * time.Minute)
+		user := gachaUser(t)
+		_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_join"}, now)
+		require.NoError(t, err)
+		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("id = ?", user.Id).Update("best_rank", 100).Error)
+		before := gachaState(t, user.Id, now)
+		id := "best:100"
+		var errs [2]error
+		var wg sync.WaitGroup
+		for i := range errs {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				_, errs[i] = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}, now)
+			}(i)
+		}
+		wg.Wait()
+		assert.NotEqual(t, errs[0] == nil, errs[1] == nil)
+		for _, err := range errs {
+			if err != nil {
+				assert.ErrorIs(t, err, model.ErrGachaLadder)
+			}
+		}
+		assert.Equal(t, before.Token+200, gachaState(t, user.Id, now).Token)
+	})
+	t.Run("legacy_best_mail_remains_in_inbox_and_never_duplicates_direct_claim", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-10 * time.Minute)
+		user := gachaUser(t)
+		_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_join"}, now)
+		require.NoError(t, err)
+		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("id = ?", user.Id).Update("best_rank", 50).Error)
+		state := gachaState(t, user.Id, now)
+		beforeToken := state.Token
+		mailID := "ladder:best:100"
+		state.Mailbox.Messages = append(state.Mailbox.Messages, &model.GachaMailMessage{ID: mailID, Title: "旧历史排名奖励", Sender: "竞技场", CreatedAt: now.UnixMilli(), Resources: map[string]int{"token": 200}})
+		seedGachaState(t, user.Id, state)
+		legacy := model.GachaLadderMail{UserID: user.Id, Day: "best:100", Kind: "best", Rank: 100, Token: 200, SettledAt: now.UnixMilli(), DeliveredAt: now.UnixMilli()}
+		pending := model.GachaLadderMail{UserID: user.Id, Day: "best:50", Kind: "best", Rank: 50, Token: 400, SettledAt: now.UnixMilli()}
+		require.NoError(t, model.DB.Create(&legacy).Error)
+		require.NoError(t, model.DB.Create(&pending).Error)
+		view, err := model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		assert.False(t, view.BestRewards[0].CanClaim)
+		assert.Positive(t, view.BestRewards[0].DeliveredAt)
+		assert.True(t, view.BestRewards[1].CanClaim, "undelivered old entitlements switch to direct collection")
+		id := "best:100"
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}, now)
+		assert.ErrorIs(t, err, model.ErrGachaLadder)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "mail_claim", ItemID: &mailID}, now)
+		require.NoError(t, err)
+		assert.Equal(t, beforeToken+200, gachaState(t, user.Id, now).Token)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "mail_delete_read"}, now)
+		require.NoError(t, err)
+		require.NoError(t, model.DB.Model(&model.GachaLadderEntry{}).Where("id = ?", user.Id).Update("best_reward_rank", 0).Error)
+		_, err = model.GetGachaLadder(user.Id, now)
+		require.NoError(t, err)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}, now)
+		assert.ErrorIs(t, err, model.ErrGachaLadder, "deleting the old letter cannot reopen direct collection")
+		id = "best:50"
+		result, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_best_claim", ItemID: &id}, now)
+		require.NoError(t, err)
+		assert.Equal(t, beforeToken+600, result.Save.Token)
+		assert.Nil(t, ladderPublicMail(result.Save, "ladder:best:50"))
+	})
+	t.Run("legacy_mail_migration_is_atomic_even_on_action_replay", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-5 * time.Minute)
+		user := gachaUser(t)
+		join := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "ladder_join"}
+		_, err := model.ApplyGachaAction(user.Id, join, now)
+		require.NoError(t, err)
+		before := gachaState(t, user.Id, now)
+		day := now.AddDate(0, 0, -1).Format("2006-01-02")
+		claimedDay := now.AddDate(0, 0, -2).Format("2006-01-02")
+		legacy := model.GachaLadderMail{UserID: user.Id, Day: day, Rank: 50, Materials: model.GachaLadderMaterials{R: 60, SR: 30, SSR: 8}, SettledAt: now.AddDate(0, 0, -1).UnixMilli()}
+		claimed := model.GachaLadderMail{UserID: user.Id, Day: claimedDay, Rank: 1, Materials: model.GachaLadderMaterials{R: 120, SR: 60, SSR: 20}, SettledAt: now.AddDate(0, 0, -2).UnixMilli(), Claimed: true}
+		require.NoError(t, model.DB.Create(&legacy).Error)
+		require.NoError(t, model.DB.Create(&claimed).Error)
+		_, err = model.ApplyGachaAction(user.Id, join, now)
+		require.NoError(t, err, "an idempotent old action still persists newly synchronized mail")
+		state := gachaState(t, user.Id, now)
+		message := ladderPublicMail(state, "ladder:daily:"+day)
+		require.NotNil(t, message)
+		assert.Equal(t, map[string]int{"mat_r": 60, "mat_sr": 30, "mat_ssr": 8}, message.Resources, "legacy attachment amounts are preserved without retroactive token grants")
+		assert.Nil(t, ladderPublicMail(state, "ladder:daily:"+claimedDay), "already claimed legacy rows must not migrate again")
+		assert.Equal(t, before.Token, state.Token)
+		assert.Equal(t, before.Mats, state.Mats)
+		require.NoError(t, model.DB.First(&legacy, "user_id = ? AND day = ?", user.Id, day).Error)
+		assert.Positive(t, legacy.DeliveredAt)
+		for i := 0; i < 3; i++ {
+			_, err = model.GetGachaLadder(user.Id, now)
+			require.NoError(t, err)
+		}
+		state = gachaState(t, user.Id, now)
+		matches := 0
+		for _, item := range state.Mailbox.Messages {
+			if item.ID == message.ID {
+				matches++
+			}
+		}
+		assert.Equal(t, 1, matches)
+	})
+	t.Run("full_automatic_mailbox_keeps_pending_ranked_outbox", func(t *testing.T) {
+		now := nextLadderTestBoundary(t).Add(-time.Minute)
+		user := gachaUser(t)
+		state := gachaState(t, user.Id, now)
+		state.Token = 0
+		state.Mailbox.Messages = []*model.GachaMailMessage{}
+		for i := 0; i < 200; i++ {
+			state.Mailbox.Messages = append(state.Mailbox.Messages, &model.GachaMailMessage{ID: fmt.Sprintf("existing:%d", i), Title: "待领邮件", Sender: "测试邮务署", CreatedAt: now.UnixMilli(), Resources: map[string]int{"gold": 1}})
+		}
+		state.Mailbox.Messages = append(state.Mailbox.Messages, &model.GachaMailMessage{ID: "system:overflow", Title: "奖励汇总", Sender: "测试邮务署", CreatedAt: now.UnixMilli(), Resources: map[string]int{"token": 1_000_000_000}})
+		seedGachaState(t, user.Id, state)
+		day := now.Format("2006-01-02")
+		mail := model.GachaLadderMail{UserID: user.Id, Day: day, Rank: 1, Token: 300, SettledAt: now.UnixMilli()}
+		require.NoError(t, model.DB.Create(&mail).Error)
+		state = gachaState(t, user.Id, now)
+		assert.Zero(t, state.Token, "mailbox capacity never blocks or silently grants account assets")
+		require.NoError(t, model.DB.First(&mail, "user_id = ? AND day = ?", user.Id, day).Error)
+		assert.Zero(t, mail.DeliveredAt)
+		id := "system:overflow"
+		_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "mail_claim", ItemID: &id}, now)
+		require.NoError(t, err)
+		state = gachaState(t, user.Id, now)
+		summary := ladderPublicMail(state, id)
+		require.NotNil(t, summary)
+		assert.False(t, summary.Claimed)
+		assert.Equal(t, 300, summary.Resources["token"])
+		require.NoError(t, model.DB.First(&mail, "user_id = ? AND day = ?", user.Id, day).Error)
+		assert.Positive(t, mail.DeliveredAt)
 	})
 }

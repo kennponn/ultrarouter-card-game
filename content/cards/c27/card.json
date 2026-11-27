@@ -1,0 +1,43 @@
+{
+  "id": "c27",
+  "name": "雪翎",
+  "rarity": "SSR",
+  "elem": "star",
+  "role": "sdps",
+  "atkType": "ranged",
+  "img": "content/cards/c27/assets/portrait.webp",
+  "base": {
+    "hp": 1360,
+    "atk": 350,
+    "def": 95,
+    "spd": 121,
+    "cr": 18,
+    "cd": 170,
+    "ehr": 0,
+    "res": 20
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "白羽矢",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "破晓穿云",
+      "mult": 4.8,
+      "target": "enemy",
+      "ignoreDefPct": 30,
+      "desc": "对单体造成480%攻击伤害，无视目标30%防御"
+    }
+  },
+  "desc": "立于雪岭高台的白羽弓手，将黎明收进弓弦，让穿云之箭直抵敌阵要害。",
+  "battleImg": "content/cards/c27/assets/portrait-cut.webp",
+  "fxColor": "#9a6bff",
+  "legacyImages": {
+    "assets/c27-xueling.webp": "content/cards/c27/assets/portrait.webp",
+    "assets/c27-xueling-cut.webp": "content/cards/c27/assets/portrait-cut.webp"
+  }
+}

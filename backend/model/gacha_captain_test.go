@@ -116,10 +116,9 @@ func TestGachaCaptainDailyTasksRequireConfirmedPlay(t *testing.T) {
 	assert.Equal(t, map[string]int{"rollcall": 1, "voyage": 3, "drill": 1}, log.Progress)
 	gold := state.Gold
 	require.NoError(t, applyGachaCaptainClaim(state, intent, receipt, now))
-	assert.Equal(t, gold, state.Gold)
-	mailID := "daily:" + gachaDay(now) + ":voyage"
-	require.NoError(t, applyGachaMail(state, mailTestIntent("mail_claim", mailID), receipt, now))
 	assert.Equal(t, gold+gachaCaptainTask("voyage").Gold, state.Gold)
+	assert.True(t, log.Claimed["voyage"])
+	assert.False(t, log.Claimed["rollcall"], "claiming one task must not claim another")
 	require.ErrorIs(t, applyGachaCaptainClaim(state, intent, receipt, now), ErrGachaCaptainClaim)
 	for _, action := range []string{"squad", "wish", "gear_upgrade", "card_feed"} {
 		recordGachaCaptainAction(state, action)
@@ -133,10 +132,12 @@ func TestGachaCaptainDailyTasksRequireConfirmedPlay(t *testing.T) {
 	require.ErrorIs(t, applyGachaCaptainClaim(state, intent, receipt, next), ErrGachaCaptainClaim)
 	state.Gold = gachaMaxResource
 	rollcall := captainTestIntent(gachaDay(next), "captain_task", "rollcall")
+	require.ErrorIs(t, applyGachaCaptainClaim(state, rollcall, receipt, next), ErrGachaCapacity)
+	assert.False(t, state.Daily.CaptainLog.Claimed["rollcall"])
+	state.Gold -= gachaCaptainTask("rollcall").Gold
 	require.NoError(t, applyGachaCaptainClaim(state, rollcall, receipt, next))
 	assert.True(t, state.Daily.CaptainLog.Claimed["rollcall"])
-	mailID = "daily:" + gachaDay(next) + ":rollcall"
-	require.ErrorIs(t, applyGachaMail(state, mailTestIntent("mail_claim", mailID), receipt, next), ErrGachaCapacity)
+	assert.Equal(t, gachaMaxResource, state.Gold)
 	for _, bad := range []GachaActionIntent{captainTestIntent("2026-02-30", "captain_task", "rollcall"), captainTestIntent(gachaDay(now), "captain_supply", "rollcall"), captainTestIntent(gachaDay(now), "captain_task", "extra")} {
 		require.ErrorIs(t, ValidateGachaAction(bad), ErrGachaIntent)
 	}
@@ -164,9 +165,6 @@ func TestGachaCaptainBeijingMealBoundariesAndOverflow(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err)
-		assert.Equal(t, 120, state.Stamina)
-		mailID := "meal:" + gachaDay(base) + ":" + check.id
-		require.NoError(t, applyGachaMail(state, mailTestIntent("mail_claim", mailID), &GachaActionResult{}, now))
 		assert.Equal(t, 150, state.Stamina)
 		require.ErrorIs(t, applyGachaCaptainClaim(state, intent, &GachaActionResult{}, now), ErrGachaCaptainClaim)
 		state.Token = 100

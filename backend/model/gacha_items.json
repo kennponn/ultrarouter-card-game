@@ -14,7 +14,7 @@
     "growth":{"order":1,"name":"成长材料"},"forge":{"order":2,"name":"锻造工料"},
     "equipment":{"order":3,"name":"绑定装备"},"ticket":{"order":4,"name":"召唤票券"},
     "gem":{"order":5,"name":"星阵宝石"},"chip":{"order":6,"name":"槽位芯片"},
-    "sigil":{"order":7,"name":"灵印工料"},"legacy":{"order":8,"name":"旧藏回收"},"keepsake":{"order":9,"name":"随身道具"}
+    "sigil":{"order":7,"name":"灵印工料"},"legacy":{"order":8,"name":"旧藏回收"},"keepsake":{"order":9,"name":"随身奇物"}
   },
   "items": {
     "ember":{"name":"余烬拓片","category":"evidence","quality":"purple","icon":"stamp","source":"异闻调查中选择留下余烬的行动，并将线索安全归档。","use":"灯使定相、夜巡末阶晋升、封存对应遗物。","effect":"按结案所得存入证物匣；不算卡牌碎片，不增加人物经验。"},
@@ -22,7 +22,7 @@
     "key":{"name":"门纹钥印","category":"evidence","quality":"gold","icon":"seal","source":"异闻调查中追索门纹，结案后记录在个人证物匣。","use":"守阈定相、夜巡末阶晋升、封存雨衣或镜片。","effect":"仅在玩家确认对应仪式时消耗；档案结局本身不会因消耗而丢失。"},
     "training_ink":{"name":"研训墨","category":"growth","quality":"green","icon":"essence","source":"普通主线 2 份、主线首领 4 份、普通裂隙 5 份、噩梦裂隙 8 份；部分密务也可获得。","use":"指定一项努力值培养，或为当前卡色逐级突破。","effect":"每次训练依阶段增加 10–150 努力，不超过阶段上限。每次卡牌突破都要消耗研训墨，越往后用量越大。"},
     "break_seal":{"name":"晋阶章","category":"growth","quality":"gold","icon":"seal","source":"主线首领 1 枚、普通裂隙 2 枚、噩梦裂隙 3 枚。","use":"卡牌突破、努力晋段、夜巡晋阶与重新定相。","effect":"每张卡从第三次突破开始消耗晋阶章，只检查当前卡级，不要求星级；努力晋段需要五项全满。"},
-    "route_badge":{"name":"行旅徽记","category":"forge","quality":"green","icon":"waymark","source":"普通主线、主线首领、普通裂隙、噩梦裂隙每次胜利分别发 1、2、3、4 枚。","use":"在携带页制作六种随身道具；或留给装备十二星后的超限。","effect":"按配方确定制作；装备 13、14、15 星还需分别交 60、100、160 枚，不替代辉星铆钉。"},
+    "route_badge":{"name":"行旅徽记","category":"forge","quality":"green","icon":"waymark","source":"普通主线、主线首领、普通裂隙、噩梦裂隙每次胜利分别发 1、2、3、4 枚。","use":"在携带页制作六种随身奇物；或留给装备十二星后的超限。","effect":"按配方确定制作；装备 13、14、15 星还需分别交 60、100、160 枚，不替代辉星铆钉。"},
     "keepsake_lens":{"name":"折光望镜","category":"keepsake","quality":"green","icon":"lens","source":"携带页：8 行旅徽记、4 星锻矿。","use":"勘星手记 · 每人携带一件。","effect":"攻击 +2%，开场怒气 +8。"},
     "keepsake_log":{"name":"测星日志","category":"keepsake","quality":"blue","icon":"manual","source":"携带页：28 行旅徽记、20 灵纹丝。","use":"勘星手记 · 每人携带一件。","effect":"生命 +3%，每次普攻额外回怒 3。"},
     "keepsake_reed":{"name":"归航短笛","category":"keepsake","quality":"gold","icon":"reed","source":"携带页：90 行旅徽记、45 灵纹丝、6 觉醒棱芯。","use":"勘星手记 · 每人携带一件。","effect":"速度 +2，主动治疗与技能护盾 +8%。"},

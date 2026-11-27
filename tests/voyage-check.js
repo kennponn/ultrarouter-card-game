@@ -63,6 +63,7 @@ test("voyage draws navigable desktop and portrait routes, independent modes and 
 test("home star rewards count unique mainline records and deep-link to a claimable tier without claiming it", context => {
   const {save,book,api,calls,find,all} = voyageHarness(context);
   Object.assign(save.stars,{s1:3,v1h1:3,v2n1:1,res_manifest:3,r1:3,unknown:3});
+  Object.assign(save.cleared,{s1:true,v1h1:true,v2n1:true,res_manifest:true,r1:true});
   book.chapters[1].routes.story[0]="s1";
   api.renderVoyageSummary();
   assert.match(find("#home-chest-progress").textContent,/7 \/ 75 星 · 1 档可领取/);
@@ -92,6 +93,7 @@ test("locked resource previews name the fixed loot and direct links issue only t
 test("chest requires stars in the selected chapter and difficulty; posts only its stable claim key", async context => {
   const {save,api,find,calls} = voyageHarness(context);
   Object.assign(save.stars,{s1:3,v1s2:3,v1s3:2,v1h1:3});
+  Object.assign(save.cleared,{s1:true,v1s2:true,v1s3:true,v1h1:true});
   api.renderStage(); find('[data-voy-chest="c1-story-1"]').click(); await find("[data-voy-claim]").onclick();
   assert.deepEqual(calls,[["voyage_chest",{item_id:"c1-story-1"}]]); assert.equal(save.gold,700); assert.deepEqual(save.voyage_claims,{});
   save.voyage_claims["c1-story-1"]=true; api.closeOnly(); api.renderStage(); find('[data-voy-chest="c1-story-1"]').click(); assert.equal(find("[data-voy-claim]").disabled,true);
@@ -99,9 +101,29 @@ test("chest requires stars in the selected chapter and difficulty; posts only it
   assert.match(api.voyageResultSummary("s1",{win:true,save}),/8\/24/);
 });
 
+test("uncleared stars cannot appear in totals or enable sweeps, and all prerequisites apply", context => {
+  const {save,book,api,find} = voyageHarness(context);
+  Object.assign(save.stars,{s1:3,v1h1:3,res_manifest:3});
+  api.renderVoyageSummary();
+  assert.equal(api.voyageLedger().stars,0);
+  save.cleared.s1=true;
+  book.stages.res_manifest.unlockStage='s5';
+  api.openVoyage('resources','res_manifest');
+  assert.equal(find('[data-voy-start]').disabled,true);
+  assert.match(find('.voy-gate').textContent,/通关/);
+  save.cleared.s5=true;
+  api.openVoyage('resources','res_manifest');
+  assert.equal(find('[data-voy-start]').disabled,false);
+  assert.equal(find('[data-voy-sweep="1"]').disabled,true);
+  save.cleared.res_manifest=true;
+  api.openVoyage('resources','res_manifest');
+  assert.equal(find('[data-voy-sweep="1"]').disabled,false);
+  assert.equal(api.voyageLedger().stars,3);
+});
+
 test("sweeps require three stars, available attempts and stamina and submit only the dated server intent", async context => {
   const {save,api,find,calls} = voyageHarness(context);
-  save.cleared.s1=true; save.stars.res_manifest=2; api.openVoyage("resources","res_manifest");
+  save.cleared.s1=true; save.cleared.res_manifest=true; save.stars.res_manifest=2; api.openVoyage("resources","res_manifest");
   assert.equal(find('[data-voy-sweep="1"]').disabled,true); assert.match(find(".voy-sweep").textContent,/不发站点额度/);
   save.stars.res_manifest=3; save.stamina=12; api.openVoyage("resources","res_manifest"); assert.equal(find('[data-voy-sweep="1"]').disabled,false); assert.equal(find('[data-voy-sweep="3"]').disabled,true);
   save.stamina=120; save.daily.voyage_attempts.res_manifest=1; api.openVoyage("resources","res_manifest"); assert.equal(find('[data-voy-sweep="3"]').disabled,true);
@@ -116,7 +138,7 @@ test("an idle voyage detail crosses Beijing midnight; only the confirmed new att
   api.Store.serverNow = () => now;
   dom.window.setTimeout = (callback, delay) => { if (delay === 150) boundary = callback; return 0; };
   api.Store.refresh = () => { reads++; return new Promise(resolve => { finishRefresh = resolve; }); };
-  save.cleared.s1 = true; save.stars.res_manifest = 3; save.daily.voyage_attempts.res_manifest = 3;
+  save.cleared.s1 = true; save.cleared.res_manifest = true; save.stars.res_manifest = 3; save.daily.voyage_attempts.res_manifest = 3;
   api.openVoyage("resources","res_manifest");
   assert.match(find('[data-voy-left]').textContent,/0\/3/);
   const oldStart = find('[data-voy-start]'), oldSweep = find('[data-voy-sweep="1"]');
@@ -135,7 +157,7 @@ test("an idle voyage detail crosses Beijing midnight; only the confirmed new att
 
 test("a click racing the midnight timer cannot start or sweep; failed refresh waits for explicit retry", async context => {
   const {dom,save,api,find,calls} = voyageHarness(context);
-  save.cleared.s1 = true; save.stars.res_manifest = 3; api.openVoyage("resources","res_manifest");
+  save.cleared.s1 = true; save.cleared.res_manifest = true; save.stars.res_manifest = 3; api.openVoyage("resources","res_manifest");
   let reads = 0;
   api.Store.serverNow = () => Date.parse("2026-11-27T16:00:00Z");
   api.Store.refresh = async () => { reads++; throw Error("offline"); };

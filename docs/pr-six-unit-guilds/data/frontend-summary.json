@@ -1,0 +1,14 @@
+{
+  "baseline": {
+    "node": 129,
+    "server_ui": 100,
+    "python": 19
+  },
+  "candidate": {
+    "node": 185,
+    "server_ui": 102,
+    "python": 20,
+    "release_files": 290
+  },
+  "ci_url": "https://github.com/1810551251/ultrarouter-card-game/actions/runs/46022541116"
+}

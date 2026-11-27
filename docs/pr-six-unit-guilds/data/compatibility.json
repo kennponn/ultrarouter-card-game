@@ -1,0 +1,178 @@
+{
+  "baseline": "8877d515dcb59b481709a266d25ea9e156a57213",
+  "candidate": "58bef777327083f4818912bff5cbeee69e33980f",
+  "common_ancestor": "8877d515dcb59b481709a266d25ea9e156a57213",
+  "merge_tree_equals_candidate": true,
+  "card_rules_unchanged": 28,
+  "identical_art_files": 56,
+  "cards": [
+    {
+      "id": "c01",
+      "portrait": "b67e3db8f443df31f9c730921194d6d020c3807e416bacfe8dc6b5f6a81c99e3",
+      "battle_portrait": "f087df485360dce66f0e282b3d047d10b01888ed659aa9aefac867147d7a12e4",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c02",
+      "portrait": "f2992b185d2c305503fce4cbea1fede801971a2d28b97d6f1c62f61ea875a9fd",
+      "battle_portrait": "e84e18d60f8cbe49f6b42eccde14bbdc623b4be3d63c911e0f2a2f7ad8f8b5d4",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c06",
+      "portrait": "f3ca2fa08a833a00969fa474154be23d498a6203a38a6f8ba199ced4921e86d5",
+      "battle_portrait": "24d815d926caf18802ead538027f3de9f5feed09625df9183bab9a6653102053",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c08",
+      "portrait": "1e776013033f30e2a200a4adc883ac25f1dc67efae03e28c8bf247c46044581c",
+      "battle_portrait": "5fa8582cf5355e0a034237cd760d816f793f327035e5ceac2fbabf1cdcfde518",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c12",
+      "portrait": "99ead0188b064d97c0be1fb84f5347b46fd973cf0aea90c6ee6ccda9f7918c00",
+      "battle_portrait": "1c4170511746feda9ecd67fdfbe01dfcbfd18e6e7acb46b8a3e2113b831147ae",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c20",
+      "portrait": "a858b2bab3d47e9a364355a923d56a2f2b35eb9be9a93b02da10a9445f21be5c",
+      "battle_portrait": "268cb1c5ff63f0c6e3a8dade7f078617dd1c42487b41fb1589484ce7c3d9a5d0",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c21",
+      "portrait": "79de723522313af8fd3bc84e13f5aa41f4fc45aa9e247fecb08b406039635c0c",
+      "battle_portrait": "769a98a2aacc7f87985b5115445b78f084349882c5879d78ace2977e67aa6ec9",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c22",
+      "portrait": "339e131c2b76bf8a770ccb7caa262600ba85a77fd7a5a08250bed3175fcda891",
+      "battle_portrait": "2c8b8effa005c6a97b04971d0a737800f1b0bcd75fd413ddc4ee278e47990e9f",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c11",
+      "portrait": "2355764d4c640af7ca899dbe7de7391c6978067b5a8bb7efd12645418c110e9d",
+      "battle_portrait": "961156e098f3b189ca4aa30452b1680ea21724b6eb060fb5db71a5002eef88cf",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c05",
+      "portrait": "1cb0ee5d50bc871d2520e52bef304d64934662a9fcaa9a9ed6e1612a827b2f02",
+      "battle_portrait": "700e2de4049341ba3c3997249405c4e2e61ad14c36dc08150a861303e7225106",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c13",
+      "portrait": "71d506931db9b1f94f9a699c104b18648e95f95002fe8df5787cec8ea31677a5",
+      "battle_portrait": "520b7b17b12bd684db2f27b6344278d81487604b73c29715aefdf9b8ffb2981a",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c10",
+      "portrait": "0f969e6f86bfe94f916e3e505a989826e765b0279a72d5b7891ced1854ef7a85",
+      "battle_portrait": "09a34a80b95b44df220b2730eac54af6c93352fe4c66a854de0a11f1cdc5951d",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c14",
+      "portrait": "6b9c79f8e7f0b5a2b2b00526e18dfdc193f71282304533c2f95f6edf2aa08132",
+      "battle_portrait": "9e3da7613d973b98bcf2ca86881d18c9933f7bc2cc960ec51375849d93b6575b",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c17",
+      "portrait": "50e511b4ab06eac4d290e5f340b0a4cce3d13f4648820b0b5518fd8655989137",
+      "battle_portrait": "349dc228dc949b7b1eccd85cd6d83ffaa8e799ae11f3c044a85a6bf396bf5be1",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c18",
+      "portrait": "15185d44e31c2ae54db628f853965df29b4f61db3dc460b264025aa068e360df",
+      "battle_portrait": "8f51182a3248466cf6efb1c6dd364724571348820b7f05ae03e0d63641548eed",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c19",
+      "portrait": "273c166e5726b5a85079321491fb810efc0cc6f631b478717311f22f8b03dfe7",
+      "battle_portrait": "0407fb1d07d0bd418246f13842691c7f01e1016beabfc14e687d15b3694d1ed5",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c23",
+      "portrait": "c54a6fca1b322cbd42de6256adb4bc6b41f6028e710e104edee28809be86cf3d",
+      "battle_portrait": "f00e732e481ccf4284e4fa2a3250cc20575d1f93d12678fc8b4076c8498e915f",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c24",
+      "portrait": "2daf919d0223a51ebbe259292185c2ed74156f73a13bde0086327a5fe8617c97",
+      "battle_portrait": "e3563af58e587d6907b25990ea09cd70f7d1356a135cffdcd190a7b2976fa65e",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c25",
+      "portrait": "d74decbe54915ffb98dee8936b02be1bbd9440307aed6b01605717988d308d58",
+      "battle_portrait": "bb6db2e8f1a963ead3a75b6ee92d19ce6ff08e433899f8fff3125c13352d29f7",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c26",
+      "portrait": "bd8d2a5e3262f9e04835447beb8690ed6cfd84fb5e02a11d125c6a8b8ede5211",
+      "battle_portrait": "2290754c5b7f86321057af25e2c0f84e960778227866e3753f77c0963d1bac54",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c04",
+      "portrait": "44961bd17b5eb7f7ed0e10b2bdf04f8640e32aa2a830a02cf076b91cfab611da",
+      "battle_portrait": "03a0ea417abb903dd0d36797312f8f5b9d36d6291cd0f75260cb3a97c6bb402b",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c07",
+      "portrait": "dbc40a4904b5aaac152cb8da62a6052afdded800c228a5bbe8808feeef1d1a78",
+      "battle_portrait": "9bc958371909eeb0c9e89fa48b1491d098b520d5574418d04c7069c7243de251",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c09",
+      "portrait": "a5ad1ac45a69053885f2d0551577c7eaff36abf1d7965f113541d2a1cff94237",
+      "battle_portrait": "6d4df46c530ddb37c48384a12a77d22b4b4f1fb5b32e8200efda6c37f92b41de",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c03",
+      "portrait": "1818ed00038ecdea2ed51a686a6007b46579ab6f6eb08cc8b84e714b782fb7fc",
+      "battle_portrait": "a6e8cfb560c6e88aa20d0314cb5dc81cf917e6e635d6e62c18a36806bd64022c",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c15",
+      "portrait": "18ea6eefb81cf8bea4eea99d674a1b4d4b0cb19ac1f699e08429342d311fe420",
+      "battle_portrait": "303ace69c751a42cfecf39fca5d55f4132801794fbc66a6221c221955f3b9164",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c16",
+      "portrait": "2193927d61089ca7d6fcbc5cb621489bbc02ae2d7a472ab98fec7d75e04050da",
+      "battle_portrait": "9612a790a8c947ceef6ee8c5978b94eb4ca18b3150d81a19b72e564cc68fc97e",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c27",
+      "portrait": "2071db3c61516a085eecb1a9fc7780794494d357400feae8f5b344a291effea4",
+      "battle_portrait": "993ef5f185b6b7193b86170db3e7c375f36c48b436342ab3cbdc50fc8e25a10a",
+      "gameplay_rules_equal": true
+    },
+    {
+      "id": "c28",
+      "portrait": "5e981aca9e7110e5233db840ec4a5ba3941ae58ca50345fa68e6dd50ef35e65f",
+      "battle_portrait": "07b42847416e99d7dd9acdec51cf37df5c54a1fdeb134fd40a6f3be6e2135ed6",
+      "gameplay_rules_equal": true
+    }
+  ]
+}

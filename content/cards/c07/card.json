@@ -1,0 +1,45 @@
+{
+  "id": "c07",
+  "name": "星墙",
+  "rarity": "SSR",
+  "elem": "star",
+  "role": "tank",
+  "atkType": "heavy",
+  "img": "content/cards/c07/assets/portrait.webp",
+  "base": {
+    "hp": 2100,
+    "atk": 180,
+    "def": 160,
+    "spd": 95,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 30
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "星陨冲撞",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "星座壁垒",
+      "mult": 0,
+      "target": "team",
+      "shieldMult": 1.8,
+      "taunt": true,
+      "selfDefUp": 30,
+      "desc": "全队获得180%攻击护盾，自身嘲讽并提升30%防御1回合"
+    }
+  },
+  "desc": "背负星座之盾的守护者。",
+  "battleImg": "content/cards/c07/assets/portrait-cut.webp",
+  "fxColor": "#ffe27a",
+  "legacyImages": {
+    "assets/c07-xingqiang.webp": "content/cards/c07/assets/portrait.webp",
+    "assets/c07-xingqiang-cut.webp": "content/cards/c07/assets/portrait-cut.webp"
+  }
+}

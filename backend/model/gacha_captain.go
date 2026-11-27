@@ -225,23 +225,27 @@ func applyGachaCaptainClaim(state *GachaGameState, intent GachaActionIntent, res
 		if supply == nil || hour < supply.Start || hour >= supply.End || log.Supplies[id] {
 			return ErrGachaCaptainClaim
 		}
-		if err := sendGachaMail(state, "meal:"+day+":"+id, supply.Name, "本时段补给已寄达，领取附件增加体力，超过自然恢复上限的部分保留。", map[string]int{"stamina": supply.Stamina}, 0, now); err != nil {
-			return err
+		if state.Stamina > gachaMaxResource-supply.Stamina {
+			return ErrGachaCapacity
+		}
+		state.Stamina += supply.Stamina
+		if state.Stamina >= state.StaminaMax {
+			state.StaminaTs = now.UnixMilli()
 		}
 		log.Supplies[id] = true
-		result.Drops = append(result.Drops, supply.Name+"已发送至邮箱")
+		result.Drops = append(result.Drops, fmt.Sprintf("%s · 体力 +%d", supply.Name, supply.Stamina))
 		return nil
 	}
 	task := gachaCaptainTask(id)
 	if task == nil || log.Claimed[id] || log.Progress[id] < task.Target {
 		return ErrGachaCaptainClaim
 	}
-	if err := deliverGachaDailyMail(state, now); err != nil {
-		return err
+	if state.Gold > gachaMaxResource-task.Gold {
+		return ErrGachaCapacity
 	}
-	if !log.Claimed[id] {
-		return ErrGachaMailboxFull
-	}
-	result.Drops = append(result.Drops, task.Name+"奖励已发送至邮箱")
+	state.Gold += task.Gold
+	grantGachaCaptainXP(state, task.XP, &result.Drops)
+	log.Claimed[id] = true
+	result.Drops = append(result.Drops, fmt.Sprintf("%s · 金币 +%d", task.Name, task.Gold))
 	return nil
 }

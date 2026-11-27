@@ -1,0 +1,43 @@
+{
+  "id": "c23",
+  "name": "夜萤",
+  "rarity": "SR",
+  "elem": "dark",
+  "role": "sdps",
+  "atkType": "melee",
+  "img": "content/cards/c23/assets/portrait.webp",
+  "base": {
+    "hp": 1070,
+    "atk": 255,
+    "def": 75,
+    "spd": 119,
+    "cr": 16,
+    "cd": 160,
+    "ehr": 0,
+    "res": 15
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "掠影刃",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "双萤逐夜",
+      "mult": 4.3,
+      "target": "enemy",
+      "hits": 2,
+      "desc": "对单体造成两段215%攻击伤害"
+    }
+  },
+  "desc": "巡行夜巷的双刃斥候，以萤火为暗号，在敌人察觉前结束交锋。",
+  "battleImg": "content/cards/c23/assets/portrait-cut.webp",
+  "fxColor": "#8a93a8",
+  "legacyImages": {
+    "assets/c23-yeying.webp": "content/cards/c23/assets/portrait.webp",
+    "assets/c23-yeying-cut.webp": "content/cards/c23/assets/portrait-cut.webp"
+  }
+}

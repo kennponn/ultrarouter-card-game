@@ -19,7 +19,7 @@ var (
 	ErrGachaPermits          = errors.New("recruit permits are required")
 	ErrGachaProgressionLimit = errors.New("no eligible banked opportunity")
 	ErrGachaAwakening        = errors.New("awakening level, stars, trial or branch is missing")
-	ErrGachaDualTeam         = errors.New("two distinct four-character squads are required")
+	ErrGachaDualTeam         = errors.New("two distinct squads of four to six characters are required")
 	ErrGachaProgressionAdmin = errors.New("progression configuration requires an administrator")
 	ErrGachaConfigVersion    = errors.New("progression configuration version changed")
 )
@@ -207,7 +207,7 @@ func validateGachaProgressionIntent(intent GachaActionIntent) error {
 			return ErrGachaIntent
 		}
 	case "teams_save":
-		if intent.Squad == nil || len(*intent.Squad) != 8 {
+		if intent.Squad == nil || len(*intent.Squad) < 8 || len(*intent.Squad) > 2*GachaSquadLimit || len(*intent.Squad)%2 != 0 {
 			return ErrGachaIntent
 		}
 	case "sigil_refine":
@@ -305,7 +305,7 @@ func normalizeGachaProgression(state *GachaGameState, now time.Time, rules Gacha
 	if p.Dual.Week != gachaWeekKey(now) {
 		p.Dual = GachaDualTrialState{Week: gachaWeekKey(now)}
 	}
-	if len(p.Days) > 7 || len(p.Weeks) > 2 || len(p.MainlineClaims) > 3 || len(p.ReserveSquad) > 4 || len(p.ActiveDays) > 90 {
+	if len(p.Days) > 7 || len(p.Weeks) > 2 || len(p.MainlineClaims) > 3 || len(p.ReserveSquad) > GachaSquadLimit || len(p.ActiveDays) > 90 {
 		return ErrGachaRunState
 	}
 	for i, d := range p.Days {
@@ -629,7 +629,11 @@ func applyGachaProgressionAction(tx *gorm.DB, userID int, state *GachaGameState,
 			}
 			p.Marks += w.Rules.MarksPerWeek
 			p.Permits += w.Rules.PermitsPerWeek
-			own.Shards += w.Rules.ShardsPerWeek
+			if w.Rules.ShardsPerWeek > 0 {
+				if err := grantGachaDirectResources(state, map[string]int{"shard:" + girl.ID: w.Rules.ShardsPerWeek}, result, now); err != nil {
+					return err
+				}
+			}
 			w.Claimed = true
 			result.Drops = append(result.Drops, fmt.Sprintf("\u5468\u5e38\uff1a\u5951\u7ea6\u5370 +%d\u3001\u62db\u52df\u5238 +%d\u3001%s\u788e\u7247 +%d", w.Rules.MarksPerWeek, w.Rules.PermitsPerWeek, girl.Name, w.Rules.ShardsPerWeek))
 			return nil
@@ -734,14 +738,18 @@ func applyGachaProgressionAction(tx *gorm.DB, userID int, state *GachaGameState,
 		result.Drops = append(result.Drops, fmt.Sprintf("%s\u89c9\u9192%d\u9636\uff0c\u5951\u7ea6\u5370 -%d", gachaGirl(*intent.GirlID).Name, rank, cost))
 	case "teams_save":
 		team := *intent.Squad
+		if len(team) < 8 || len(team) > 2*GachaSquadLimit || len(team)%2 != 0 {
+			return ErrGachaDualTeam
+		}
 		for i, id := range team {
 			own := state.Girls[id]
 			if !gachaCardOwned(own) || gachaGirl(id) == nil || slices.Contains(team[:i], id) {
 				return ErrGachaDualTeam
 			}
 		}
-		state.Squad, p.ReserveSquad = slices.Clone(team[:4]), slices.Clone(team[4:])
-		result.Drops = append(result.Drops, "\u4e24\u652f\u5e38\u7528\u961f\u4f0d\u5df2\u4fdd\u5b58\uff1b\u8bd5\u70bc\u5f00\u5c40\u540e\u4f7f\u7528\u5f53\u65f6\u9501\u5b9a\u7684\u516b\u540d\u89d2\u8272")
+		split := len(team) / 2
+		state.Squad, p.ReserveSquad = slices.Clone(team[:split]), slices.Clone(team[split:])
+		result.Drops = append(result.Drops, "两支常用队伍已保存；试炼开局后使用当时锁定的角色与站位")
 	case "sigil_refine":
 		sigil := state.Sigils[*intent.ItemID]
 		if !validGachaSigil(sigil) {
@@ -868,7 +876,7 @@ func specialGachaProgressionStage(stageID string, state *GachaGameState, now tim
 		}
 		if len(p.Dual.Squads) == 0 {
 			all := append(slices.Clone(state.Squad), p.ReserveSquad...)
-			if len(state.Squad) != 4 || len(p.ReserveSquad) != 4 {
+			if len(state.Squad) < 4 || len(state.Squad) > GachaSquadLimit || len(p.ReserveSquad) < 4 || len(p.ReserveSquad) > GachaSquadLimit {
 				return nil, snapshot, ErrGachaDualTeam
 			}
 			for i, id := range all {
@@ -877,7 +885,7 @@ func specialGachaProgressionStage(stageID string, state *GachaGameState, now tim
 					return nil, snapshot, ErrGachaDualTeam
 				}
 			}
-			p.Dual.Squads = [][]string{slices.Clone(all[:4]), slices.Clone(all[4:])}
+			p.Dual.Squads = [][]string{slices.Clone(state.Squad), slices.Clone(p.ReserveSquad)}
 		}
 		if p.Dual.Phase < 0 || p.Dual.Phase > 1 || len(p.Dual.Squads) != 2 {
 			return nil, snapshot, ErrGachaRunState
@@ -912,8 +920,8 @@ func specialGachaProgressionStage(stageID string, state *GachaGameState, now tim
 		snapshot.ProgressionGirl, snapshot.ProgressionRank = girl.ID, rank
 		snapshot.Squad = slices.Clone(state.Squad)
 		if !slices.Contains(snapshot.Squad, girl.ID) {
-			if len(snapshot.Squad) >= 4 {
-				snapshot.Squad[3] = girl.ID
+			if len(snapshot.Squad) >= GachaSquadLimit {
+				snapshot.Squad[GachaSquadLimit-1] = girl.ID
 			} else {
 				snapshot.Squad = append(snapshot.Squad, girl.ID)
 			}

@@ -1,0 +1,43 @@
+{
+  "id": "c13",
+  "name": "圣愈",
+  "rarity": "SR",
+  "elem": "water",
+  "role": "heal",
+  "atkType": "magic",
+  "img": "content/cards/c13/assets/portrait.webp",
+  "base": {
+    "hp": 1250,
+    "atk": 210,
+    "def": 90,
+    "spd": 98,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 10,
+    "res": 25
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "圣光弹",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "圣泉祷言",
+      "mult": 0,
+      "target": "team",
+      "healMult": 1.6,
+      "desc": "治疗全队（160%攻击）并解除1个负面效果"
+    }
+  },
+  "desc": "教堂修女，群体治疗。",
+  "battleImg": "content/cards/c13/assets/portrait-cut.webp",
+  "fxColor": "#8fd0ff",
+  "legacyImages": {
+    "assets/c13-shengyu.webp": "content/cards/c13/assets/portrait.webp",
+    "assets/c13-shengyu-cut.webp": "content/cards/c13/assets/portrait-cut.webp"
+  }
+}

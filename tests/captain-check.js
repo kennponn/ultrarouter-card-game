@@ -26,7 +26,7 @@ function setup(context) {
 test("captain journal reads confirmed progress and submits only dated task and meal IDs", async context => {
   const {document,log,calls,click,api,pages} = setup(context);
   assert.equal(document.querySelector("#res-captain").textContent,"Lv.3");
-  assert.match(document.querySelector("#captain-summary").textContent,/1 项任务待投递.*便当可领/);
+  assert.match(document.querySelector("#captain-summary").textContent,/1 项任务可领取.*便当可领/);
   assert.equal(document.querySelector(".captain-xp progress").value,8);
   await click('[data-captain-visit="voyage"]');
   assert.deepEqual(pages,["page-stage"]);
@@ -37,10 +37,11 @@ test("captain journal reads confirmed progress and submits only dated task and m
   assert.deepEqual(log.claimed,{});
   assert.deepEqual(log.supplies,{});
   log.claimed.rollcall = true; log.supplies.morning = true; api.renderCaptain();
-  assert.equal(document.querySelector('[data-captain-task="rollcall"]').disabled,false);
-  assert.match(document.querySelector('[data-captain-supply="morning"]').textContent,/已寄送/);
+  assert.equal(document.querySelector('[data-captain-task="rollcall"]').disabled,true);
+  assert.equal(document.querySelector('[data-captain-supply="morning"]').disabled,true);
+  assert.match(document.querySelector('[data-captain-supply="morning"]').textContent,/已领取/);
   await click('[data-captain-task="rollcall"]'); await click('[data-captain-supply="morning"]');
-  assert.deepEqual(pages.slice(-2),["mail:inbox","mail:inbox"]); assert.equal(calls.length,2);
+  assert.deepEqual(pages,["page-stage"]); assert.equal(calls.length,2);
 });
 
 test("home portrait opens a personal dossier with confirmed XP, full-card collection and working return and shortcuts", context => {

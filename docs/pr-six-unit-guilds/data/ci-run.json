@@ -1,0 +1,17 @@
+{
+  "run_id": "46022541116",
+  "url": "https://github.com/1810551251/ultrarouter-card-game/actions/runs/46022541116",
+  "tested_commit": "58bef777327083f4818912bff5cbeee69e33980f",
+  "jobs": {
+    "game-source": "success",
+    "six-unit-compatibility": "success"
+  },
+  "databases": {
+    "sqlite": "3.41.2",
+    "mysql": "8.0.46",
+    "postgres": "16.15"
+  },
+  "cpu_limit_cores": 2,
+  "go": "1.25.5",
+  "canonical_source_files_verified": 72
+}

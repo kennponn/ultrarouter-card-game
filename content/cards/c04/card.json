@@ -1,0 +1,43 @@
+{
+  "id": "c04",
+  "name": "龙音",
+  "rarity": "SSR",
+  "elem": "fire",
+  "role": "sdps",
+  "atkType": "melee",
+  "img": "content/cards/c04/assets/portrait.webp",
+  "base": {
+    "hp": 1500,
+    "atk": 380,
+    "def": 110,
+    "spd": 116,
+    "cr": 15,
+    "cd": 170,
+    "ehr": 0,
+    "res": 20
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "龙枪突刺",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "龙焰葬送",
+      "mult": 5.5,
+      "target": "enemy",
+      "ignoreDefPct": 20,
+      "desc": "对单体造成550%攻击伤害，无视目标20%防御"
+    }
+  },
+  "desc": "龙角的枪之主人，单体主C。",
+  "battleImg": "content/cards/c04/assets/portrait-cut.webp",
+  "fxColor": "#ff6e5e",
+  "legacyImages": {
+    "assets/c04-longyin.webp": "content/cards/c04/assets/portrait.webp",
+    "assets/c04-longyin-cut.webp": "content/cards/c04/assets/portrait-cut.webp"
+  }
+}

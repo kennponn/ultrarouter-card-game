@@ -1,0 +1,45 @@
+{
+  "id": "c22",
+  "name": "榛果",
+  "rarity": "R",
+  "elem": "plant",
+  "role": "tank",
+  "atkType": "heavy",
+  "img": "content/cards/c22/assets/portrait.webp",
+  "base": {
+    "hp": 1500,
+    "atk": 125,
+    "def": 98,
+    "spd": 89,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 20
+  },
+  "matBonus": 0,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "橡锤重敲",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "坚果堡垒",
+      "mult": 0,
+      "target": "self",
+      "shieldMult": 2.4,
+      "taunt": true,
+      "selfDefUp": 15,
+      "desc": "自身获得240%攻击的护盾，嘲讽全体敌人并提升15%防御1回合"
+    }
+  },
+  "desc": "扛着重锤的林间护卫，走得慢却站得稳，总把最危险的位置留给自己。",
+  "battleImg": "content/cards/c22/assets/portrait-cut.webp",
+  "fxColor": "#4fbf7f",
+  "legacyImages": {
+    "assets/c22-zhenguo.webp": "content/cards/c22/assets/portrait.webp",
+    "assets/c22-zhenguo-cut.webp": "content/cards/c22/assets/portrait-cut.webp"
+  }
+}

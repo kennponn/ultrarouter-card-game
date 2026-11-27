@@ -173,7 +173,7 @@ func sendGachaMail(state *GachaGameState, id, title, body string, resources map[
 		}
 	}
 	if pending >= 200 {
-		if strings.HasPrefix(id, "daily:") || strings.HasPrefix(id, "battle:") {
+		if strings.HasPrefix(id, "daily:") || strings.HasPrefix(id, "battle:") || strings.HasPrefix(id, "ladder:") {
 			return mergeGachaAutomaticMail(state, resources, captainXP, now)
 		}
 		return ErrGachaMailboxFull
@@ -208,7 +208,7 @@ func mergeGachaAutomaticMail(state *GachaGameState, resources map[string]int, ca
 				}
 			}
 		}
-		summary = &GachaMailMessage{ID: "system:overflow", Title: "任务与副本奖励汇总", Body: "常规待领邮件较多，后续任务与副本物资合并保存在此。跨日仍可收取，领取不会遗漏已完成的奖励。", Sender: "星霜港航务署", CreatedAt: now.UnixMilli(), Resources: map[string]int{}}
+		summary = &GachaMailMessage{ID: "system:overflow", Title: "系统与排名奖励汇总", Body: "待领邮件较多，后续自动发放的奖励合并保存在此。跨日仍可收取。", Sender: "星霜港航务署", CreatedAt: now.UnixMilli(), Resources: map[string]int{}}
 		state.Mailbox.Messages = append(state.Mailbox.Messages, summary)
 	}
 	if summary.CaptainXP > gachaMaxResource-captainXP {
@@ -225,86 +225,6 @@ func mergeGachaAutomaticMail(state *GachaGameState, resources map[string]int, ca
 	summary.CaptainXP += captainXP
 	summary.Read = false
 	return nil
-}
-
-func deliverGachaDailyMail(state *GachaGameState, now time.Time) error {
-	log := state.Daily.CaptainLog
-	if log == nil {
-		return nil
-	}
-	for _, task := range gachaCaptainRules.Tasks {
-		if log.Claimed[task.ID] || log.Progress[task.ID] < task.Target {
-			continue
-		}
-		if err := sendGachaMail(state, "daily:"+state.Daily.Date+":"+task.ID, "每日任务 · "+task.Name, "任务已完成，奖励自动寄达。领取附件后获得物资与船长经验。", map[string]int{"gold": task.Gold}, task.XP, now); err != nil {
-			return err
-		}
-		log.Claimed[task.ID] = true
-	}
-	return nil
-}
-
-func gachaMailableBalance(state *GachaGameState) map[string]int {
-	balances := maps.Clone(state.Mats)
-	for _, id := range []string{"gold", "stamina", "token", "multi", "permits", "marks"} {
-		balances[id], _ = gachaMailResource(state, id)
-	}
-	for id, own := range state.Girls {
-		if own != nil {
-			balances["shard:"+id] = own.Shards
-		}
-	}
-	return balances
-}
-
-func beginGachaMailRewards(state *GachaGameState) map[string]int {
-	before := gachaMailableBalance(state)
-	for resource := range before {
-		if resource != "stamina" {
-			setGachaMailResource(state, resource, 0)
-		}
-	}
-	return before
-}
-
-func mailGachaRewards(state *GachaGameState, before map[string]int, id, title string, now time.Time, drops *[]string) error {
-	resources := map[string]int{}
-	for resource, amount := range gachaMailableBalance(state) {
-		if resource == "stamina" {
-			if amount > before[resource] {
-				resources[resource] = amount - before[resource]
-				state.Stamina = before[resource]
-			}
-			continue
-		}
-		if amount < 0 {
-			return ErrGachaRunState
-		}
-		if amount > 0 {
-			resources[resource] = amount
-		}
-		setGachaMailResource(state, resource, 0)
-	}
-	for resource, amount := range before {
-		if resource != "stamina" {
-			setGachaMailResource(state, resource, amount)
-		}
-	}
-	if len(resources) == 0 {
-		return nil
-	}
-	if err := sendGachaMail(state, id, title, "本次奖励已寄达，请领取附件；满体力仍可收取补给。", resources, 0, now); err != nil {
-		return err
-	}
-	*drops = append([]string{"物资已发送至邮箱，领取附件后入库"}, *drops...)
-	return nil
-}
-
-func gachaMailActionTitle(action string) string {
-	if action == "contract_claim" {
-		action = "daily_contract_claim"
-	}
-	return map[string]string{"voyage_chest": "副本星级宝箱", "voyage_sweep": "副本扫荡物资", "festival_play": "港口活动奖励", "festival_album": "航务集章奖励", "guild_claim": "公会讨伐奖励", "guild_supply_claim": "公会共建奖励", "daily_permits": "每日招募补给", "daily_contract_claim": "每日契约奖励", "weekly_claim": "每周成长奖励", "mainline_claim": "主线里程碑奖励"}[action]
 }
 
 func validateGachaMailIntent(intent GachaActionIntent) error {
@@ -343,11 +263,11 @@ func applyGachaMail(state *GachaGameState, intent GachaActionIntent, receipt *Ga
 			if day < gift.Starts || day > gift.Ends || state.Mailbox.Redeemed[gift.ID] {
 				return ErrGachaRedeemCode
 			}
-			if err := sendGachaMail(state, "gift:"+gift.ID, gift.Name, "兑换成功，礼包已送达。每个账号限兑一次。", gift.Resources, 0, now); err != nil {
+			if err := grantGachaDirectResources(state, gift.Resources, receipt, now); err != nil {
 				return err
 			}
 			state.Mailbox.Redeemed[gift.ID] = true
-			receipt.Drops = []string{"兑换成功，礼包已发送至邮箱"}
+			receipt.Drops = append(receipt.Drops, "兑换成功，礼包已直接到账")
 			return nil
 		}
 		return ErrGachaRedeemCode
@@ -388,9 +308,22 @@ func applyGachaMail(state *GachaGameState, intent GachaActionIntent, receipt *Ga
 			resources[resource] += amount
 		}
 	}
+	if err := grantGachaDirectResources(state, resources, receipt, now); err != nil {
+		return err
+	}
+	grantGachaCaptainXP(state, xp, &receipt.Drops)
+	for _, message := range selected {
+		message.Claimed, message.Read = true, true
+	}
+	return nil
+}
+
+// Validate the whole bundle before changing any balance. Used by explicit
+// claims and gift redemption; old mail attachments keep the same semantics.
+func grantGachaDirectResources(state *GachaGameState, resources map[string]int, receipt *GachaActionResult, now time.Time) error {
 	for resource, amount := range resources {
 		current, ok := gachaMailResource(state, resource)
-		if !ok || current < 0 || current > gachaMaxResource-amount {
+		if !ok || amount < 1 || amount > gachaMaxResource || current < 0 || current > gachaMaxResource-amount {
 			return ErrGachaCapacity
 		}
 	}
@@ -415,10 +348,6 @@ func applyGachaMail(state *GachaGameState, intent GachaActionIntent, receipt *Ga
 	}
 	if resources["stamina"] > 0 && state.Stamina >= state.StaminaMax {
 		state.StaminaTs = now.UnixMilli()
-	}
-	grantGachaCaptainXP(state, xp, &receipt.Drops)
-	for _, message := range selected {
-		message.Claimed, message.Read = true, true
 	}
 	return nil
 }

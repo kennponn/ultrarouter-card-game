@@ -97,7 +97,7 @@ function captainJournal() {
 
 function captainSupplyState(journal, supply) {
   if (!journal.current) return "新日待同步";
-  if (journal.log.supplies[supply.id]) return "已寄送";
+  if (journal.log.supplies[supply.id]) return "已领取";
   if (journal.hour < supply.start) return "未开餐";
   return journal.hour < supply.end ? "领取体力" : "已收餐";
 }
@@ -129,7 +129,7 @@ function renderCaptainSummary() {
     else {
       const supply = journal.rules.supplies.find(slot => captainSupplyState(journal,slot) === "领取体力");
       const ready = captainTasksReady(journal), sent = journal.rules.tasks.filter(task => journal.log.claimed[task.id]).length;
-      summary.textContent = !journal.current ? "新航日已到 · 同步日志" : `${ready ? `${ready} 项任务待投递` : sent ? `${sent} 项任务奖励已寄送` : "今日任务已登记"} · ${supply ? `${supply.name}可领` : "查看三餐补给"}`;
+      summary.textContent = !journal.current ? "新航日已到 · 同步日志" : `${ready ? `${ready} 项任务可领取` : sent ? `${sent} 项任务奖励已领取` : "今日任务已登记"} · ${supply ? `${supply.name}可领` : "查看三餐补给"}`;
     }
   }
   captainWatchBoundary(journal);
@@ -147,15 +147,15 @@ function renderCaptain() {
   const {captain,rules,log,day,current} = journal;
   const claimed = rules.tasks.filter(task => log.claimed[task.id]).length;
   body.innerHTML = `<section class="captain-passport"><div><p class="social-kicker">航籍 · ${esc(day)}</p><h3>船长 Lv.${esc(captain.level)}</h3><p>伙伴等级上限 <b>Lv.${esc(captain.level)}</b></p></div><div class="captain-xp">${captainMeter(captainGrowth())}<small>${captainXPSource}</small></div></section>
-    <section class="captain-supplies" aria-labelledby="captain-galley"><header class="mode-card-head"><div><p class="social-kicker">北京时间 · 时段内寄至邮箱 · 满体力亦可收取</p><h3 id="captain-galley">航海厨房</h3></div>${syncButton}</header>
+    <section class="captain-supplies" aria-labelledby="captain-galley"><header class="mode-card-head"><div><p class="social-kicker">北京时间 · 时段内直接领取 · 满体力亦可收取</p><h3 id="captain-galley">航海厨房</h3></div>${syncButton}</header>
     ${!current ? '<p role="status">已进入新的航海日，同步后可查看今日航务。</p>' : ""}<div class="captain-meals">${rules.supplies.map(slot => {
-      const status = captainSupplyState(journal,slot), open = status === "领取体力", delivered = status === "已寄送";
-      return `<article class="captain-meal" data-supply-state="${open ? "ready" : "closed"}"><small>${String(slot.start).padStart(2,"0")}:00–${String(slot.end).padStart(2,"0")}:00</small><h4>${esc(slot.name)}</h4><p>体力 +${slot.stamina}</p><button type="button" class="gbtn gbtn-sm${open ? " gbtn-primary" : ""}" data-captain-supply="${esc(slot.id)}" ${delivered ? 'data-captain-mail title="前往邮箱"' : ""} ${open || delivered ? "" : "disabled"}><span>${status}</span></button></article>`;
+      const status = captainSupplyState(journal,slot), open = status === "领取体力";
+      return `<article class="captain-meal" data-supply-state="${open ? "ready" : "closed"}"><small>${String(slot.start).padStart(2,"0")}:00–${String(slot.end).padStart(2,"0")}:00</small><h4>${esc(slot.name)}</h4><p>体力 +${slot.stamina}</p><button type="button" class="gbtn gbtn-sm${open ? " gbtn-primary" : ""}" data-captain-supply="${esc(slot.id)}" ${open ? "" : "disabled"}><span>${status}</span></button></article>`;
     }).join("")}</div></section>
-    <section class="captain-duties" aria-labelledby="captain-orders"><header class="mode-card-head"><div><p class="social-kicker">每日 00:00 换日 · 奖励自动寄送 ${claimed}/${rules.tasks.length}</p><h3 id="captain-orders">每日任务</h3></div></header>${rules.tasks.map(task => {
+    <section class="captain-duties" aria-labelledby="captain-orders"><header class="mode-card-head"><div><p class="social-kicker">每日 00:00 换日 · 奖励领取进度 ${claimed}/${rules.tasks.length}</p><h3 id="captain-orders">每日任务</h3></div></header>${rules.tasks.map(task => {
       const progress = log.progress[task.id] || 0, taken = log.claimed[task.id], ready = current && !taken && progress >= task.target;
       const destination = !ready && !taken && current && captainDestinations[task.id];
-      return `<article class="captain-duty"><div><h4>${esc(task.name)} <small>${progress}/${task.target}</small></h4><p>${esc(task.goal)}</p><small>船长经验 +${task.xp} · 金币 +${task.gold}</small></div><button type="button" class="gbtn gbtn-sm${ready ? " gbtn-primary" : ""}" ${destination ? `data-captain-visit="${esc(task.id)}"` : `data-captain-task="${esc(task.id)}"`} ${taken ? 'data-captain-mail title="前往邮箱"' : ""} ${ready || destination || taken ? "" : "disabled"}><span>${taken ? "已寄送 · 邮箱" : ready ? "重新投递" : destination ? destination[1] : current ? "进行中" : "待同步"}</span></button></article>`;
+      return `<article class="captain-duty"><div><h4>${esc(task.name)} <small>${progress}/${task.target}</small></h4><p>${esc(task.goal)}</p><small>船长经验 +${task.xp} · 金币 +${task.gold}</small></div><button type="button" class="gbtn gbtn-sm${ready ? " gbtn-primary" : ""}" ${destination ? `data-captain-visit="${esc(task.id)}"` : `data-captain-task="${esc(task.id)}"`} ${ready || destination ? "" : "disabled"}><span>${taken ? "已领取" : ready ? "领取奖励" : destination ? destination[1] : current ? "进行中" : "待同步"}</span></button></article>`;
     }).join("")}</section>`;
   captainWatchBoundary(journal);
 }
@@ -166,7 +166,6 @@ async function captainJournalClick(event) {
   const epoch = Store.sessionEpoch, journal = captainJournal();
   const body = button.closest("#captain-body");
   if (!body || body.dataset.captainEpoch !== String(epoch)) return;
-  if (button.hasAttribute("data-captain-mail")) return openHarborMail("inbox");
   const visit = captainDestinations[button.dataset.captainVisit];
   if (visit) {
     nav(visit[0]);
@@ -194,7 +193,7 @@ async function captainJournalClick(event) {
     if (epoch === Store.sessionEpoch && Store.ready()) {
       if (document.body.dataset.page === "page-captain") renderCaptain();
       renderTopbar();
-      if (receipt) toast((receipt.drops || []).join(" · ") || "补给已寄送，请前往邮箱领取");
+      if (receipt) toast((receipt.drops || []).join(" · ") || "奖励已到账");
     }
   }
 }

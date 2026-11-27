@@ -1,0 +1,111 @@
+/* Six-slot battlefield. Slot 0–2: front rank; slot 3–5: back rank.
+   Positions are presentation only; server slots never change with the viewport. */
+#page-squad .team-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 680px; margin-inline: auto; gap: 14px; }
+#page-squad .team-slot { min-width: 0; max-height: 270px; width: 100%; aspect-ratio: 4 / 5; }
+.squad-pick { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; color: #fff; cursor: grab; border-radius: 10px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.squad-pick img { pointer-events: none; -webkit-user-drag: none; }
+#squad-slots .slot-dragging { opacity: .45; }
+#squad-slots .slot-drop-target { outline: 3px solid #518e78; outline-offset: 4px; background: #d9eee33d; }
+#squad-slots[aria-busy="true"] { cursor: progress; }
+.squad-drag-ghost { position: fixed; margin: 0; z-index: 9999; pointer-events: none; opacity: .9; transform: rotate(2deg) scale(1.03); }
+.squad-drag-ghost * { pointer-events: none; }
+.squad-drag-ghost .ts-x { display: none; }
+.squad-pick:focus-visible, .team-slot.slot-selected { outline: 3px solid #c69135; outline-offset: 3px; }
+.team-slot .ts-x { z-index: 6; width: 28px; height: 28px; line-height: 24px; cursor: pointer; }
+#page-squad .tn-name { bottom: calc(var(--fb) + 41px); line-height: 16px; }
+#page-squad .tn-sub { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; bottom: calc(var(--fb) + 6px); height: 30px; line-height: 13px; }
+#page-squad .tn-sub .tr-grade-tag { white-space: nowrap; margin: 0; padding-block: 0; }
+#squad-selection { min-height: 24px; padding-top: 8px; color: #5b4c37; font-size: 12px; }
+
+/* A single ground plane: depth changes feet, scale and draw order, never the server slot. */
+body.in-battle #app { height: 100dvh; max-width: none; }
+body.in-battle #page-battle.active { min-height: 0; padding: 0; }
+#page-battle { --battle-ink: #eee9dd; --battle-muted: #bcc8c6; --battle-gold: #f0ce91; background: #101a2a; }
+#page-battle #battle-scene { flex: 1 1 0; width: 100%; min-height: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; container-type: size; isolation: isolate; }
+#battle-scene .scene-bg { inset: 0; background-size: 100% 100%; background-position: center bottom; filter: saturate(.82) brightness(.75); }
+#battle-scene .scene-shade { background: linear-gradient(180deg, #0d172c33, transparent 45%, #0912221a 75%, #080f2099), radial-gradient(ellipse at 50% 68%, transparent 38%, #0a13274d); }
+.battle-camps, .battle-center { display: none; }
+
+/* These panoramic platforms start at 62% height. All resting feet are below it. */
+#battle-scene .side { --figure-h: min(260px, 29cqh, 17cqw); inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; display: block; z-index: auto; }
+#battle-scene .side.allies, #battle-scene .side.enemies { left: 0; right: 0; }
+#battle-scene .allies .battle-slot { --front: calc(var(--slot-column) - 1); --slot-x: calc(42% - (var(--slot-row) - 1) * 8% - (2 - var(--slot-column)) * 16%); }
+#battle-scene .enemies .battle-slot { --front: calc(2 - var(--slot-column)); --slot-x: calc(58% + (var(--slot-row) - 1) * 8% + (var(--slot-column) - 1) * 16%); }
+.battle-slot { --slot-y: calc(34% - (var(--slot-row) - 1) * 10.5% - var(--front) * 2.5%); --depth-scale: calc(.82 + (var(--slot-row) - 1) * .08 + var(--front) * .025); --actor-h: calc(var(--figure-h) * var(--depth-scale)); --actor-w: calc(var(--actor-h) * .76); position: absolute; left: var(--slot-x); bottom: var(--slot-y); width: var(--actor-w); height: var(--actor-h); margin-left: calc(var(--actor-w) / -2); min-width: 0; min-height: 0; border: 0; background: none; z-index: calc(var(--slot-row) * 2 + var(--front)); }
+.battle-slot.vacant { visibility: hidden; }
+#battle-scene .side .unit { position: relative; inset: auto; margin: 0; width: 100%; height: 100%; min-width: 0; min-height: 0; display: block; padding: 0; border: 0; border-radius: 0; outline: none; background: none; box-shadow: none; }
+#battle-scene .unit::before { content: ""; position: absolute; bottom: -3%; left: 12%; width: 76%; height: 10%; border-radius: 50%; background: radial-gradient(ellipse, #030912b8 0%, #07112085 35%, transparent 72%); transform: scaleY(.65); }
+#battle-scene .unit::after { content: ""; position: absolute; bottom: 0; left: 24%; width: 65%; height: 9%; border-radius: 50%; transform: skewX(-35deg); background: radial-gradient(ellipse, #06102266, transparent 70%); pointer-events: none; }
+#battle-scene .side .u-body { position: relative; min-height: 0; width: 100%; height: 100%; display: flex; align-items: end; justify-content: center; z-index: 1; }
+#battle-scene .side .unit .u-face { height: 100%; width: auto; max-height: none; max-width: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 2px 2px #08112277); }
+#battle-scene .unit .u-slot { display: none; }
+#battle-scene .side .unit .u-name { position: absolute; top: calc(100% + 2px); width: 100%; max-width: none; min-width: 0; margin: 0; padding: 0; color: #f4f2e9; background: none; box-shadow: none; border-radius: 0; font-size: 11px; line-height: 16px; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #07191b, 0 0 5px #07191b; z-index: 2; }
+#battle-scene .side .unit .hp-bar, #battle-scene .side .unit .mp-bar { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: min(64px, 72%); height: 5px; margin: 0; border: 0; box-shadow: 0 1px 3px #06191b; background: #071b25e0; border-radius: 2px; z-index: 2; }
+#battle-scene .side .unit .mp-bar { top: -3px; height: 3px; }
+#battle-scene .unit .mp-fill { background: linear-gradient(90deg, #488ebe, #9ad4f1); }
+#battle-scene .unit .u-states { position: absolute; bottom: calc(100% + 13px); left: -10%; right: -10%; transform: none; display: flex; justify-content: center; flex-wrap: wrap; gap: 2px; margin: 0; pointer-events: none; z-index: 2; }
+#battle-scene .unit .u-states span { padding: 1px 3px; font-size: 9px; line-height: 12px; background: #10242de6; color: #f3d99e; border-radius: 2px; }
+#battle-scene .unit.dead { opacity: .18; }
+#battle-scene .unit.dead .u-face { transform: none; }
+#battle-scene .unit.dead .u-name, #battle-scene .unit.dead .u-states { visibility: hidden; }
+#battle-scene .side .unit.acting .u-face { filter: drop-shadow(0 0 7px #f2d29baa) drop-shadow(0 2px 3px #06191b); }
+#battle-scene .side .unit.has-shield .u-face { filter: drop-shadow(0 0 7px #7fc2ffbb) drop-shadow(0 2px 3px #06191b); }
+#battle-scene .unit.acting::before { box-shadow: 0 0 0 1px #d9b97766, 0 0 12px #efcc8d44; background: radial-gradient(ellipse, #f2d29b77, #f2d29b00 70%); }
+#battle-scene .side.solo-boss .vacant { display: none; }
+#battle-scene .side.solo-boss .occupied { --slot-x: 74%; --slot-y: 19%; --actor-h: min(420px, 54cqh, 33cqw); --actor-w: calc(var(--actor-h) * .9); z-index: 5; }
+#battle-scene .side.solo-boss .u-name { font-size: 14px; line-height: 20px; color: #ffe1a8; }
+#battle-scene .side.solo-boss .unit .hp-bar, #battle-scene .side.solo-boss .unit .mp-bar { width: 65%; }
+
+/* The action queue stays inside the scene, leaving the platform visible. */
+#battle-turn-track { position: absolute; inset: auto 4% max(9px, env(safe-area-inset-bottom)) 10%; min-height: 36px; display: flex; gap: 9px; align-items: center; margin: 0; padding: 4px 0; border: 0; color: var(--battle-muted); font-size: 10px; z-index: 45; background: none; }
+#battle-turn-track > span, #battle-turn-progress, #battle-log-toggle { display: none; }
+#battle-turn-order { display: flex; min-width: 0; gap: 8px; padding: 4px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+.turn-unit { flex-shrink: 0; position: relative; width: 32px; height: 32px; overflow: hidden; border-radius: 50%; border: 1px solid #70aaa3; background: #213c3c; transition: opacity .2s; }
+.turn-unit img { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; }
+.turn-unit.enemy { border-color: #ba7f78; background: #4b3d38; }
+.turn-unit.current { width: 38px; height: 38px; border: 2px solid #ffe4a9; box-shadow: 0 0 10px #d7b26d77; }
+.turn-unit.fallen, .turn-unit.acted { opacity: .35; filter: grayscale(.7); }
+#battle-scene #fx-layer { z-index: 36; }
+#battle-scene .battle-slot:has(.acting), #battle-scene .battle-slot:has(.bm-target) { z-index: 36; }
+#battle-scene #wave-title, #battle-scene #skill-banner { z-index: 40; }
+
+@media (max-width: 700px) {
+  #page-squad .team-slots { gap: 8px; }
+  #page-squad .team-slot { aspect-ratio: 3 / 4; }
+  #page-squad .ts-idx { font-size: 10px; padding: 2px 4px; }
+  #page-squad .ts-x { top: -5px; right: -5px; }
+  #page-squad .tn-name { font-size: 12px; }
+  #page-squad .tn-sub { font-size: 10px; }
+  #battle-scene .side .unit .u-name { font-size: 10px; line-height: 14px; }
+  #battle-scene .unit .u-elem { display: none; }
+  #battle-turn-track { left: 64px; right: 10px; }
+  #battle-turn-order { gap: 6px; }
+  .turn-unit { width: 26px; height: 26px; }
+  .turn-unit.current { width: 32px; height: 32px; }
+}
+/* Portrait uses a higher camera. Sample the same platform's floor beneath a
+   shortened distant backdrop; the character sprites themselves stay upright. */
+@media (max-width: 700px) and (orientation: portrait) {
+  #battle-scene .scene-bg { bottom: 52%; background-size: 100% 100%; overflow: visible; }
+  #battle-scene .scene-bg::after { content: ""; position: absolute; top: 64%; left: 0; width: 100%; height: 145%; background-image: inherit; background-size: 100% 310%; background-position: center bottom; mask-image: linear-gradient(transparent, #000 9%); }
+  #battle-scene .side { --figure-h: min(172px, 17cqh, 31cqw); }
+  #battle-scene .allies .battle-slot { --slot-x: calc(18% + (var(--slot-row) - 1) * 30% + var(--front) * 4%); --slot-y: calc(12% + var(--front) * 20%); --depth-scale: calc(1 - var(--front) * .06); z-index: calc(8 - var(--front)); }
+  #battle-scene .enemies .battle-slot { --slot-x: calc(22% + (var(--slot-row) - 1) * 28% - (1 - var(--front)) * 3%); --slot-y: calc(65% - var(--front) * 16%); --depth-scale: calc(.76 + var(--front) * .1); z-index: calc(3 + var(--front)); }
+  #battle-scene .side.solo-boss .occupied { --slot-x: 54%; --slot-y: 48%; --actor-h: min(250px, 30cqh, 62cqw); --actor-w: calc(var(--actor-h) * .9); }
+  #battle-scene .side .unit .hp-bar { width: 65%; }
+  #battle-scene .unit .u-states span { font-size: 8px; line-height: 11px; }
+}
+@media (max-height: 550px) and (orientation: landscape) {
+  #battle-scene .side { --figure-h: min(180px, 35cqh, 16cqw); }
+  .battle-slot { --slot-y: calc(35% - (var(--slot-row) - 1) * 9% - var(--front) * 2%); }
+  #battle-scene .side .unit .u-name { font-size: 9px; line-height: 12px; }
+  #battle-scene .unit .u-states span { font-size: 8px; line-height: 10px; }
+  #battle-turn-track { left: 70px; bottom: max(2px, env(safe-area-inset-bottom)); min-height: 28px; padding: 0; }
+  #battle-turn-order { gap: 5px; }
+  .turn-unit { width: 22px; height: 22px; }
+  .turn-unit.current { width: 28px; height: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #battle-scene .u-body, #battle-scene .u-face { animation: none !important; }
+  #battle-scene .hp-fill, #battle-scene .mp-fill { transition: none; }
+}

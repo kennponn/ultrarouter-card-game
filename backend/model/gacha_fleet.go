@@ -10,10 +10,9 @@ import (
 	"gorm.io/gorm"
 )
 
-const fleetCargoLimit = 10
 const fleetBoardLimit = 50
 const fleetDirectoryLimit = 12
-const fleetEdition = 2
+const fleetEdition = 3
 const fleetNeedsIndex = "(fleet_indexed = ? OR fleet_indexed IS NULL OR fleet_edition < ? OR fleet_edition IS NULL)"
 
 var fleetStoryPoints = func() map[string]bool {
@@ -105,13 +104,13 @@ func fleetScore(guild *GachaGuildState) int {
 }
 
 func fleetHarborView(state *GachaGameState, guild *GachaGuildState, week string) GachaFleetHarbor {
-	view := GachaFleetHarbor{LineLimit: fleetCargoLimit, Score: fleetScore(guild), Supplied: state.Daily.GuildSupplied}
+	view := GachaFleetHarbor{LineLimit: guildCargoLimit(guild), Score: fleetScore(guild), Supplied: state.Daily.GuildSupplied}
 	if state.Guild.ContributionWeek == week {
 		view.MyCargo = state.Guild.MyCargo
 	}
 	for index, rule := range fleetCargo {
 		view.Lines = append(view.Lines, GachaFleetCargoLine{rule.ID, rule.Name, rule.CostText, guild.Cargo[index],
-			!view.Supplied && guild.Cargo[index] < fleetCargoLimit && fleetResource(state, rule.Resource) >= rule.Cost})
+			!view.Supplied && guild.Cargo[index] < view.LineLimit && fleetResource(state, rule.Resource) >= rule.Cost})
 	}
 	for index, rule := range fleetBeacons {
 		claimed := state.FleetClaims != nil && state.FleetClaims.Week == week && state.FleetClaims.Mask&(1<<index) != 0
@@ -126,11 +125,14 @@ func applyFleetCargo(state *GachaGameState, owner *GachaGuildState, intent Gacha
 	if intent.Action == "guild_supply" {
 		index := fleetCargoIndex(*intent.ItemID)
 		rule := fleetCargo[index]
-		if state.Daily.GuildSupplied || owner.Cargo[index] >= fleetCargoLimit {
+		if state.Daily.GuildSupplied || owner.Cargo[index] >= guildCargoLimit(owner) {
 			return ErrGachaGuildLimit
 		}
 		if fleetResource(state, rule.Resource) < rule.Cost {
 			return ErrGachaFunds
+		}
+		if err := guildAddProgress(state, owner, 40, 35, now); err != nil {
+			return err
 		}
 		switch rule.Resource {
 		case "stamina":
@@ -145,7 +147,10 @@ func applyFleetCargo(state *GachaGameState, owner *GachaGuildState, intent Gacha
 		state.Daily.GuildSupplied = true
 		state.Guild.MyCargo++
 		owner.Cargo[index]++
-		result.Drops = append(result.Drops, rule.Name+"已完成，公会航绩 +2")
+		if err := recordGuildSharedActivity(state, owner, "supply", 1, now); err != nil {
+			return err
+		}
+		result.Drops = append(result.Drops, rule.Name+"已完成，公会航绩 +2 · 公会经验 +40 · 公会币 +35")
 		return nil
 	}
 	index := *intent.Count - 1
@@ -187,14 +192,16 @@ func gachaFleetIndex(userID int, state *GachaGameState) (map[string]any, error) 
 	}
 	stars := 0
 	for id := range fleetStoryPoints {
-		stars += min(gachaMaxStars, max(0, state.Stars[id]))
+		if state.Cleared[id] {
+			stars += min(gachaMaxStars, max(0, state.Stars[id]))
+		}
 	}
 	portrait := GachaFleetPortrait{}
 	if state.Captain != nil {
 		portrait.Level = min(gachaCatalog.Growth.MaxLevel, max(1, state.Captain.Level))
 	}
 	for index, id := range state.Squad {
-		if len(portrait.Team) == 4 {
+		if len(portrait.Team) == GachaSquadLimit {
 			break
 		}
 		if card := state.Girls[id]; gachaGirl(id) != nil && gachaCardOwned(card) && !slices.Contains(state.Squad[:index], id) {
@@ -247,11 +254,13 @@ func initializeGachaFleetIndexes() error {
 
 type GachaFleetEntry struct {
 	GachaFleetPortrait
-	Name    string `json:"name"`
-	Value   int    `json:"value"`
-	Mine    bool   `json:"mine,omitempty"`
-	Members int    `json:"members,omitempty"`
-	Code    string `json:"code,omitempty"`
+	GuildLevel  int    `json:"guild_level,omitempty"`
+	MemberLimit int    `json:"member_limit,omitempty"`
+	Name        string `json:"name"`
+	Value       int    `json:"value"`
+	Mine        bool   `json:"mine,omitempty"`
+	Members     int    `json:"members,omitempty"`
+	Code        string `json:"code,omitempty"`
 }
 
 type GachaFleetBoard struct {
@@ -284,7 +293,7 @@ func GetGachaFleet(userID int, board string, after int, now time.Time) (*GachaFl
 	case "directory":
 		column, name = "gacha_players.fleet_score", "gacha_players.fleet_name"
 		criteria = func() *gorm.DB {
-			return fleetEligible().Where("gacha_players.fleet_members BETWEEN 1 AND ?", gachaGuildMemberLimit-1)
+			return fleetEligible().Where("gacha_players.fleet_members BETWEEN 1 AND ?", 54)
 		}
 	case "guild":
 		column, name = "gacha_players.fleet_score", "gacha_players.fleet_name"
@@ -313,7 +322,7 @@ func GetGachaFleet(userID int, board string, after int, now time.Time) (*GachaFl
 	if requester.RowsAffected != 1 {
 		return nil, ErrGachaIntent
 	}
-	view := &GachaFleetBoard{Board: board, Week: week, Entries: []GachaFleetEntry{}, CatalogSize: len(gachaCatalog.Girls), MemberLimit: gachaGuildMemberLimit, StarLimit: len(fleetStoryPoints) * gachaMaxStars}
+	view := &GachaFleetBoard{Board: board, Week: week, Entries: []GachaFleetEntry{}, CatalogSize: len(gachaCatalog.Girls), MemberLimit: 55, StarLimit: len(fleetStoryPoints) * gachaMaxStars}
 	ownerID := userID
 	if board == "directory" || board == "guild" {
 		ownerID = viewer.FleetLeader
@@ -324,25 +333,52 @@ func GetGachaFleet(userID int, board string, after int, now time.Time) (*GachaFl
 			view.MyLevel = portrait.Level
 		}
 	}
-	var rows []struct {
-		UserID, Value, Members int
-		Name, Week, Portrait   string
+	type fleetBoardRow struct {
+		UserID, Value, Members      int
+		Name, Week, Portrait, State string
 	}
+	var rows []fleetBoardRow
 	projection := "gacha_players.user_id, " + name + " AS name, " + column + " AS value"
 	if board == "directory" || board == "guild" {
-		projection += ", gacha_players.fleet_members AS members, gacha_players.fleet_week AS week"
+		projection += ", gacha_players.fleet_members AS members, gacha_players.fleet_week AS week, gacha_players.state AS state"
 	}
 	if board != "directory" {
 		projection += ", gacha_players.fleet_portrait AS portrait"
 	}
-	query := criteria().Select(projection)
 	if board == "directory" {
-		query = query.Where("gacha_players.user_id > ?", after).Order("gacha_players.user_id ASC").Limit(fleetDirectoryLimit + 1)
+		// Capacity depends on the owner's persistent XP. Fill the public page
+		// after checking that authority, so full low-level guilds cannot create
+		// empty pages in front of guilds that are actually recruiting.
+		cursor := after
+		for len(rows) <= fleetDirectoryLimit {
+			var batch []fleetBoardRow
+			if err := criteria().Select(projection).Where("gacha_players.user_id > ?", cursor).
+				Order("gacha_players.user_id ASC").Limit(fleetDirectoryLimit + 1).Scan(&batch).Error; err != nil {
+				return nil, err
+			}
+			for _, row := range batch {
+				cursor = row.UserID
+				var owner GachaGameState
+				if common.Unmarshal([]byte(row.State), &owner) != nil || !validGachaGuildOwner(owner.Guild, row.UserID, fmt.Sprintf("%08X", row.UserID)) {
+					continue
+				}
+				if !owner.Guild.Listed || len(owner.Guild.Members) >= guildCapacity(owner.Guild) {
+					continue
+				}
+				rows = append(rows, row)
+				if len(rows) > fleetDirectoryLimit {
+					break
+				}
+			}
+			if len(batch) < fleetDirectoryLimit+1 {
+				break
+			}
+		}
 	} else {
-		query = query.Where(column + " > 0").Order(column + " DESC, gacha_players.user_id ASC").Limit(fleetBoardLimit)
-	}
-	if err := query.Scan(&rows).Error; err != nil {
-		return nil, err
+		if err := criteria().Select(projection).Where(column + " > 0").
+			Order(column + " DESC, gacha_players.user_id ASC").Limit(fleetBoardLimit).Scan(&rows).Error; err != nil {
+			return nil, err
+		}
 	}
 	if board == "directory" && len(rows) > fleetDirectoryLimit {
 		view.Next = rows[fleetDirectoryLimit-1].UserID
@@ -356,7 +392,16 @@ func GetGachaFleet(userID int, board string, after int, now time.Time) (*GachaFl
 			}
 		}
 		if board == "directory" || board == "guild" {
-			entry.Code, entry.Members = fmt.Sprintf("%08X", row.UserID), row.Members
+			var owner GachaGameState
+			if common.Unmarshal([]byte(row.State), &owner) != nil || !validGachaGuildOwner(owner.Guild, row.UserID, fmt.Sprintf("%08X", row.UserID)) {
+				continue
+			}
+			entry.GuildLevel, entry.MemberLimit = guildLevel(owner.Guild), guildCapacity(owner.Guild)
+			if board == "directory" && row.Members >= entry.MemberLimit {
+				continue
+			}
+			entry.Code, entry.Members = fmt.Sprintf("%08X", row.UserID), len(owner.Guild.Members)
+			entry.Name = owner.Guild.Name
 			if row.Week != week {
 				entry.Value = 0
 			}

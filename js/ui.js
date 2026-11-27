@@ -108,7 +108,14 @@ async function retryGameAction() {
   else if (result.queue) { await refreshArenaQueue(); }
   if (result.queue) { await Store.refresh(); renderTopbar(); }
   if (result.arena) showArenaResult(result.arena);
-  if (result.ladder) showArenaResult(result.ladder);
+  if (result.ladder) {
+    lastArenaResult = result.ladder; lastArenaEpoch = Store.sessionEpoch;
+    watchArenaResult();
+  }
+  if (result.guild_battle?.report && !battleRunning) {
+    const receipt = result.guild_battle;
+    resumeBattle({id:"guild-retry-"+Date.now(),stage:"guild_raid",guild_battle:receipt,result:receipt.report,ready_at:Store.serverNow()+receipt.report.duration_ms});
+  }
   toast("原操作已由数据库确认");
 }
 
@@ -391,7 +398,7 @@ function squadBondLabels(ids) {
   const labels = [];
   Object.entries(elems).filter(([, n]) => n >= 2).forEach(([id, n]) => labels.push(`${ELEM[id].name}系${n}人 · 攻击 +6%`));
   Object.entries(roles).filter(([, n]) => n >= 3).forEach(([role, n]) => labels.push(`${{tank:"守护",sdps:"单攻",adps:"群攻",heal:"治疗",support:"辅助"}[role] || role}${n}人 · 生命 +7%`));
-  if (selected.length === 4 && new Set(selected.map(g => g.elem)).size === 4) labels.push("四象协奏 · 防御 +5%");
+  if (new Set(selected.map(g => g.elem)).size >= 4) labels.push("四象协奏 · 防御 +5%");
   return labels.length ? labels : ["编队两名同元素少女触发元素共鸣；三名同定位触发职能协奏"];
 }
 
@@ -419,30 +426,45 @@ function collectionAlbumMarkup() {
     return `<button type="button" class="collection-partner" onclick="${typeof openWorkshop === "function" && workshopRules() ? `openWorkshop('${id}','bonds')` : `openGirl('${id}')`}"><img src="${girl.img}" alt="" loading="lazy"><span><b>${esc(girl.name)}</b><small>羁绊 ${bonds.filter(bond => bond.percent).length}/${bonds.length}</small></span></button>`;
   }).join("")}</div></details>`;
 }
+const SQUAD_LIMIT = 6;
+let squadSelectedId = null;
+let squadSelectionEpoch = null;
+let squadMutation = null;
+let squadDrag = null;
+let squadClickBlockedUntil = 0;
 function renderSquad() {
   if (!requireGame()) return;
+  cancelSquadDrag();
+  if (squadSelectionEpoch !== Store.sessionEpoch) { squadSelectedId = null; squadSelectionEpoch = Store.sessionEpoch; }
+  if (!SAVE.squad.includes(squadSelectedId)) squadSelectedId = null;
   const slots = document.getElementById("squad-slots");
   let power = 0;
   const agg = { hp: 0, atk: 0, def: 0, spd: 0 };
-  slots.innerHTML = [0, 1, 2, 3].map(i => {
+  slots.innerHTML = Array.from({ length: SQUAD_LIMIT }, (_, i) => {
+    const rank = i < 3 ? "前排" : "后排";
     const id = SAVE.squad[i];
-    if (!id) return `<div class="team-slot empty" onclick="toast('从下方列表点角标补位')">
+    if (!id) return `<button type="button" class="team-slot empty" data-squad-slot="${i}" onclick="selectSquadSlot(${i})" aria-label="${rank}空位 ${i + 1}，将已选队员移至队尾">
         <img class="slot-add" src="assets/ui/slot-add.webp" alt="">
-        <span class="slot-lb">空位 ${i + 1}</span></div>`;
+        <span class="slot-lb">${rank} ${i + 1}</span></button>`;
     const g = GIRLS.find(x => x.id === id);
     const own = SAVE.girls[id];
     power += powerOf(id);
     const s = finalStats(id, true);
     agg.hp += s.hp; agg.atk += s.atk; agg.def += s.def; agg.spd += s.spd;
-    return `<div class="team-slot filled r-${g.rarity}" ${typeof trainingFrame === "function" ? trainingFrame(own) : ""} onclick="unslot(${i})" title="点击移出队伍">
-      <span class="ts-idx">${i + 1}</span>
-      <span class="ts-x">×</span>
-      <img src="${g.img}" loading="lazy" alt="">
+    return `<div class="team-slot filled r-${g.rarity} ${squadSelectedId === id ? "slot-selected" : ""}" data-squad-slot="${i}" ${typeof trainingFrame === "function" ? trainingFrame(own) : ""}>
+      <button type="button" class="squad-pick" draggable="true" data-squad-id="${id}" onclick="selectSquadSlot(${i})" aria-pressed="${squadSelectedId === id}" aria-label="${rank}${i + 1} ${esc(g.name)}，拖动或点击换位">
+      <span class="ts-idx">${rank} ${i + 1}</span>
+      <img src="${g.img}" loading="lazy" draggable="false" alt="">
       <div class="tn-name">${g.name}</div>
-      <div class="tn-sub">Lv${own.level} · ${own.star}星 ${typeof trainingGradeTag === "function" ? trainingGradeTag(own) : ""}</div>
+      <div class="tn-sub"><span>Lv${own.level} · ${own.star}星</span>${typeof trainingGradeTag === "function" ? trainingGradeTag(own) : ""}</div>
+      </button><button type="button" class="ts-x" onclick="unslot(${i})" aria-label="移出${esc(g.name)}">×</button>
     </div>`;
   }).join("");
-  document.getElementById("team-count").textContent = SAVE.squad.length + "/4";
+  bindSquadDrag(slots);
+  setSquadBusy(squadMutation?.epoch === Store.sessionEpoch);
+  document.getElementById("team-count").textContent = SAVE.squad.length + "/" + SQUAD_LIMIT;
+  const selection = document.getElementById("squad-selection");
+  if (selection) selection.textContent = squadSelectedId ? "已选中「" + GIRLS.find(g => g.id === squadSelectedId).name + "」，再点队友交换，点空位移至队尾；再点自身取消。" : "拖动队员交换站位，也可依次点击两位队员；拖到空位会移至队尾。";
   document.getElementById("team-power").textContent = "队伍战力 " + (Number.isSafeInteger(SAVE.power) ? SAVE.power : power).toLocaleString();
   const n = SAVE.squad.length || 1;
   document.getElementById("team-stats").innerHTML = `
@@ -496,23 +518,163 @@ function renderSquad() {
     });
   });
 }
+function setSquadBusy(busy) {
+  const slots = document.getElementById("squad-slots");
+  if (!slots) return;
+  slots.setAttribute("aria-busy", String(busy));
+  slots.querySelectorAll("button").forEach(button => { button.disabled = busy; });
+}
+async function persistSquad(squad, epoch = Store.sessionEpoch) {
+  if (!requireGame() || epoch !== Store.sessionEpoch || squadMutation?.epoch === epoch) return false;
+  if (squad.length > SQUAD_LIMIT || new Set(squad).size !== squad.length || squad.some(id => !SAVE.girls[id]?.star)) return false;
+  if (squad.join(",") === SAVE.squad.join(",")) return false;
+  const mutation = squadMutation = {epoch};
+  setSquadBusy(true);
+  try {
+    const result = await Store.mutate("squad", {squad});
+    if (!result || epoch !== Store.sessionEpoch || !Store.ready()) return false;
+    squadSelectedId = null;
+    renderSquad(); renderTopbar();
+    return true;
+  } finally {
+    if (squadMutation === mutation) { squadMutation = null; setSquadBusy(false); }
+  }
+}
+async function moveSquadCard(id, target, epoch = Store.sessionEpoch, original = SAVE.squad.join(",")) {
+  if (!requireGame() || epoch !== Store.sessionEpoch || original !== SAVE.squad.join(",") || !Number.isInteger(target) || target < 0 || target >= SQUAD_LIMIT) return;
+  const squad = [...SAVE.squad], from = squad.indexOf(id);
+  if (from < 0 || from === target) return;
+  if (target < squad.length) [squad[from], squad[target]] = [squad[target], squad[from]];
+  else { squad.splice(from, 1); squad.push(id); }
+  await persistSquad(squad, epoch);
+}
+function cancelSquadDrag() {
+  const drag = squadDrag;
+  squadDrag = null;
+  if (drag?.active) squadClickBlockedUntil = performance.now() + 400;
+  drag?.ghost?.remove();
+  document.querySelectorAll("#squad-slots .slot-dragging, #squad-slots .slot-drop-target").forEach(slot => slot.classList.remove("slot-dragging", "slot-drop-target"));
+  if (drag?.pointerId != null) {
+    try { if (drag.button.hasPointerCapture?.(drag.pointerId)) drag.button.releasePointerCapture(drag.pointerId); } catch (_) {}
+  }
+}
+function validSquadDrag() {
+  return squadDrag && Store.ready() && squadDrag.epoch === Store.sessionEpoch && squadDrag.original === SAVE.squad.join(",") && document.body.dataset.page === "page-squad" && squadMutation?.epoch !== Store.sessionEpoch;
+}
+function squadDropTarget(element) {
+  const slot = element?.closest?.("#squad-slots [data-squad-slot]");
+  return slot && Number.isInteger(Number(slot.dataset.squadSlot)) ? slot : null;
+}
+function markSquadDrop(slot) {
+  document.querySelectorAll("#squad-slots .slot-drop-target").forEach(item => item.classList.remove("slot-drop-target"));
+  if (slot && slot !== squadDrag?.button.parentElement) slot.classList.add("slot-drop-target");
+}
+function bindSquadDrag(slots) {
+  if (slots.dataset.dragBound) return;
+  slots.dataset.dragBound = "true";
+  const start = (button, kind, event) => {
+    if (!button || button.disabled || !Store.ready() || squadMutation?.epoch === Store.sessionEpoch || !SAVE.squad.includes(button.dataset.squadId)) return false;
+    cancelSquadDrag();
+    squadDrag = {kind, button, id:button.dataset.squadId, epoch:Store.sessionEpoch, original:SAVE.squad.join(","), active:kind === "native", x:event.clientX, y:event.clientY};
+    return true;
+  };
+  slots.addEventListener("click", event => {
+    if (performance.now() >= squadClickBlockedUntil) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+  }, true);
+  slots.addEventListener("dragstart", event => {
+    if (!start(event.target.closest(".squad-pick"), "native", event)) { event.preventDefault(); return; }
+    squadDrag.button.parentElement.classList.add("slot-dragging");
+    if (event.dataTransfer) { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", squadDrag.id); }
+  });
+  slots.addEventListener("dragover", event => {
+    if (!validSquadDrag() || squadDrag.kind !== "native") return;
+    const target = squadDropTarget(event.target);
+    if (!target) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+    markSquadDrop(target);
+  });
+  slots.addEventListener("dragleave", event => { if (!slots.contains(event.relatedTarget)) markSquadDrop(null); });
+  slots.addEventListener("drop", event => {
+    if (!validSquadDrag() || squadDrag.kind !== "native") { cancelSquadDrag(); return; }
+    event.preventDefault();
+    const drag = squadDrag, target = squadDropTarget(event.target);
+    cancelSquadDrag();
+    if (target) void moveSquadCard(drag.id, Number(target.dataset.squadSlot), drag.epoch, drag.original);
+  });
+  slots.addEventListener("dragend", cancelSquadDrag);
+  slots.addEventListener("pointerdown", event => {
+    if (!["touch", "pen"].includes(event.pointerType) || event.isPrimary === false || event.button !== 0) return;
+    if (!start(event.target.closest(".squad-pick"), "pointer", event)) return;
+    squadDrag.pointerId = event.pointerId;
+    try { squadDrag.button.setPointerCapture?.(event.pointerId); } catch (_) {}
+  });
+  document.addEventListener("pointermove", event => {
+    if (squadDrag?.kind !== "pointer" || squadDrag.pointerId !== event.pointerId) return;
+    if (!validSquadDrag()) { cancelSquadDrag(); return; }
+    const drag = squadDrag;
+    if (!drag.active && Math.hypot(event.clientX-drag.x, event.clientY-drag.y) < 8) return;
+    if (!drag.active) {
+      drag.active = true;
+      const source = drag.button.parentElement, rect = source.getBoundingClientRect();
+      drag.offsetX = drag.x-rect.left; drag.offsetY = drag.y-rect.top;
+      drag.ghost = source.cloneNode(true);
+      drag.ghost.classList.add("squad-drag-ghost");
+      drag.ghost.setAttribute("aria-hidden", "true");
+      drag.ghost.querySelectorAll("button").forEach(button => { button.disabled = true; button.removeAttribute("onclick"); button.draggable = false; });
+      drag.ghost.style.width = rect.width + "px"; drag.ghost.style.height = rect.height + "px";
+      document.body.append(drag.ghost);
+      source.classList.add("slot-dragging");
+    }
+    event.preventDefault();
+    drag.ghost.style.left = (event.clientX-drag.offsetX) + "px";
+    drag.ghost.style.top = (event.clientY-drag.offsetY) + "px";
+    markSquadDrop(squadDropTarget(document.elementFromPoint(event.clientX,event.clientY)));
+  }, {passive:false});
+  document.addEventListener("pointerup", event => {
+    if (squadDrag?.kind !== "pointer" || squadDrag.pointerId !== event.pointerId) return;
+    const drag = squadDrag, valid = validSquadDrag();
+    const target = valid && drag.active ? squadDropTarget(document.elementFromPoint(event.clientX,event.clientY)) : null;
+    if (drag.active) event.preventDefault();
+    cancelSquadDrag();
+    if (target) void moveSquadCard(drag.id, Number(target.dataset.squadSlot), drag.epoch, drag.original);
+  });
+  document.addEventListener("pointercancel", event => { if (squadDrag?.pointerId === event.pointerId) cancelSquadDrag(); });
+  slots.addEventListener("lostpointercapture", event => { if (squadDrag?.pointerId === event.pointerId) cancelSquadDrag(); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape") cancelSquadDrag(); });
+  window.addEventListener("blur", cancelSquadDrag);
+}
 async function toggleSquad(id) {
   if (!requireGame()) return;
   if (!SAVE.girls[id] || SAVE.girls[id].star <= 0) return toast("该少女尚未解锁");
   let squad;
   if (SAVE.squad.includes(id)) squad = SAVE.squad.filter(x => x !== id);
   else {
-    if (SAVE.squad.length >= 4) return toast("最多上阵 4 人，先移出一名");
+    if (SAVE.squad.length >= SQUAD_LIMIT) return toast("最多上阵 6 人，先移出一名");
     squad = [...SAVE.squad, id];
   }
-  if (!await Store.mutate("squad", { squad })) return;
+  await persistSquad(squad);
+}
+async function selectSquadSlot(index) {
+  if (!requireGame() || squadMutation?.epoch === Store.sessionEpoch || !Number.isInteger(index) || index < 0 || index >= SQUAD_LIMIT) return;
+  if (squadSelectionEpoch !== Store.sessionEpoch) { squadSelectedId = null; squadSelectionEpoch = Store.sessionEpoch; }
+  const id = SAVE.squad[index];
+  if (!id) {
+    if (squadSelectedId) return moveSquadCard(squadSelectedId, index);
+    return toast("从下方图鉴点 + 上阵，或拖动队员到这里移至队尾");
+  }
+  if (!squadSelectedId || !SAVE.squad.includes(squadSelectedId)) squadSelectedId = id;
+  else if (squadSelectedId === id) squadSelectedId = null;
+  else {
+    return moveSquadCard(squadSelectedId, index);
+  }
   renderSquad(); renderTopbar();
 }
 async function unslot(i) {
   if (!requireGame()) return;
   const squad = SAVE.squad.filter((_, index) => index !== i);
-  if (!await Store.mutate("squad", { squad })) return;
-  renderSquad(); renderTopbar();
+  await persistSquad(squad);
 }
 
 function shardReserve(g, own) {
@@ -972,7 +1134,7 @@ const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a2
 /* ---------- 副本页：章节 / 关卡节点 / 详情 ---------- */
 let stageView = { ch: 0, sel: null };
 
-const stageStars = id => (SAVE.stars && SAVE.stars[id]) || 0;
+const stageStars = id => SAVE.cleared?.[id] ? Math.max(0, Math.min(3, Number(SAVE.stars?.[id]) || 0)) : 0;
 const stageLocked = s => !!(s.unlockStage && !SAVE.cleared[s.unlockStage]);
 
 function pickChapter(i) { if (!requireGame()) return; stageView.ch = i; stageView.sel = null; renderStage(); }
@@ -1166,7 +1328,7 @@ function bagCultivationMarkup(includeStock = true) {
   const rules = cultivationRules();
   if (!rules) return "";
   const targets = GIRLS.filter(girl => SAVE.girls[girl.id]?.star > 0 && SAVE.girls[girl.id].level < cardLevelLimit());
-  return `<section class="bag-cultivation"><h3>${includeStock ? "培养道具" : "研读手记"}</h3>${includeStock ? `<div class="cultivation-stock">${Object.entries(CULTIVATION_ITEMS).map(([key, item]) => `<div><small>${item.use}</small><b>${item.name} <strong>×${SAVE.mats[key] || 0}</strong></b><span>${item.from}</span></div>`).join("")}</div>` : ""}
+  return `<section class="bag-cultivation"><h3>${includeStock ? "培养奇物" : "研读手记"}</h3>${includeStock ? `<div class="cultivation-stock">${Object.entries(CULTIVATION_ITEMS).map(([key, item]) => `<div><small>${item.use}</small><b>${item.name} <strong>×${SAVE.mats[key] || 0}</strong></b><span>${item.from}</span></div>`).join("")}</div>` : ""}
     <div class="manual-choice"><label class="growth-select">历练手记 · 研读角色<select id="manual-target" onchange="updateManualTarget()"><option value="">${targets.length ? "选择角色" : "没有未满级角色"}</option>${targets.map(girl => `<option value="${girl.id}">${esc(girl.name)} · Lv${SAVE.girls[girl.id].level}</option>`).join("")}</select></label><button type="button" class="gbtn gbtn-sm" data-cultivation-action="use_manual" id="bag-use-manual" onclick="cultivateGirl('use_manual',document.getElementById('manual-target').value)" disabled><span>消耗 1 份</span><span class="sub">经验 +${rules.manual_xp}</span></button></div></section>`;
 }
 
@@ -1289,7 +1451,7 @@ function paintShop() {
       const id = /^[a-z_]+$/.test(item.id) ? item.id : "";
       return `<article class="shop-item shop-${esc(item.resource)}"><span class="shop-mark" aria-hidden="true">${item.resource === "gold" ? "G" : item.resource === "stamina" ? "+" : item.resource === "multi" ? "×2" : "◆"}</span><div><h3>${esc(item.name)} <b>×${item.amount}</b></h3><p>${detail}</p></div><div class="shop-stock">今日已兑换 ${bought} 次 · 全店共用 ${socialData.shop_daily_limit} 次</div><button class="gbtn gbtn-sm gbtn-primary" onclick="confirmShopItem('${id}')" ${reason ? "disabled" : ""}><span>${reason || item.price + " 代币兑换"}</span>${reason ? `<span class="sub">${item.price} 代币</span>` : ""}</button></article>`;
     }).join("")}</div>
-    <p class="social-note">全店每天共可兑换 ${socialData.shop_daily_limit} 次，北京时间零点刷新。副本每日最多产出 ${TOKEN_BUDGET} 代币，余额兑换的代币另计；副本双倍卡与站点倍率折扣卡是不同道具。</p>`;
+    <p class="social-note">全店每天共可兑换 ${socialData.shop_daily_limit} 次，北京时间零点刷新。副本每日最多产出 ${TOKEN_BUDGET} 代币，余额兑换的代币另计；副本双倍卡与站点倍率折扣卡是不同奇物。</p>`;
   updateTokenExchange();
 }
 function tokenExchangeMax() {

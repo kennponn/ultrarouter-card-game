@@ -141,6 +141,9 @@ func checkGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint) error
 	if point.CaptainMin > 0 && gachaCaptainLevel(state) < point.CaptainMin {
 		return ErrGachaLocked
 	}
+	if point.UnlockStage != "" && !state.Cleared[point.UnlockStage] {
+		return ErrGachaLocked
+	}
 	for _, previous := range point.Requires {
 		if !state.Cleared[previous] {
 			return ErrGachaLocked
@@ -156,6 +159,15 @@ func checkGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint) error
 }
 
 func migrateGachaVoyage(state *GachaGameState) {
+	// A star record is meaningful only after a confirmed clear. Never turn a
+	// stray star value into a clear or use it to unlock stages and chests.
+	for id, stars := range state.Stars {
+		if !state.Cleared[id] || stars <= 0 {
+			delete(state.Stars, id)
+		} else if stars > gachaMaxStars {
+			state.Stars[id] = gachaMaxStars
+		}
+	}
 	if state.VoyageEdition != 0 {
 		return
 	}
@@ -227,7 +239,9 @@ func claimGachaVoyageChest(state *GachaGameState, id string, result *GachaAction
 	}
 	stars := 0
 	for _, point := range route {
-		stars += min(gachaMaxStars, max(0, state.Stars[point]))
+		if state.Cleared[point] {
+			stars += min(gachaMaxStars, max(0, state.Stars[point]))
+		}
 	}
 	if state.VoyageClaims[id] || stars < chest.Stars {
 		return ErrGachaVoyageChest
@@ -261,6 +275,9 @@ func awardGachaVoyageMilestones(state *GachaGameState, point *GachaVoyagePoint, 
 }
 
 func settleGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint, snapshot *GachaRunSnapshot, report *GachaBattleReport, result *GachaFinishResult) error {
+	if !result.Win || !report.Win {
+		return nil
+	}
 	drops, err := grantGachaVoyagePrize(state, point.Prize)
 	if err != nil {
 		return err

@@ -1,0 +1,29 @@
+[
+  {
+    "engine": "sqlite",
+    "accounts": 96,
+    "guilds": 24,
+    "unresolved_runs": 12,
+    "old_gift_attachments": 96,
+    "serialized_asset_fields": 14,
+    "corpus_sha256": "bf7dc43b4f5b6ed239eeb94bf39dccd3495218b951289f67ac5886b35cf66b25"
+  },
+  {
+    "engine": "mysql",
+    "accounts": 96,
+    "guilds": 24,
+    "unresolved_runs": 12,
+    "old_gift_attachments": 96,
+    "serialized_asset_fields": 14,
+    "corpus_sha256": "3c739eab1fc7fca969503ff6c9d1329addcb2f7348a4436a67090d2a9550ecda"
+  },
+  {
+    "engine": "postgres",
+    "accounts": 96,
+    "guilds": 24,
+    "unresolved_runs": 12,
+    "old_gift_attachments": 96,
+    "serialized_asset_fields": 14,
+    "corpus_sha256": "ecb03786238114cc7bc32ad0c62183531dbb34ff8e1b34ed14175e21f45bb205"
+  }
+]

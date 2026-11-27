@@ -1,0 +1,18 @@
+{
+  "name": "石像卫兵",
+  "img": "content/enemies/golem/assets/portrait.webp",
+  "elem": "star",
+  "atkType": "heavy",
+  "hpM": 1.2,
+  "atkM": 0.8,
+  "defM": 1.3,
+  "spd": 90,
+  "boss": false,
+  "id": "golem",
+  "battleImg": "content/enemies/golem/assets/portrait-cut.webp",
+  "legacyImages": {
+    "assets/gen/enemy-golem.webp": "content/enemies/golem/assets/portrait.webp",
+    "assets/gen/enemy-golem-cut.webp": "content/enemies/golem/assets/portrait-cut.webp",
+    "assets/enemy-golem-cut.webp": "content/enemies/golem/assets/portrait-cut.webp"
+  }
+}

@@ -215,28 +215,31 @@ function growthMainlineMarkup() {
 function growthDualMarkup() {
   const p = SAVE.progression, dual = p.dual;
   const owned = GIRLS.filter(g => (SAVE.girls[g.id]?.star || 0) > 0).map(g => g.id);
-  const selected = [...SAVE.squad, ...(p.reserve_squad || [])];
-  for (const id of owned) if (selected.length < 8 && !selected.includes(id)) selected.push(id);
+  const selected = [[...SAVE.squad], [...(p.reserve_squad || [])]];
+  for (const team of selected) for (const id of owned) if (team.length < 4 && !selected.flat().includes(id)) team.push(id);
   const locked = dual.squads?.length === 2;
-  return `<article class="mode-card growth-dual" id="growth-dual"><div class="mode-card-head"><div><p class="social-kicker">八名不同角色 · 每周机制轮换</p><h3>双队契约试炼</h3></div><span class="growth-badge">${dual.cleared ? `本周完成 · ${dual.best_rounds}回合` : `已完成${dual.phase || 0}/2战`}</span></div><p class="mode-note">一队清场，一队应对首领机制。每名角色至少40级3星；两战各消耗14体力，失败可重试。开局锁定八名角色，之后改常用队伍不会替换已锁定名单。</p>
-    <div class="growth-team-editor">${[0, 1].map(team => `<fieldset><legend>第${team + 1}队</legend>${[0, 1, 2, 3].map(slot => `<label>位置${slot + 1}<select id="growth-team-${team * 4 + slot}" onchange="updateGrowthTeams()"><option value="">请选择角色</option>${growthHeroOptions(selected[team * 4 + slot], true)}</select></label>`).join("")}</fieldset>`).join("")}</div>
+  return `<article class="mode-card growth-dual" id="growth-dual"><div class="mode-card-head"><div><p class="social-kicker">每队 4–6 人 · 每周机制轮换</p><h3>双队契约试炼</h3></div><span class="growth-badge">${dual.cleared ? `本周完成 · ${dual.best_rounds}回合` : `已完成${dual.phase || 0}/2战`}</span></div><p class="mode-note">一队清场，一队应对首领机制。每名角色至少40级3星；两战各消耗14体力，失败可重试。保存时两队人数相同、角色不重复，未选位置按顺序补齐。开局锁定名单，之后改常用队伍不会替换已锁定名单。</p>
+    <div class="growth-team-editor">${[0, 1].map(team => `<fieldset><legend>第${team + 1}队 · 最多6人</legend>${Array.from({ length: 6 }, (_, slot) => `<label>${slot < 3 ? "前排" : "后排"}${slot + 1}<select id="growth-team-${team * 6 + slot}" onchange="updateGrowthTeams()"><option value="">${slot < 4 ? "请选择角色" : "可选角色"}</option>${growthHeroOptions(selected[team][slot], true)}</select></label>`).join("")}</fieldset>`).join("")}</div>
     <p id="growth-team-warning" class="growth-team-warning" role="status"></p><div class="growth-actions"><button type="button" class="gbtn gbtn-sm" id="growth-team-save" onclick="saveGrowthTeams()"><span>保存两支常用队伍</span></button><button type="button" data-growth-run class="gbtn gbtn-sm gbtn-primary" id="growth-dual-start" onclick="startGrowthRun('dual_trial')" ${dual.cleared || !SAVE.cleared.s6 || SAVE.stamina < 14 ? "disabled" : ""}><span>${dual.cleared ? "本周试炼已完成" : `挑战第${(dual.phase || 0) + 1}战 · 14体力`}</span></button></div>
     ${locked ? `<div class="growth-locked"><b>本周锁定名单</b>${dual.squads.map((team, i) => `<p>第${i + 1}队：${team.map(id => esc(GIRLS.find(g => g.id === id)?.name || id)).join("、")}</p>`).join("")}</div>` : ""}</article>`;
 }
 
+function growthTeamSelection() {
+  return [0, 1].map(team => Array.from({ length: 6 }, (_, slot) => document.getElementById("growth-team-" + (team * 6 + slot))?.value || "").filter(Boolean));
+}
 function updateGrowthTeams(updateRest = true) {
-  const values = Array.from({ length: 8 }, (_, i) => document.getElementById("growth-team-" + i)?.value || "");
+  const teams = growthTeamSelection(), values = teams.flat();
   const warning = document.getElementById("growth-team-warning"), save = document.getElementById("growth-team-save"), start = document.getElementById("growth-dual-start");
   if (!warning || !save || !start) return;
-  const distinct = values.every(Boolean) && new Set(values).size === 8;
+  const distinct = teams[0].length >= 4 && teams[0].length === teams[1].length && new Set(values).size === values.length;
   save.disabled = !distinct;
   const saved = [...SAVE.squad, ...(SAVE.progression.reserve_squad || [])];
-  const qualified = saved.length === 8 && new Set(saved).size === 8 && saved.every(id => SAVE.girls[id]?.level >= 40 && SAVE.girls[id]?.star >= 3);
+  const qualified = SAVE.squad.length >= 4 && SAVE.squad.length <= 6 && (SAVE.progression.reserve_squad || []).length >= 4 && (SAVE.progression.reserve_squad || []).length <= 6 && new Set(saved).size === saved.length && saved.every(id => SAVE.girls[id]?.level >= 40 && SAVE.girls[id]?.star >= 3);
   const locked = SAVE.progression.dual.squads?.length === 2;
-  const same = values.every((id, i) => id === saved[i]);
+  const same = teams[0].length === SAVE.squad.length && values.length === saved.length && values.every((id, i) => id === saved[i]);
   start.disabled = Boolean(battleRunning || SAVE.progression.dual.cleared || !SAVE.cleared.s6 || SAVE.stamina < 14 || !locked && (!qualified || !same));
   start.dataset.baseBlocked = start.disabled ? "1" : "0";
-  warning.textContent = !distinct ? "需要选择八名不同角色，不能两队重复使用。" : !same && !locked ? "先保存当前两队，再开启试炼。" : !qualified && !locked ? "已保存的八名角色都需要至少40级3星。" : locked ? "本周试炼继续使用已锁定名单。" : "两队已保存，满足要求后可以出战。";
+  warning.textContent = locked ? "本周试炼继续使用已锁定名单。" : !same && !distinct ? "保存时每队选择相同人数（4–6人），不能重复角色。" : !same ? "先保存当前两队，再开启试炼。" : !qualified ? "已保存的两队都需要4–6人，每名角色至少40级3星。" : "两队已保存，可以出战。";
   if (updateRest) updateGrowthRest(false);
 }
 
@@ -319,8 +322,8 @@ function startGrowthRun(id) {
 }
 
 async function saveGrowthTeams() {
-  const squad = Array.from({ length: 8 }, (_, i) => document.getElementById("growth-team-" + i)?.value || "");
-  if (!squad.every(Boolean) || new Set(squad).size !== 8) return toast("两支队伍必须使用八名不同角色");
+  const teams = growthTeamSelection(), squad = teams.flat();
+  if (teams[0].length < 4 || teams[0].length !== teams[1].length || new Set(squad).size !== squad.length) return toast("每队选择相同人数（4–6人），两队不可重复角色");
   await growthMutate("teams_save", { squad });
 }
 
