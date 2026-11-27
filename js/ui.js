@@ -380,8 +380,41 @@ function squadBondLabels(ids) {
   if (selected.length === 4 && new Set(selected.map(g => g.elem)).size === 4) labels.push("四象协奏 · 防御 +5%");
   return labels.length ? labels : ["编队两名同元素少女触发元素共鸣；三名同定位触发职能协奏"];
 }
+function squadTeams() {
+  const hasPresets = Array.isArray(SAVE.teams) && SAVE.teams.length === 4;
+  const t = hasPresets ? SAVE.teams.map(x => Array.isArray(x) ? x : []) : [];
+  while (t.length < 4) t.push([]);
+  // Legacy snapshot without presets: slot one is simply the live squad.
+  if (!hasPresets) t[0] = Array.isArray(SAVE.squad) ? [...SAVE.squad] : [];
+  return t.slice(0, 4);
+}
+function teamIndex() {
+  const n = Number(SAVE.team_on);
+  return Number.isSafeInteger(n) && n >= 1 && n <= 4 ? n : 1;
+}
+function renderTeamTabs() {
+  const bar = document.getElementById("team-tabs");
+  if (!bar) return;
+  const teams = squadTeams(), on = teamIndex();
+  bar.innerHTML = teams.map((list, i) => {
+    const n = i + 1, empty = list.length === 0;
+    return `<button type="button" class="ch-tab${n === on ? " on" : ""}${empty ? " empty" : ""}"`
+      + ` data-team="${n}" title="${empty ? "空队伍，切换到该队后再放人" : "点击切换到这组队伍"}">`
+      + `<span class="cn">队伍${n}</span><span class="cp">${list.length}/4</span></button>`;
+  }).join("");
+  bar.querySelectorAll(".ch-tab").forEach(btn => {
+    btn.addEventListener("click", () => switchTeam(Number(btn.dataset.team)));
+  });
+}
+async function switchTeam(n) {
+  if (!requireGame()) return;
+  if (!Number.isSafeInteger(n) || n < 1 || n > 4 || n === teamIndex()) return;
+  if (!await Store.mutate("team_select", { count: n })) return;
+  renderSquad(); renderTopbar();
+}
 function renderSquad() {
   if (!requireGame()) return;
+  renderTeamTabs();
   const slots = document.getElementById("squad-slots");
   let power = 0;
   const agg = { hp: 0, atk: 0, def: 0, spd: 0 };
@@ -439,12 +472,16 @@ function renderSquad() {
     </div>`;
     const slot = SAVE.squad.indexOf(id);          // -1 = 未上阵
     const inSquad = slot >= 0;
-    return `<div class="card r-${g.rarity} ${inSquad ? "in-team" : ""}" data-id="${id}">
+    // 同一名少女只能属于一支队伍：其他预设里已上阵时标出来源队伍
+    const owner = inSquad ? 0 : squadTeams().findIndex((list, i) => i !== teamIndex() - 1 && list.includes(id)) + 1;
+    const elsewhere = !inSquad && owner > 0;
+    return `<div class="card r-${g.rarity} ${inSquad ? "in-team" : ""}${elsewhere ? " in-other-team" : ""}" data-id="${id}"${elsewhere ? ` title="已在队伍${owner}"` : ""}>
       <img src="${g.img}" loading="lazy">
       ${inSquad ? `<span class="team-flag">出战 ${slot + 1}</span>` : ""}
+      ${elsewhere ? `<span class="team-flag team-flag-other">队伍${owner}</span>` : ""}
       <span class="shard-n">${own.shards > 0 ? "碎片 " + own.shards : ""}</span>
       <div class="name">${g.name}<i>Lv${own.level} · ${own.star}星${own.talent ? ` · ${TALENTS[own.talent]?.name || "天赋"}` : ""}</i></div>
-      <span class="quick-toggle" title="${inSquad ? "移出队伍" : "加入队伍"}">${inSquad ? "−" : "+"}</span>
+      <span class="quick-toggle" title="${inSquad ? "移出队伍" : elsewhere ? "已在队伍" + owner : "加入队伍"}">${inSquad ? "−" : "+"}</span>
     </div>`;
   }).join("");
 
@@ -462,6 +499,9 @@ async function toggleSquad(id) {
   let squad;
   if (SAVE.squad.includes(id)) squad = SAVE.squad.filter(x => x !== id);
   else {
+    const cur = teamIndex() - 1;
+    const owner = squadTeams().findIndex((list, i) => i !== cur && list.includes(id));
+    if (owner >= 0) return toast(`该少女已在队伍${owner + 1}，请先到那支队伍把她移出`);
     if (SAVE.squad.length >= 4) return toast("最多上阵 4 人，先移出一名");
     squad = [...SAVE.squad, id];
   }

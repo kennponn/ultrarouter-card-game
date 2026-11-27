@@ -54,6 +54,8 @@ func writeGachaError(c *gin.Context, err error) {
 		status, code, message = http.StatusBadRequest, "GACHA_INVALID_INTENT", "操作参数不正确"
 	case errors.Is(err, model.ErrGachaStage):
 		status, code, message = http.StatusBadRequest, "GACHA_STAGE_UNKNOWN", "关卡不存在"
+	case errors.Is(err, model.ErrGachaTeamShared):
+		status, code, message = http.StatusBadRequest, "GACHA_TEAM_SHARED", "同一少女只能在一支队伍中出战，请先在本队或其他队伍中调整"
 	case errors.Is(err, model.ErrGachaTeam):
 		status, code, message = http.StatusBadRequest, "GACHA_TEAM_INVALID", "请先上阵已拥有的少女，队伍最多四人且不能重复"
 	case errors.Is(err, model.ErrGachaLocked):

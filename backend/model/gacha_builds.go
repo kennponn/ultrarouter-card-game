@@ -121,6 +121,42 @@ func validateGachaBuildState(state *GachaGameState) error {
 			return ErrGachaRunState
 		}
 	}
+	if err := validateGachaTeams(state); err != nil {
+		return err
+	}
+	return nil
+}
+
+// validateGachaTeams rejects tampered presets: at most four squads of four
+// distinct owned girls each, and the active slot must match the live Squad.
+func validateGachaTeams(state *GachaGameState) error {
+	if len(state.Teams) != 4 {
+		return ErrGachaRunState
+	}
+	if state.TeamOn < 1 || state.TeamOn > 4 {
+		return ErrGachaRunState
+	}
+	seen := map[string]int{}
+	for index, team := range state.Teams {
+		if len(team) > 4 {
+			return ErrGachaRunState
+		}
+		for i, id := range team {
+			own := state.Girls[id]
+			if own == nil || own.Star < 1 || own.Level < 1 || gachaGirl(id) == nil || slices.Contains(team[:i], id) {
+				return ErrGachaRunState
+			}
+			// One girl, one preset: owning her twice across slots is a shared
+			// roster, which the four-preset feature explicitly forbids.
+			if _, ok := seen[id]; ok {
+				return ErrGachaRunState
+			}
+			seen[id] = index
+		}
+	}
+	if !slices.Equal(state.Teams[state.TeamOn-1], state.Squad) {
+		return ErrGachaRunState
+	}
 	return nil
 }
 

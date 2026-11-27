@@ -193,12 +193,12 @@ function growthMainlineMarkup() {
 function growthDualMarkup() {
   const p = SAVE.progression, dual = p.dual;
   const owned = GIRLS.filter(g => (SAVE.girls[g.id]?.star || 0) > 0).map(g => g.id);
-  const selected = [...SAVE.squad, ...(p.reserve_squad || [])];
+  const selected = [...(p.trial_squad || []), ...(p.reserve_squad || [])];
   for (const id of owned) if (selected.length < 8 && !selected.includes(id)) selected.push(id);
   const locked = dual.squads?.length === 2;
-  return `<article class="mode-card growth-dual" id="growth-dual"><div class="mode-card-head"><div><p class="social-kicker">八名不同角色 · 每周机制轮换</p><h3>双队契约试炼</h3></div><span class="growth-badge">${dual.cleared ? `本周完成 · ${dual.best_rounds}回合` : `已完成${dual.phase || 0}/2战`}</span></div><p class="mode-note">一队清场，一队应对首领机制。每名角色至少40级3星；两战各消耗14体力，失败可重试。开局锁定八名角色，之后改常用队伍不会替换已锁定名单。</p>
+  return `<article class="mode-card growth-dual" id="growth-dual"><div class="mode-card-head"><div><p class="social-kicker">八名不同角色 · 每周机制轮换</p><h3>双队契约试炼</h3></div><span class="growth-badge">${dual.cleared ? `本周完成 · ${dual.best_rounds}回合` : `已完成${dual.phase || 0}/2战`}</span></div><p class="mode-note">一队清场，一队应对首领机制。每名角色至少40级3星；两战各消耗14体力，失败可重试。试炼两队独立保存，不受普通编队影响；角色可自由搭配，但八人不能重复。需通关主线第六关后解锁，开局锁定八名角色。</p>
     <div class="growth-team-editor">${[0, 1].map(team => `<fieldset><legend>第${team + 1}队</legend>${[0, 1, 2, 3].map(slot => `<label>位置${slot + 1}<select id="growth-team-${team * 4 + slot}" onchange="updateGrowthTeams()"><option value="">请选择角色</option>${growthHeroOptions(selected[team * 4 + slot], true)}</select></label>`).join("")}</fieldset>`).join("")}</div>
-    <p id="growth-team-warning" class="growth-team-warning" role="status"></p><div class="growth-actions"><button type="button" class="gbtn gbtn-sm" id="growth-team-save" onclick="saveGrowthTeams()"><span>保存两支常用队伍</span></button><button type="button" data-growth-run class="gbtn gbtn-sm gbtn-primary" id="growth-dual-start" onclick="startGrowthRun('dual_trial')" ${dual.cleared || !SAVE.cleared.s6 || SAVE.stamina < 14 ? "disabled" : ""}><span>${dual.cleared ? "本周试炼已完成" : `挑战第${(dual.phase || 0) + 1}战 · 14体力`}</span></button></div>
+    <p id="growth-team-warning" class="growth-team-warning" role="status"></p><div class="growth-actions"><button type="button" class="gbtn gbtn-sm" id="growth-team-save" onclick="saveGrowthTeams()"><span>保存试炼两队</span></button><button type="button" data-growth-run class="gbtn gbtn-sm gbtn-primary" id="growth-dual-start" onclick="startGrowthRun('dual_trial')" ${dual.cleared || !SAVE.cleared.s6 || SAVE.stamina < 14 ? "disabled" : ""}><span>${dual.cleared ? "本周试炼已完成" : `挑战第${(dual.phase || 0) + 1}战 · 14体力`}</span></button></div>
     ${locked ? `<div class="growth-locked"><b>本周锁定名单</b>${dual.squads.map((team, i) => `<p>第${i + 1}队：${team.map(id => esc(GIRLS.find(g => g.id === id)?.name || id)).join("、")}</p>`).join("")}</div>` : ""}</article>`;
 }
 
@@ -208,13 +208,13 @@ function updateGrowthTeams(updateRest = true) {
   if (!warning || !save || !start) return;
   const distinct = values.every(Boolean) && new Set(values).size === 8;
   save.disabled = !distinct;
-  const saved = [...SAVE.squad, ...(SAVE.progression.reserve_squad || [])];
+  const saved = [...(SAVE.progression.trial_squad || []), ...(SAVE.progression.reserve_squad || [])];
   const qualified = saved.length === 8 && new Set(saved).size === 8 && saved.every(id => SAVE.girls[id]?.level >= 40 && SAVE.girls[id]?.star >= 3);
   const locked = SAVE.progression.dual.squads?.length === 2;
   const same = values.every((id, i) => id === saved[i]);
   start.disabled = Boolean(battleRunning || SAVE.progression.dual.cleared || !SAVE.cleared.s6 || SAVE.stamina < 14 || !locked && (!qualified || !same));
   start.dataset.baseBlocked = start.disabled ? "1" : "0";
-  warning.textContent = !distinct ? "需要选择八名不同角色，不能两队重复使用。" : !same && !locked ? "先保存当前两队，再开启试炼。" : !qualified && !locked ? "已保存的八名角色都需要至少40级3星。" : locked ? "本周试炼继续使用已锁定名单。" : "两队已保存，满足要求后可以出战。";
+  warning.textContent = !SAVE.cleared.s6 ? "未解锁：需先通关主线第六关。" : SAVE.progression.dual.cleared ? "本周试炼已完成，等待下周刷新。" : SAVE.stamina < 14 ? "体力不足：每战需要14体力。" : !distinct ? "需要选择八名不同角色，不能两队重复使用。" : !same && !locked ? "先保存当前两队，再开启试炼。" : !qualified && !locked ? "已保存的八名角色都需要至少40级3星。" : locked ? "本周试炼继续使用已锁定名单。" : "两队已保存，满足要求后可以出战。";
   if (updateRest) updateGrowthRest(false);
 }
 
