@@ -130,6 +130,8 @@ func strongGachaState(state *model.GachaGameState) {
 	}
 }
 
+func ptrTo[T any](v T) *T { return &v }
+
 func gachaRequest(t *testing.T, userID int, session bool, handler gin.HandlerFunc, body any) *httptest.ResponseRecorder {
 	t.Helper()
 	data, err := common.Marshal(body)
@@ -514,6 +516,64 @@ func TestGachaAuthorityDatabaseMatrix(t *testing.T) {
 					_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "squad", Squad: &team}, now)
 					assert.ErrorIs(t, err, model.ErrGachaTeam)
 				}
+			})
+
+			t.Run("a_girl_fields_in_only_one_preset_and_legacy_duplicates_are_repaired", func(t *testing.T) {
+				user := gachaUser(t)
+				state := gachaState(t, user.Id, now)
+				for _, id := range []string{"c03", "c04", "c06", "c07", "c09"} {
+					state.Girls[id] = &model.GachaOwnedGirl{Star: 3, Level: 20}
+				}
+				state.Teams = [][]string{{"c04", "c07"}, {}, {}, {}}
+				state.TeamOn = 1
+				state.Squad = []string{"c04", "c07"}
+				seedGachaState(t, user.Id, state)
+
+				// Legacy saves could repeat a girl in two presets; loading repairs them.
+				broken := gachaState(t, user.Id, now)
+				broken.Teams = [][]string{{"c04", "c07"}, {"c04", "c06"}, {}, {}}
+				broken.TeamOn = 1
+				broken.Squad = []string{"c04", "c07"}
+				seedGachaState(t, user.Id, broken)
+				repaired := gachaState(t, user.Id, now)
+				assert.Equal(t, []string{"c06"}, repaired.Teams[1])
+
+				// The second preset refuses a girl still fielded by the first.
+				slot := 2
+				_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "team_select", Count: &slot}, now)
+				require.NoError(t, err)
+				shared := []string{"c04"}
+				_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "squad", Squad: &shared}, now)
+				assert.ErrorIs(t, err, model.ErrGachaTeamShared)
+				assert.Equal(t, []string{"c06"}, gachaState(t, user.Id, now).Squad)
+
+				// A free girl still joins, and duplicates inside one preset stay rejected.
+				free := []string{"c06", "c09"}
+				out, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "squad", Squad: &free}, now)
+				require.NoError(t, err)
+				assert.Equal(t, []string{"c06", "c09"}, out.Save.Squad)
+				assert.Equal(t, []string{"c04", "c07"}, out.Save.Teams[0])
+				assert.Equal(t, []string{"c06", "c09"}, out.Save.Teams[1])
+				duplicate := []string{"c09", "c09"}
+				_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "squad", Squad: &duplicate}, now)
+				assert.ErrorIs(t, err, model.ErrGachaTeam)
+			})
+
+			t.Run("legacy_save_with_stale_or_shared_squad_entries_is_repaired_not_rejected", func(t *testing.T) {
+				user := gachaUser(t)
+				state := gachaState(t, user.Id, now)
+				state.Teams = nil
+				state.TeamOn = 0
+				// A save written before presets existed: one live squad that still
+				// names a girl the account no longer owns, plus a duplicate id.
+				state.Squad = []string{"c08", "c06", "ghost_girl", "c08"}
+				seedGachaState(t, user.Id, state)
+				out, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "team_select", Count: ptrTo(1)}, now)
+				require.NoError(t, err)
+				require.Len(t, out.Save.Teams, 4)
+				assert.Equal(t, []string{"c08", "c06"}, out.Save.Teams[0])
+				assert.Equal(t, 1, out.Save.TeamOn)
+				assert.Equal(t, []string{"c08", "c06"}, out.Save.Squad)
 			})
 
 			t.Run("parallel_run_start_produces_only_one_active_run_and_stamina_charge", func(t *testing.T) {

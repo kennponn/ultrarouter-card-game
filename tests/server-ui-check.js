@@ -12,7 +12,7 @@ const server = {
     stamina: 120, staminaMax: 120, staminaTs: Date.now(), token: 0, gold: 600,
     multi: 1, multiOn: false, daily: { date: "2026-11-17", tokenGained: 0 },
     pity: 0, totalPull: 0, squad: ["c08", "c06", "c01", "c12"],
-    girls: Object.fromEntries(["c08", "c06", "c01", "c12"].map(id => [id, { star: 1, level: 1, exp: 0, shards: 0 }])),
+    girls: Object.fromEntries(["c08", "c06", "c01", "c12", "c02"].map(id => [id, { star: 1, level: 1, exp: 0, shards: 0 }])),
     cleared: { s1: true }, stars: { s1: 3 }, history: [], mats: { mat_r: 0, mat_sr: 0, mat_ssr: 0 },
   },
 };
@@ -41,7 +41,15 @@ w.fetch = async (url, options) => {
   else if (ep.endsWith("/action")) {
     if (body.action === "level") { server.save.gold -= 35; server.save.girls[body.girl_id].level++; }
     if (body.action === "multi") server.save.multiOn = body.enabled;
-    if (body.action === "squad") server.save.squad = body.squad;
+    if (!Array.isArray(server.save.teams)) { server.save.teams = [clone(server.save.squad), [], [], []]; server.save.team_on = 1; }
+    if (body.action === "squad") {
+      server.save.squad = body.squad;
+      server.save.teams[server.save.team_on - 1] = clone(body.squad);
+    }
+    if (body.action === "team_select") {
+      server.save.team_on = body.count;
+      server.save.squad = clone(server.save.teams[body.count - 1] || []);
+    }
     if (body.action === "shop") {
       server.save.token -= 30; server.save.gold += 150;
       server.save.daily.shopBought = { gold: 1 };
@@ -113,7 +121,7 @@ function report(live) {
 w.eval(["config", "store", "data", "ui", "progression", "battle", "main"].map(name =>
   fs.readFileSync(path.join(root, "js", name + ".js"), "utf8")).join("\n;\n") + `
 ;window.G = {Store, nav, startBattle, resumeBattle, recoverBattle, exitBattle, battleEnd,
-  openGirl, levelUp, toggleSquad, closeModal, renderSquad, playServerBattle,
+  openGirl, levelUp, toggleSquad, closeModal, renderSquad, playServerBattle, switchTeam,
   get save(){return SAVE}, get battle(){return BAT}, get running(){return battleRunning},
   setBattle(value){BAT=value; battleRunning=true;},
   speedUp(){sleep=async()=>{};}, lockGame};`);
@@ -158,7 +166,23 @@ function check(condition, label) { assert.ok(condition, label); checks++; consol
   G.nav("page-squad");
   const locked = w.document.querySelector('[data-id="c14"]');
   check(locked.classList.contains("card-locked") && !locked.querySelector(".quick-toggle"), "shards do not count as owned or permit squad toggle");
-  check(w.document.getElementById("owned-title").textContent.includes("4/" + catalog.GIRLS.length), "owned count excludes locked shards");
+  check(w.document.getElementById("owned-title").textContent.includes("5/" + catalog.GIRLS.length), "owned count excludes locked shards");
+  const teamTabs = () => [...w.document.querySelectorAll("#team-tabs .ch-tab")];
+  check(teamTabs().length === 4 && teamTabs()[0].classList.contains("on"), "squad page shows four presets with the active one highlighted");
+  check(teamTabs()[0].textContent.includes("4/4") && teamTabs()[1].textContent.includes("0/4"), "each preset shows its own member count");
+  await G.switchTeam(2);
+  check(G.save.team_on === 2 && G.save.squad.length === 0 && teamTabs()[1].classList.contains("on"), "switching to an empty preset makes it the live squad");
+  const switchIntent = server.calls.filter(c => c.body?.action === "team_select").at(-1).body;
+  check(Object.keys(switchIntent).sort().join() === "action,count,request_id", "team switch sends only the slot number, never a squad payload");
+  await G.toggleSquad("c02");
+  check(G.save.squad.join() === "c02" && G.save.teams[1].join() === "c02" && G.save.teams[0].length === 4, "editing a preset only rewrites that preset");
+  await G.switchTeam(1);
+  check(G.save.squad.join() === "c08,c06,c01,c12", "switching back restores the first preset");
+  await G.switchTeam(2);
+  await G.toggleSquad("c01");
+  check(G.save.squad.join() === "c02", "a girl already fielding in another preset cannot join this preset");
+  check([...w.document.body.children].map(el => el.textContent).join("|").includes("已在队伍1"), "blocked cross-preset pick tells the player which preset holds her");
+  await G.switchTeam(1);
   G.openGirl("c14");
   check(!w.document.getElementById("modal-box").innerHTML.includes("levelUp("), "locked character has no upgrade action");
   G.closeModal();

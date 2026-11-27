@@ -91,6 +91,8 @@ type GachaGameState struct {
 	TotalPull        int                        `json:"totalPull"`
 	Girls            map[string]*GachaOwnedGirl `json:"girls"`
 	Squad            []string                   `json:"squad"`
+	Teams            [][]string                 `json:"teams"`
+	TeamOn           int                        `json:"team_on"`
 	Cleared          map[string]bool            `json:"cleared"`
 	Stars            map[string]int             `json:"stars"`
 	History          []GachaPullHistory         `json:"history"`
@@ -291,6 +293,7 @@ var (
 	ErrGachaFunds      = errors.New("not enough game resources")
 	ErrGachaLocked     = errors.New("dungeon stage is locked")
 	ErrGachaTeam       = errors.New("invalid owned team")
+	ErrGachaTeamShared = errors.New("girl already fields in another preset team")
 	ErrGachaNotReady   = errors.New("dungeon battle has not finished")
 	ErrGachaReplay     = errors.New("request id was reused for a different intent")
 	ErrGachaConcurrent = errors.New("game state changed concurrently; retry with the same request id")
@@ -398,10 +401,81 @@ func newGachaState(now time.Time) *GachaGameState {
 	s := &GachaGameState{Stamina: 120, StaminaMax: 120, StaminaTs: now.UnixMilli(), Gold: 600, Multi: 1,
 		Daily: GachaGameDaily{Date: gachaDay(now)}, Girls: map[string]*GachaOwnedGirl{}, Squad: []string{"c08", "c06", "c01", "c12"},
 		Cleared: map[string]bool{}, Stars: map[string]int{}, History: []GachaPullHistory{}, Mats: map[string]int{"mat_r": 0, "mat_sr": 0, "mat_ssr": 0, "shard_dust": 0}, GemInventory: map[string]int{}, Sigils: map[string]*GachaSigil{}}
+	s.Teams = [][]string{slices.Clone(s.Squad), {}, {}, {}}
+	s.TeamOn = 1
 	for _, id := range s.Squad {
 		s.Girls[id] = &GachaOwnedGirl{Star: 1, Level: 1, Gems: make([]string, 3)}
 	}
 	return s
+}
+// normalizeGachaTeams keeps four preset slots and mirrors the active slot into
+// Squad, which remains the single source every combat path consumes.
+func normalizeGachaTeams(s *GachaGameState) {
+	if len(s.Teams) == 0 {
+		// Legacy save without presets: the live squad becomes slot one.
+		s.Teams = [][]string{slices.Clone(s.Squad)}
+		s.TeamOn = 1
+	}
+	if len(s.Teams) > 4 {
+		s.Teams = s.Teams[:4]
+	}
+	for len(s.Teams) < 4 {
+		s.Teams = append(s.Teams, []string{})
+	}
+	for i, team := range s.Teams {
+		if team == nil {
+			s.Teams[i] = []string{}
+		}
+	}
+	if s.TeamOn < 1 || s.TeamOn > 4 {
+		s.TeamOn = 1
+	}
+	// Squad stays authoritative: every combat path reads only it, and any
+	// legacy or out-of-band write lands there. Repair the active preset from
+	// Squad so the two never disagree.
+	s.Teams[s.TeamOn-1] = slices.Clone(s.Squad)
+	dedupeGachaTeams(s)
+}
+
+// gachaGirlInOtherTeam reports whether another preset already fields the girl.
+func gachaGirlInOtherTeam(s *GachaGameState, slot int, id string) bool {
+	for i, team := range s.Teams {
+		if i == slot {
+			continue
+		}
+		if slices.Contains(team, id) {
+			return true
+		}
+	}
+	return false
+}
+
+// dedupeGachaTeams keeps a girl in exactly one preset. The active slot wins;
+// later slots lose any girl already claimed by an earlier slot so legacy saves
+// written before presets shared no ownership still load cleanly.
+func dedupeGachaTeams(s *GachaGameState) {
+	used := map[string]bool{}
+	for i, team := range s.Teams {
+		kept := make([]string, 0, len(team))
+		for _, id := range team {
+			// Drop stale entries before validation: an older save can still list
+			// a girl who was later lost, and a hard validation error would lock
+			// the account out of every action instead of repairing the roster.
+			own := s.Girls[id]
+			if id == "" || used[id] || own == nil || own.Star < 1 || own.Level < 1 || gachaGirl(id) == nil {
+				continue
+			}
+			used[id] = true
+			kept = append(kept, id)
+		}
+		if len(kept) > 4 {
+			// Presets field four girls: a tampered save must not fail validation
+			// and lock the account out, so clamp instead of rejecting.
+			kept = kept[:4]
+		}
+		s.Teams[i] = kept
+	}
+	s.Squad = slices.Clone(s.Teams[s.TeamOn-1])
 }
 func regenGachaState(s *GachaGameState, now time.Time) {
 	if s.Daily.Date != gachaDay(now) {
@@ -457,6 +531,7 @@ func loadGachaPlayer(tx *gorm.DB, userID int, now time.Time) (*GachaPlayer, *Gac
 	if state.GemInventory == nil {
 		state.GemInventory = map[string]int{}
 	}
+	normalizeGachaTeams(&state)
 	regenGachaState(&state, now)
 	if err := validateGachaBuildState(&state); err != nil {
 		return nil, nil, err
@@ -511,6 +586,11 @@ func loadGachaPlayer(tx *gorm.DB, userID int, now time.Time) (*GachaPlayer, *Gac
 	return &player, &state, nil
 }
 func storeGachaPlayer(tx *gorm.DB, player *GachaPlayer, state *GachaGameState, now time.Time) error {
+	// Any write path that moves girls in or out (squad, dual-team save, story
+	// recruits) updates Squad; mirror it back so the preset slots never drift.
+	if len(state.Teams) == 4 && state.TeamOn >= 1 && state.TeamOn <= 4 {
+		state.Teams[state.TeamOn-1] = slices.Clone(state.Squad)
+	}
 	if p := state.Progression; p != nil && !p.Legacy && p.Milestones["first_level60_squad"] == 0 && len(state.Squad) == 4 {
 		complete := true
 		for _, id := range state.Squad {
@@ -679,6 +759,10 @@ func ValidateGachaAction(intent GachaActionIntent) error {
 		}
 	case "multi":
 		if intent.Enabled == nil || intent.Count != nil || intent.GirlID != nil || intent.Squad != nil {
+			return ErrGachaIntent
+		}
+	case "team_select":
+		if intent.Count == nil || *intent.Count < 1 || *intent.Count > 4 || intent.Squad != nil || intent.GirlID != nil || intent.Enabled != nil || intent.ItemID != nil {
 			return ErrGachaIntent
 		}
 	default:
@@ -1010,13 +1094,40 @@ func ApplyGachaAction(userID int, intent GachaActionIntent, now time.Time) (*Gac
 			if team == nil {
 				team = []string{}
 			}
+			if state.TeamOn < 1 || state.TeamOn > 4 {
+				state.TeamOn = 1
+			}
+			if len(state.Teams) < 4 {
+				for len(state.Teams) < 4 {
+					state.Teams = append(state.Teams, []string{})
+				}
+			}
 			for i, id := range team {
 				own := state.Girls[id]
 				if own == nil || own.Star < 1 || own.Level < 1 || gachaGirl(id) == nil || slices.Contains(team[:i], id) {
 					return ErrGachaTeam
 				}
+				// A girl may fight for exactly one preset: the other slots must
+				// give her up before she can join this one.
+				if gachaGirlInOtherTeam(state, state.TeamOn-1, id) {
+					return ErrGachaTeamShared
+				}
 			}
 			state.Squad = team
+			state.Teams[state.TeamOn-1] = slices.Clone(team)
+		case "team_select":
+			if len(state.Teams) < 4 || *intent.Count < 1 || *intent.Count > 4 {
+				return ErrGachaIntent
+			}
+			next := state.Teams[*intent.Count-1]
+			for i, id := range next {
+				own := state.Girls[id]
+				if own == nil || own.Star < 1 || own.Level < 1 || gachaGirl(id) == nil || slices.Contains(next[:i], id) {
+					return ErrGachaTeam
+				}
+			}
+			state.TeamOn = *intent.Count
+			state.Squad = slices.Clone(next)
 		case "multi":
 			if *intent.Enabled && state.Multi <= 0 {
 				return ErrGachaFunds
