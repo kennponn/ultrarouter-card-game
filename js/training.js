@@ -36,16 +36,19 @@ function trainingQuote(id, choice = "hp") {
   const card = trainingCard(own), grade = rules.grades[card.grade], nextGrade = rules.grades[card.grade+1];
   const stage = rules.effort_stages[card.stage], nextStage = rules.effort_stages[card.stage+1];
   const ink = SAVE.mats.training_ink || 0, seals = SAVE.mats.break_seal || 0;
+  const stones = SAVE.mats.effort_stone || 0;
   const cross = card.plus === grade.max_plus, end = cross && !nextGrade;
   const completed = rules.grades.slice(0,card.grade).reduce((total,entry) => total + entry.max_plus + 1,card.plus);
   const cost = rules.break_cost, breakLevel = cross ? nextGrade?.level : grade.plus_levels?.[card.plus];
   const breakInk = cost && cost.ink_base + completed*cost.ink_step + completed*(completed+1)/2;
   const breakSeals = cost && Math.floor((completed+1)/cost.seal_interval);
-  const canBreak = !!cost && !end && own.level >= breakLevel && ink >= breakInk && seals >= breakSeals;
+  const breakGold = cost && cost.gold_base + completed * cost.gold_step;
+  const effortGold = rules.effort_gold_base + card.stage * rules.effort_gold_step;
+  const canBreak = !!cost && !end && own.level >= breakLevel && ink >= breakInk && seals >= breakSeals && SAVE.gold >= breakGold;
   const full = rules.effort_stats.every(stat => (card.effort[stat.id] || 0) === stage.cap);
   const dailyLeft = Math.max(0,rules.effort_daily - (SAVE.daily?.effort_spent?.[id] || 0));
-  const batch = rules.effort_stats.some(stat => stat.id === choice) ? Math.min(dailyLeft,Math.floor(ink/stage.ink),Math.ceil((stage.cap-(card.effort[choice] || 0))/stage.gain)) : 0;
-  return { card, grade, nextGrade, stage, nextStage, ink, seals, cross, end, breakLevel, breakInk, breakSeals, canBreak, full, dailyLeft, batch,
+  const batch = effortGold > 0 && rules.effort_stats.some(stat => stat.id === choice) ? Math.min(dailyLeft,Math.floor((ink+stones)/stage.ink),Math.floor(SAVE.gold/effortGold),Math.ceil((stage.cap-(card.effort[choice] || 0))/stage.gain)) : 0;
+  return { card, grade, nextGrade, stage, nextStage, ink, stones, seals, cross, end, breakLevel, breakInk, breakSeals, breakGold, effortGold, canBreak, full, dailyLeft, batch,
     canTrain:batch > 0, canPromote:!!nextStage && full && seals >= nextStage.seals };
 }
 
@@ -107,6 +110,7 @@ function trainingBreakPanel(id, quote) {
   const own = SAVE.girls[id], rules = trainingRules(), { cross, end, breakLevel, breakInk, breakSeals } = quote;
   const bonuses = trainingBonuses(own);
   const needs = [["卡牌等级", own.level, breakLevel], ["研训墨", quote.ink, breakInk]];
+  needs.push(["金币", SAVE.gold, quote.breakGold]);
   if (breakSeals) needs.push(["晋阶章", quote.seals, breakSeals]);
   return `<section class="tr-panel"><h4>卡牌突破 ${trainingGradeTag(own)}</h4><p>生命、攻击、防御 +${bonuses.percent}%</p>${end ? '<b>已达最高突破</b>' : !rules.break_cost ? '<p>请更新服务端突破规则。</p>' : `<dl class="tr-cost" data-break-cost>${needs.map(([label,stock,needed]) => `<div><dt>${label}</dt><dd>${stock} / ${needed} <small>${stock < needed ? `还差 ${needed-stock}` : '已满足'}</small></dd></div>`).join('')}</dl><button type="button" class="ws-command" data-training-action="card_breakthrough" ${quote.canBreak && !trainingPending ? '' : 'disabled'} onclick="actTraining('card_breakthrough')">${trainingPending ? '结算中…' : cross ? '突破升色' : '突破 +1'}</button>`}</section>`;
 }
@@ -121,7 +125,7 @@ function trainingEffortPanel(view, quote) {
   return `<section class="tr-panel"><h4>努力值 · ${esc(stage.name)}</h4><div class="tr-budget" data-effort-budget><b>今日可练 ${quote.dailyLeft}/${rules.effort_daily} 次</b><span>每卡独立 · 北京时间零点恢复</span><small>该阶段从起点练满五项至少 ${days} 个游戏日；当前还差 ${sessions} 次训练。</small></div><div class="tr-effort">${rules.effort_stats.map(stat => {
     const value = card.effort[stat.id] || 0;
     return `<button type="button" data-effort-stat="${stat.id}" aria-pressed="${stat.id === choice}" onclick="selectEffortStat('${stat.id}')"><b>${esc(stat.name)}</b><progress aria-label="${esc(stat.name)}阶段进度" max="${stage.cap-floor}" value="${value-floor}"></progress><span>${value}/${stage.cap}</span><small>实战 +${effortBonus(rules,stat,value)}</small></button>`;
-  }).join("")}</div><p>每练${esc(selected.name)} +${stage.gain}（不超过 ${stage.cap}），耗 ${stage.ink} 研训墨 · 持有 ${quote.ink}。</p><div class="tr-effort-actions"><button type="button" class="ws-command" data-training-action="effort_train" ${quote.canTrain && !trainingPending ? "" : "disabled"} onclick="actTraining('effort_train')">培养 1 次</button><button type="button" class="ws-command" data-training-action="effort_train_max" ${quote.canTrain && !trainingPending ? "" : "disabled"} onclick="actTraining('effort_train_max')">一键培养 · ${quote.batch} 次</button></div><div class="tr-promote"><b>${nextStage ? `下一阶段 · ${esc(nextStage.name)}` : "最终阶段"}</b><p>${nextStage ? `五项全满 ${stage.cap} 点后可晋段。已有数值保留，上限升为 ${nextStage.cap}；晋阶章 ${quote.seals}/${nextStage.seals}。` : `每项努力值最高 ${stage.cap} 点。`}</p><button type="button" class="ws-command" data-training-action="effort_promote" ${quote.canPromote && !trainingPending ? "" : "disabled"} onclick="actTraining('effort_promote')">${nextStage ? "晋升努力阶段" : "无下一阶段"}</button></div></section>`;
+  }).join("")}</div><p>每练${esc(selected.name)} +${stage.gain}（不超过 ${stage.cap}），耗 ${stage.ink} 份培养材料、${quote.effortGold} 金币。优先用努力培养石（${quote.stones}），不足以研训墨（${quote.ink}）补齐；持有 ${SAVE.gold} 金币。</p><div class="tr-effort-actions"><button type="button" class="ws-command" data-training-action="effort_train" ${quote.canTrain && !trainingPending ? "" : "disabled"} onclick="actTraining('effort_train')">培养 1 次</button><button type="button" class="ws-command" data-training-action="effort_train_max" ${quote.canTrain && !trainingPending ? "" : "disabled"} onclick="actTraining('effort_train_max')">一键培养 · ${quote.batch} 次</button></div><div class="tr-promote"><b>${nextStage ? `下一阶段 · ${esc(nextStage.name)}` : "最终阶段"}</b><p>${nextStage ? `五项全满 ${stage.cap} 点后可晋段。已有数值保留，上限升为 ${nextStage.cap}；晋阶章 ${quote.seals}/${nextStage.seals}。` : `每项努力值最高 ${stage.cap} 点。`}</p><button type="button" class="ws-command" data-training-action="effort_promote" ${quote.canPromote && !trainingPending ? "" : "disabled"} onclick="actTraining('effort_promote')">${nextStage ? "晋升努力阶段" : "无下一阶段"}</button></div></section>`;
 }
 
 function trainingSkillQuote(id, line) {

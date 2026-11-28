@@ -59,6 +59,7 @@ type GachaArtifactRules struct {
 	GemSets    map[string]GachaArtifactSet `json:"gem_sets"`
 	ChipSets   map[string]GachaArtifactSet `json:"chip_sets"`
 	TicketOre  int                         `json:"ticket_ore"`
+	DrawToken  int                         `json:"draw_token"`
 }
 
 type GachaIndividualStat struct {
@@ -68,8 +69,9 @@ type GachaIndividualStat struct {
 
 type GachaIndividualRules struct {
 	MaxValue   int                   `json:"max_value"`
-	OreBase    int                   `json:"ore_base"`
-	OrePerLock int                   `json:"ore_per_lock"`
+	Gold       int                   `json:"gold"`
+	Solvent    int                   `json:"solvent"`
+	LockTokens []int                 `json:"lock_tokens"`
 	Stats      []GachaIndividualStat `json:"stats"`
 }
 
@@ -114,6 +116,15 @@ var gachaCultivation = func() GachaCultivationRules {
 	if err := common.Unmarshal(gachaCultivationJSON, &rules); err != nil {
 		panic(err)
 	}
+	individual := rules.Individual
+	if individual.Gold < 1 || individual.Solvent < 1 || len(individual.Stats) != 6 || len(individual.LockTokens) != len(individual.Stats) || individual.LockTokens[0] != 0 {
+		panic("invalid individual value prices")
+	}
+	for index := 1; index < len(individual.LockTokens); index++ {
+		if individual.LockTokens[index] <= individual.LockTokens[index-1] || individual.LockTokens[index] > gachaMaxResource {
+			panic("invalid individual value lock price")
+		}
+	}
 	return rules
 }()
 
@@ -145,11 +156,11 @@ func applyGachaIndividualAction(state *GachaGameState, own *GachaOwnedGirl, inte
 		return nil
 	}
 	locked := bits.OnesCount(uint(own.IVLocks))
-	if locked == len(rules.Stats) {
+	if locked >= len(rules.Stats) || locked >= len(rules.LockTokens) {
 		return ErrGachaCultivationLocked
 	}
-	cost := rules.OreBase + locked*rules.OrePerLock
-	if state.Mats["forge_ore"] < cost {
+	tokens := rules.LockTokens[locked]
+	if state.Gold < rules.Gold || state.Token < tokens || state.Mats["iv_solvent"] < rules.Solvent {
 		return ErrGachaFunds
 	}
 	values := make([]int, len(rules.Stats))
@@ -163,9 +174,11 @@ func applyGachaIndividualAction(state *GachaGameState, own *GachaOwnedGirl, inte
 			values[index] = value
 		}
 	}
-	state.Mats["forge_ore"] -= cost
+	state.Mats["iv_solvent"] -= rules.Solvent
+	state.Gold -= rules.Gold
+	state.Token -= tokens
 	own.IVValues = values
-	result.Drops = append(result.Drops, fmt.Sprintf("个体值洗练 · 星锻矿 -%d", cost))
+	result.Drops = append(result.Drops, fmt.Sprintf("个体值洗练 · 金币 −%d · 洗练剂 −%d · 代币 −%d", rules.Gold, rules.Solvent, tokens))
 	return nil
 }
 

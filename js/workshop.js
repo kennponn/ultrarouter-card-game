@@ -210,8 +210,8 @@ function workshopIVState(own) {
   const values = own.iv_values?.length === rules.stats.length ? own.iv_values : null;
   const locked = rules.stats.map((_, index) => !!(values && ((own.iv_locks || 0) & (1 << index))));
   const lockCount = locked.filter(Boolean).length;
-  const ore = SAVE.mats.forge_ore || 0, cost = rules.ore_base + lockCount * rules.ore_per_lock;
-  return { rules, values, locked, lockCount, ore, cost, canRoll: lockCount < rules.stats.length && ore >= cost };
+  const solvent = SAVE.mats.iv_solvent || 0, tokens = rules.lock_tokens?.[lockCount];
+  return { rules, values, locked, lockCount, solvent, tokens, canRoll: Number.isSafeInteger(tokens) && SAVE.gold >= rules.gold && (SAVE.token || 0) >= tokens && solvent >= rules.solvent };
 }
 
 function workshopIVRadar(state) {
@@ -237,7 +237,7 @@ function workshopIndividual(own) {
   return `<div class="ws-iv-layout"><section class="ws-instrument"><div class="ws-instrument-title"><small>个体值</small><b>六维星谱</b></div>${workshopIVRadar(state)}<p>${values ? `个体值合计 ${values.reduce((sum,value) => sum + value,0)}/${rules.stats.length * rules.max_value}` : "尚未洗练"}</p></section><section class="ws-detail"><h4>个体洗练 <small>已锁 ${lockCount}/${rules.stats.length}</small></h4><div class="ws-iv-rows">${rules.stats.map(({stat,step},index) => {
     const name = WORKSHOP_STATS[stat], isMax = values?.[index] === rules.max_value;
     return `<div><b>${name}</b><span>${values ? `${values[index]}/${rules.max_value}` : "暂无"}${isMax ? '<i>满值</i>' : ""}</span><small title="每 ${step} 点个体值提升一次属性">${workshopEffect({stat,value:bonuses[stat]})}</small><button type="button" class="ws-iv-lock" data-iv-lock="${stat}" aria-label="${locked[index] ? "解锁" : "锁定"}${name}" aria-pressed="${locked[index]}" ${values ? "" : "disabled"} onclick="workshopIVAction('iv_lock','${stat}')">${locked[index] ? "已锁定" : "未锁定"}</button></div>`;
-  }).join("")}</div><p>仅未锁定属性重掷，数值可能升高或降低。锁定免费，每锁一项再洗需多 ${rules.ore_per_lock} 星锻矿。</p>${freeMax ? '<p class="ws-condition">有满值属性尚未锁定，继续洗练可能降低。</p>' : ""}<div class="ws-iv-roll"><b>星锻矿 ${state.ore}/${state.cost}</b><button type="button" class="ws-command" data-workshop-action="iv_roll" ${state.canRoll ? "" : "disabled"} onclick="workshopIVAction('iv_roll')">${lockCount === rules.stats.length ? "六项已锁定" : values ? "重新洗练" : "首次洗练"}</button></div></section></div>`;
+  }).join("")}</div><p>仅未锁定属性重掷，数值可能升高或降低。锁定免费；重掷时，锁 0 至 5 项分别消耗 ${(rules.lock_tokens || []).join(" / ")} 代币。</p>${freeMax ? '<p class="ws-condition">有满值属性尚未锁定，继续洗练可能降低。</p>' : ""}<div class="ws-iv-roll"><b>${lockCount === rules.stats.length ? "请先解锁至少一项" : `本次：${rules.gold} 金币、${rules.solvent} 洗练剂、${state.tokens} 代币`}<small>持有：${SAVE.gold} 金币、${state.solvent} 洗练剂、${SAVE.token || 0} 代币</small></b><button type="button" class="ws-command" data-workshop-action="iv_roll" ${state.canRoll ? "" : "disabled"} onclick="workshopIVAction('iv_roll')">${lockCount === rules.stats.length ? "六项已锁定" : values ? "重新洗练" : "首次洗练"}</button></div></section></div>`;
 }
 
 async function workshopIVAction(action, stat) {
@@ -328,7 +328,7 @@ function paintWorkshop(focusSelector) {
     case "weapon": content = Store.profile.equipment && typeof atelierGearPanel === "function" ? atelierGearPanel(view,girl,own) : workshopWeapon(girl, own); break;
     case "bonds": content = `<div class="ws-folio"><div class="ws-paper">${collectionMarkup(view.id)}</div></div>`; break;
     case "talent": content = `<div class="ws-paper ws-specialty">${awakeningDetailMarkup(view.id, own)}${talentMarkup(view.id, own, MAT_BY_RARITY[girl.rarity])}${sigilEquipmentMarkup(view.id, own)}</div>`; break;
-    default: content = workshopOverview(girl, own);
+    default: content = workshopOverview(girl, own) + `<section class="ws-paper"><h4>获取来源</h4><p>${esc(cardSourceDescription(girl))}</p>${own.copies > 0 ? `<button type="button" class="ws-command" onclick="recycleWorldCopy('${girl.id}')">留存整卡 ×${own.copies} · 分解 1 张为 ${girl.dupGain} 枚专属碎片</button>` : ""}</section>`;
   }
   const previous = document.querySelector("#modal-mask:not(.hidden) .hero-workshop"), scroll = document.querySelector("#modal-box .mb-scroll");
   const offset = previous?.dataset.cultivationCard === view.id && previous.dataset.tab === view.tab ? scroll.scrollTop : 0;
@@ -376,7 +376,7 @@ function returnFromArtifactDraw() {
 }
 
 function selectDrawPool(pool) {
-  if (!requireGame() || !workshopRules() || !["heroes","gems","chips"].includes(pool)) return;
+  if (!requireGame() || !["heroes","world","gems","chips"].includes(pool) || ["gems","chips"].includes(pool) && !workshopRules() || pool === "world" && typeof renderWorldPool !== "function") return;
   const state = drawPoolState();
   state.returnTo = null;
   if (state.id !== pool) { state.id = pool; state.drops = []; state.loot = []; state.quality = ""; }
@@ -420,22 +420,43 @@ function workshopDrawReceipt(pool, items) {
   return `${portraits ? `<div class="at-receipt-art" aria-hidden="true">${portraits}</div>` : ""}<ol>${drops.map(drop=>`<li>${esc(drop)}</li>`).join("")}</ol>`;
 }
 
+function artifactFreeToday(key) {
+  const now = Store.serverNow?.(), day = SAVE.daily?.date;
+  if (!Number.isFinite(now) || !day || new Date(now + 8 * 3600000).toISOString().slice(0,10) !== day) return null;
+  return !SAVE.daily.artifact_free?.[key];
+}
+
+function artifactDrawControls(key, count) {
+  const price = workshopRules().draw_token, priced = Number.isSafeInteger(price) && price > 0;
+  const free = priced ? artifactFreeToday(key) : null, busy = priced && free !== false;
+  const offers = priced ? `<button type="button" class="ws-command" data-artifact-payment="free" ${free === false ? "disabled" : ""} onclick="${free === null ? "syncArtifactPool()" : "drawArtifacts(1,'free')"}">${free === true ? "今日免费单抽" : free === false ? "今日免费已用" : "同步今日免费次数"}</button>` : "";
+  const buttons = [1,10].map(amount => `<button type="button" class="ws-command" data-artifact-draw="${amount}" ${count < amount || busy ? "disabled" : ""} onclick="drawArtifacts(${amount})">${amount === 1 ? "单次" : "十连"}召唤 · ${amount} 券</button>${priced ? `<button type="button" class="ws-command" data-artifact-token="${amount}" ${(SAVE.token || 0) < price*amount || busy ? "disabled" : ""} onclick="drawArtifacts(${amount},'token')">${amount === 1 ? "单次" : "十连"}召唤 · ${price*amount} 代币</button>` : ""}`).join("");
+  return `${priced ? `<p>两池各享每日 1 次免费单抽，北京时间 00:00 重置。之后可自行选券或代币，不自动补扣。当前代币 ${SAVE.token || 0}。</p>` : ""}<div class="ws-actions">${offers}${buttons}</div>${priced && free !== null ? '<button type="button" class="ws-link" onclick="syncArtifactPool()">同步次数与余额</button>' : ""}`;
+}
+
+async function syncArtifactPool() {
+  if (!requireGame()) return;
+  const epoch = Store.sessionEpoch;
+  if (await Store.refresh() && Store.sessionEpoch === epoch && Store.ready() && document.body.dataset.page === "page-gacha") renderGacha();
+}
+
 function renderArtifactPool() {
-  const enabled = !!workshopRules(), pool = drawPoolState().id;
+  const artifacts = !!workshopRules(), world = typeof renderWorldPool === "function", enabled = artifacts || world, pool = drawPoolState().id;
   const tabs = document.getElementById("gacha-pools"), body = document.getElementById("artifact-draw");
   if (!tabs || !body) return false;
   const active = enabled && pool !== "heroes";
   tabs.hidden = !enabled; body.hidden = !active;
   for (const control of document.querySelectorAll("#gacha-banner,#gacha-pity,#page-gacha>.gacha-btns,#gacha-result,#gacha-extra")) control.classList.toggle("pool-inactive", active);
-  tabs.innerHTML = enabled ? Object.entries({heroes:"角色",gems:"宝石",chips:"芯片"}).map(([key,label]) => `<button type="button" data-draw-pool="${key}" aria-pressed="${pool === key}" onclick="selectDrawPool('${key}')">${label}</button>`).join("") : "";
+  tabs.innerHTML = enabled ? Object.entries({heroes:"常驻角色",...(world ? {world:"强者世界"} : {}),...(artifacts ? {gems:"宝石",chips:"芯片"} : {})}).map(([key,label]) => `<button type="button" data-draw-pool="${key}" aria-pressed="${pool === key}" onclick="selectDrawPool('${key}')">${label}</button>`).join("") : "";
   if (!active) { body.innerHTML = ""; return false; }
+  if (pool === "world" && world) { renderWorldPool(body); return true; }
   const gems = pool === "gems", key = gems ? "gem_ticket" : "chip_ticket", ticket = ARTIFACT_TICKETS[key];
   const grades = Store.profile?.artifact_grades, quality = drawPoolState().quality || (gems ? grades?.gem_default : grades?.chip_default);
   const items = workshopItems(pool, undefined, false, [],quality), count = SAVE.mats[key] || 0, ore = SAVE.mats.forge_ore || 0, price = workshopRules().ticket_ore;
   const filters = grades ? `<fieldset class="ws-pool-qualities"><legend>品质概率</legend>${grades.qualities.map(grade=>`<button type="button" data-pool-quality="${grade.id}" aria-pressed="${grade.id===quality}" onclick="selectArtifactPoolQuality('${grade.id}')"><i aria-hidden="true"></i>${esc(grade.name)} <b>${grade.weight/100}%</b></button>`).join("")}</fieldset>` : "";
   const origin = artifactReturnOrigin();
   const ticketArt = typeof atelierItem === "function" && atelierItem(key) ? atelierIcon(key) : "";
-  body.innerHTML = `<div class="ws-draw-head"><div><small class="ws-kicker">${gems ? "宝石召唤" : "芯片召唤"}</small><h2>${gems ? "宝石星阵" : "芯片工坊"}</h2><p>${esc(ticket.from)} · 每抽消耗一券</p></div><strong class="at-ticket-count">${ticketArt}<span>${ticket.name} <b>×${count}</b></span></strong></div><div class="ws-draw-layout"><section class="ws-draw-catalog"><h4>召唤池 <small>每${gems ? "种宝石" : "种编号芯片"} 1/${items.length}${grades ? " · 品质独立抽取" : ""}</small></h4>${filters}<div class="ws-artifact-grid">${items.map(item => `<div>${workshopItemIcon(item)}<b>${esc(item.name)}</b><small>${esc(item.effect)}</small>${item.quality && item.refine.grade>=4 ? `<small>${artifactGradeEffects(item.refine).filter(effect=>effect.active).map(effect=>esc(effect.name)).join(" · ")}</small>` : ""}</div>`).join("")}</div></section><section class="ws-draw-controls"><h4>召唤</h4><div class="ws-actions">${[1,10].map(amount => `<button type="button" class="ws-command" data-artifact-draw="${amount}" ${count < amount ? "disabled" : ""} onclick="drawArtifacts(${amount})">${amount === 1 ? "单次" : "十连"}召唤 · ${amount} 券</button>`).join("")}</div><h4>兑换召唤券</h4><p>星锻矿 ${ore}/${price}</p><button type="button" class="ws-command" data-ticket="${key}" ${ore < price ? "disabled" : ""} onclick="convertArtifactTicket()">兑换 1 张${ticket.name}</button><div class="ws-draw-receipt" aria-live="polite"><h4>本次结果</h4>${workshopDrawReceipt(pool,items)}</div></section></div>`;
+  body.innerHTML = `<div class="ws-draw-head"><div><small class="ws-kicker">${gems ? "宝石召唤" : "芯片召唤"}</small><h2>${gems ? "宝石星阵" : "芯片工坊"}</h2><p>专属召唤券来源：${esc(ticket.from)}</p></div><strong class="at-ticket-count">${ticketArt}<span>${ticket.name} <b>×${count}</b></span></strong></div><div class="ws-draw-layout"><section class="ws-draw-catalog"><h4>召唤池 <small>每${gems ? "种宝石" : "种编号芯片"} 1/${items.length}${grades ? " · 品质独立抽取" : ""}</small></h4>${filters}<div class="ws-artifact-grid">${items.map(item => `<div>${workshopItemIcon(item)}<b>${esc(item.name)}</b><small>${esc(item.effect)}</small>${item.quality && item.refine.grade>=4 ? `<small>${artifactGradeEffects(item.refine).filter(effect=>effect.active).map(effect=>esc(effect.name)).join(" · ")}</small>` : ""}</div>`).join("")}</div></section><section class="ws-draw-controls"><h4>召唤</h4>${artifactDrawControls(key,count)}<h4>兑换召唤券</h4><p>星锻矿 ${ore}/${price}</p><button type="button" class="ws-command" data-ticket="${key}" ${ore < price ? "disabled" : ""} onclick="convertArtifactTicket()">兑换 1 张${ticket.name}</button><div class="ws-draw-receipt" aria-live="polite"><h4>本次结果</h4>${workshopDrawReceipt(pool,items)}</div></section></div>`;
   if (origin) {
     const label = origin.id ? `${GIRLS.find(girl => girl.id === origin.id).name}装配` : `${WORKSHOP_TABS[origin.tab]}背包`;
     body.querySelector(".ws-draw-head").insertAdjacentHTML("beforeend", `<button type="button" class="ws-command" data-draw-return onclick="returnFromArtifactDraw()">‹ 返回${esc(label)}</button>`);
@@ -443,13 +464,32 @@ function renderArtifactPool() {
   return true;
 }
 
-async function changeArtifactPool(amount, conversion) {
+async function changeArtifactPool(amount, conversion, method = "ticket") {
   if (!requireGame() || !workshopRules()) return;
   const pool = drawPoolState().id, epoch = Store.sessionEpoch;
   if (!["gems","chips"].includes(pool)) return;
   const key = pool === "gems" ? "gem_ticket" : "chip_ticket";
-  if (conversion ? (SAVE.mats.forge_ore || 0) < workshopRules().ticket_ore : ![1,10].includes(amount) || (SAVE.mats[key] || 0) < amount) return;
-  const result = await Store.mutate(conversion ? "convert_tickets" : pool === "gems" ? "draw_gems" : "draw_chips", conversion ? { item_id:key } : { count:amount });
+  const fields = conversion ? {item_id:key} : {count:amount};
+  if (conversion) {
+    if ((SAVE.mats.forge_ore || 0) < workshopRules().ticket_ore) return;
+  } else {
+    const free = artifactFreeToday(key), price = workshopRules().draw_token;
+    if (![1,10].includes(amount) || !["ticket","free","token"].includes(method)) return;
+    if (method === "free") {
+      if (free !== true || amount !== 1) { renderGacha(); return; }
+      fields.choice = "free"; fields.item_id = SAVE.daily.date;
+    } else {
+      if (price && free !== false) { renderGacha(); return; }
+      if (method === "token") {
+        if (!Number.isSafeInteger(price) || price < 1 || (SAVE.token || 0) < price*amount) return;
+        fields.choice = "token";
+      } else {
+        if ((SAVE.mats[key] || 0) < amount) return;
+        if (price) fields.choice = "ticket";
+      }
+    }
+  }
+  const result = await Store.mutate(conversion ? "convert_tickets" : pool === "gems" ? "draw_gems" : "draw_chips", fields);
   if (!result || epoch !== Store.sessionEpoch || !Store.ready()) return;
   if (drawPoolState().id === pool && !conversion) {
     drawPoolState().drops = Array.isArray(result.drops) ? result.drops : [];
@@ -458,13 +498,17 @@ async function changeArtifactPool(amount, conversion) {
   if (document.body.dataset.page === "page-gacha") renderGacha();
   renderTopbar();
   if (conversion) toast((result.drops || []).join(" · ") || "兑换已确认");
+  else if (result.artifact_payment) {
+    const paid = result.artifact_payment;
+    toast(paid.resource === "free" ? "今日免费召唤已到账，未扣除券或代币" : `已扣除 ${paid.amount} ${paid.resource === "token" ? "代币" : ARTIFACT_TICKETS[key].name}`);
+  }
 }
 
-function drawArtifacts(count) { return changeArtifactPool(count, false); }
+function drawArtifacts(count, method) { return changeArtifactPool(count, false, method); }
 function convertArtifactTicket() { return changeArtifactPool(1, true); }
 
 const WORKSHOP_BAG_TABS = { materials:"培养材料", gems:"宝石背包", chips:"芯片背包", sigils:"灵印", shards:"角色碎片" };
-function workshopBagTabs() { return { ...WORKSHOP_BAG_TABS, ...(Store.profile?.carry ? {carry:"随身道具"} : {}), ...(Store.profile?.cases && typeof dispatchEvidenceBag === "function" ? {evidence:"调查证物"} : {}) }; }
+function workshopBagTabs() { return { ...WORKSHOP_BAG_TABS, ...(Store.profile?.carry ? {carry:"随身奇物"} : {}), ...(Store.profile?.cases && typeof dispatchEvidenceBag === "function" ? {evidence:"调查证物"} : {}) }; }
 const WORKSHOP_MAT_GROUPS = { workshop:"工料与手记", stars:"升星与回收", tickets:"召唤券", sigils:"灵印打造" };
 let workshopBag = { epoch:-1, tab:"materials", group:"workshop", hero:"" };
 
@@ -506,7 +550,7 @@ function workshopBagBody() {
     const entries = group === "tickets" ? Object.entries(ARTIFACT_TICKETS) : Object.entries(MATS).filter(([key]) => group === "sigils" ? key === "sigil_dust" || key.startsWith("essence_") : key.startsWith("shard_dust") || Object.values(MAT_BY_RARITY).includes(key));
     rows = `<div class="ws-material-list">${entries.map(([key,item]) => `<div><i style="--item:${item.color}" aria-hidden="true">◆</i><b>${esc(item.name)}</b><strong>×${SAVE.mats[key] || 0}</strong><span>${esc(item.use)}${Object.values(MAT_BY_RARITY).includes(key) ? "、角色潜能" : ""}</span><small>来源：${esc(item.from)}</small></div>`).join("")}</div>`;
   }
-  return `<div class="ws-subtabs">${groups}</div>${rows}<nav class="ws-bag-links" aria-label="资源入口"><button type="button" class="ws-link" onclick="nav('page-stage')">副本掉落 ›</button><button type="button" class="ws-link" onclick="nav('page-shop')">代币商店 ›</button><button type="button" class="ws-link" onclick="openWarehouse()">站点仓库 ›</button></nav>`;
+  return `<div class="ws-subtabs">${groups}</div>${typeof staminaPackShelf === "function" ? staminaPackShelf() : ""}${rows}<nav class="ws-bag-links" aria-label="资源入口"><button type="button" class="ws-link" onclick="nav('page-stage')">副本掉落 ›</button><button type="button" class="ws-link" onclick="nav('page-shop')">补给商店 ›</button><button type="button" class="ws-link" onclick="openWarehouse()">站点仓库 ›</button></nav>`;
 }
 
 function renderWorkshopBag() {

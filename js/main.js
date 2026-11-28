@@ -70,6 +70,7 @@ document.querySelectorAll("[data-nav]").forEach(el => {
   if (!el.classList.contains("nav-btn")) {
     el.addEventListener("click", () => {
       nav(el.dataset.nav);
+      if (el.dataset.homePool && Store.ready()) selectDrawPool(el.dataset.homePool);
       if (el.dataset.arenaMode) pickArenaTab(el.dataset.arenaMode);
     });
   }

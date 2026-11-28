@@ -10,6 +10,7 @@ func MigrateGachaTables() error {
 		&GachaArenaGate{}, &GachaArenaSeat{}, &GachaArenaDuel{},
 		&GachaArenaEntry{}, &GachaArenaRoom{},
 		&GachaLadderGate{}, &GachaLadderEntry{}, &GachaLadderMail{}, &GachaLadderBattle{},
+		&GachaWorldSeason{}, &GachaWorldEntry{},
 	); err != nil {
 		return err
 	}

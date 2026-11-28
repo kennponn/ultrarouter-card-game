@@ -1,0 +1,23 @@
+{
+  "edition": 1,
+  "editions": {
+    "1": {
+      "shard_percent": 55,
+      "chests": [
+        {"points": 3, "shards": 2, "tickets": 0},
+        {"points": 8, "shards": 3, "tickets": 1},
+        {"points": 16, "shards": 5, "tickets": 1},
+        {"points": 30, "shards": 7, "tickets": 2},
+        {"points": 50, "shards": 10, "tickets": 2}
+      ],
+      "tiers": [
+        {"through": 1, "shards": 40},
+        {"through": 2, "shards": 24},
+        {"through": 3, "shards": 15},
+        {"through": 5, "shards": 8},
+        {"through": 10, "shards": 5},
+        {"through": 20, "shards": 3}
+      ]
+    }
+  }
+}

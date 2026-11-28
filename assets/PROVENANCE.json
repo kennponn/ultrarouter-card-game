@@ -3,7 +3,7 @@
     {
       "id": "c01",
       "name": "灯里",
-      "path": "assets/c01-dengli.webp",
+      "path": "content/cards/c01/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -12,7 +12,7 @@
     {
       "id": "c02",
       "name": "小满",
-      "path": "assets/c02-xiaoman.webp",
+      "path": "content/cards/c02/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -21,7 +21,7 @@
     {
       "id": "c06",
       "name": "铃羽",
-      "path": "assets/c06-lingyu.webp",
+      "path": "content/cards/c06/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -30,7 +30,7 @@
     {
       "id": "c08",
       "name": "小椛",
-      "path": "assets/c08-xiaohua.webp",
+      "path": "content/cards/c08/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -39,7 +39,7 @@
     {
       "id": "c12",
       "name": "苺",
-      "path": "assets/c12-mei.webp",
+      "path": "content/cards/c12/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -48,7 +48,7 @@
     {
       "id": "c20",
       "name": "暖弦",
-      "path": "assets/c20-nuanxian.webp",
+      "path": "content/cards/c20/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -57,7 +57,7 @@
     {
       "id": "c21",
       "name": "柚芽",
-      "path": "assets/c21-youya.webp",
+      "path": "content/cards/c21/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -66,7 +66,7 @@
     {
       "id": "c22",
       "name": "榛果",
-      "path": "assets/c22-zhenguo.webp",
+      "path": "content/cards/c22/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -75,7 +75,7 @@
     {
       "id": "c11",
       "name": "剑华",
-      "path": "assets/c11-jianhua.webp",
+      "path": "content/cards/c11/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -84,7 +84,7 @@
     {
       "id": "c05",
       "name": "霜音",
-      "path": "assets/c05-shuangyin.webp",
+      "path": "content/cards/c05/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -93,7 +93,7 @@
     {
       "id": "c13",
       "name": "圣愈",
-      "path": "assets/c13-shengyu.webp",
+      "path": "content/cards/c13/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -102,7 +102,7 @@
     {
       "id": "c10",
       "name": "绯破",
-      "path": "assets/c10-feipo.webp",
+      "path": "content/cards/c10/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -111,7 +111,7 @@
     {
       "id": "c14",
       "name": "缚锁",
-      "path": "assets/c14-fusuo.webp",
+      "path": "content/cards/c14/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -120,7 +120,7 @@
     {
       "id": "c17",
       "name": "澄汐",
-      "path": "assets/c17-chengxi.webp",
+      "path": "content/cards/c17/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -129,7 +129,7 @@
     {
       "id": "c18",
       "name": "朱笺",
-      "path": "assets/c18-zhujian.webp",
+      "path": "content/cards/c18/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -138,7 +138,7 @@
     {
       "id": "c19",
       "name": "岚翎",
-      "path": "assets/c19-lanling.webp",
+      "path": "content/cards/c19/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -147,7 +147,7 @@
     {
       "id": "c23",
       "name": "夜萤",
-      "path": "assets/c23-yeying.webp",
+      "path": "content/cards/c23/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -156,7 +156,7 @@
     {
       "id": "c24",
       "name": "雨棠",
-      "path": "assets/c24-yutang.webp",
+      "path": "content/cards/c24/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -165,7 +165,7 @@
     {
       "id": "c25",
       "name": "苏兰",
-      "path": "assets/c25-sulan.webp",
+      "path": "content/cards/c25/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -174,7 +174,7 @@
     {
       "id": "c26",
       "name": "铃绡",
-      "path": "assets/c26-lingxiao.webp",
+      "path": "content/cards/c26/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -183,7 +183,7 @@
     {
       "id": "c04",
       "name": "龙音",
-      "path": "assets/c04-longyin.webp",
+      "path": "content/cards/c04/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -192,7 +192,7 @@
     {
       "id": "c07",
       "name": "星墙",
-      "path": "assets/c07-xingqiang.webp",
+      "path": "content/cards/c07/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -201,7 +201,7 @@
     {
       "id": "c09",
       "name": "时雨",
-      "path": "assets/c09-shiyu.webp",
+      "path": "content/cards/c09/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -210,7 +210,7 @@
     {
       "id": "c03",
       "name": "寻宝女王",
-      "path": "assets/c03-queen.webp",
+      "path": "content/cards/c03/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -219,7 +219,7 @@
     {
       "id": "c15",
       "name": "月璃",
-      "path": "assets/c15-yueli.webp",
+      "path": "content/cards/c15/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -228,7 +228,7 @@
     {
       "id": "c16",
       "name": "织星",
-      "path": "assets/c16-zhixing.webp",
+      "path": "content/cards/c16/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -237,7 +237,7 @@
     {
       "id": "c27",
       "name": "雪翎",
-      "path": "assets/c27-xueling.webp",
+      "path": "content/cards/c27/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -246,7 +246,7 @@
     {
       "id": "c28",
       "name": "海璃",
-      "path": "assets/c28-haili.webp",
+      "path": "content/cards/c28/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,

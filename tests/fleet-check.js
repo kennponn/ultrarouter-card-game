@@ -108,7 +108,7 @@ test("standalone demo uses only original local portraits, five boards, focusable
   for (const medal of [1,2,3]) assert.equal(hall.querySelector(`[data-medal="${medal}"]`).textContent, String(medal));
   assert.equal(hall.querySelectorAll('[data-rank-row="0"] .rank-faces img').length, 4);
   for (const image of hall.querySelectorAll("img")) {
-    assert.match(image.getAttribute("src"), /^assets\/c\d\d-[a-z0-9-]+\.webp$/i);
+    assert.match(image.getAttribute("src"), /^content\/cards\/c\d\d\/assets\/portrait\.webp$/i);
     assert.ok(fs.existsSync(path.join(__dirname, "..", image.getAttribute("src"))));
   }
   assert.match(hall.querySelector(".rank-standing").textContent, /蓝檐回声/);
@@ -152,4 +152,76 @@ test("empty and unavailable live rankings offer an explicit demo, never filling 
   assert.equal(hall.dataset.rankSource, "demo");
   assert.equal(hall.querySelector('[data-rank-action="source"]').hidden, true);
   assert.equal(reads, 2); assert.deepEqual(calls, []);
+});
+
+function upgradedGuild() {
+  return {
+    name: "测试母港", leader_id: 14, code: "0000000E", level: 3, xp: 250, next_xp: 450,
+    member_limit: 20, coins: 160, role: "leader", can_assign: true, can_manage: true,
+    boss_week: "2026-W48", attempts_today: 0, attempt_limit: 2,
+    members: [{ user_id: 14, name: "会长", role: "leader" }, { user_id: 22, name: "<img src=x>", role: "member" }],
+    raid_stages: [
+      { stage: 1, name: "守卫", required_level: 1, hp: 900, max_hp: 24000, active: true, unlocked: true, participated: true, token: 40, material: "mat_sr", material_count: 3, coins: 60, gold: 250 },
+      { stage: 2, name: "统领", required_level: 3, hp: 60000, max_hp: 60000, unlocked: true, token: 70, material: "mat_ssr", material_count: 2, coins: 90 },
+      { stage: 3, name: "主宰", required_level: 5, hp: 120000, max_hp: 120000, unlocked: false, token: 110, material: "mat_ssr", material_count: 4, coins: 140 },
+    ],
+    shop: [{ id: "tokens", name: "代币补给", level: 1, cost: 80, resource: "token", amount: 40, limit: 3, remaining: 3, unlocked: true, can_buy: true }],
+  };
+}
+
+test("guild tabs expose capacity, server shop eligibility and exact appointment intents", async context => {
+  const guild = upgradedGuild();
+  const { window, document, click, calls } = setup(context, guild);
+  await window.renderFleet();
+  assert.match(document.querySelector(".guild-hero").textContent, /2 \/ 20/);
+  await click('[data-fleet-tab="shop"]');
+  await click('[data-fleet-act="shop"]');
+  assert.deepEqual(calls.at(-1), ["guild_shop", { item_id: "tokens" }]);
+  assert.equal(guild.coins, 160, "no optimistic debit");
+  await click('[data-fleet-tab="members"]');
+  assert.equal(document.querySelector(".guild-member-list img"), null);
+  await click('[data-fleet-act="role"][data-value="22:deputy"]');
+  assert.deepEqual(calls.at(-1), ["guild_role", { opponent_id: 22, item_id: "deputy" }]);
+  guild.can_assign = false; guild.can_manage = false; guild.role = "member";
+  await window.fleetLoad();
+  assert.equal(document.querySelector('[data-fleet-act="role"]'), null);
+  assert.equal(document.querySelector('[data-fleet-act="listing"]'), null);
+});
+
+test("guild challenge starts server replay after confirmation and deduplicates rapid clicks", async context => {
+  const { window, document, store, click } = setup(context, upgradedGuild());
+  const started = [];
+  store.serverNow = () => 5000;
+  window.resumeBattle = async (...args) => started.push(args);
+  await window.renderFleet();
+  await click('[data-fleet-tab="raid"]');
+  let release, posts = 0;
+  store.mutate = () => { posts++; return new Promise(resolve => { release = resolve; }); };
+  const waiting = click('[data-fleet-act="attack"]');
+  await click('[data-fleet-act="attack"]');
+  assert.equal(posts, 1);
+  assert.equal(started.length, 0);
+  const receipt = { stage: 1, stage_name: "守卫", damage: 50, report: { duration_ms: 1000, events: [] } };
+  release({ guild_battle: receipt, drops: [] });
+  await waiting;
+  assert.equal(started.length, 1);
+  assert.equal(started[0][0].guild_battle, receipt);
+  assert.equal(started[0][0].result, receipt.report);
+  assert.equal(started[0][0].ready_at, 6000);
+  assert.equal(started[0][1], false);
+  assert.equal(document.querySelectorAll(".guild-raid-card").length, 3);
+});
+
+test("a guild battle response from an old account cannot start playback", async context => {
+  const { window, store, click } = setup(context, upgradedGuild());
+  let release, started = 0;
+  store.serverNow = () => 1;
+  window.resumeBattle = async () => { started++; };
+  await window.renderFleet(); await click('[data-fleet-tab="raid"]');
+  store.mutate = () => new Promise(resolve => { release = resolve; });
+  const waiting = click('[data-fleet-act="attack"]');
+  store.sessionEpoch++;
+  release({ guild_battle: { report: { duration_ms: 1000 } } });
+  await waiting;
+  assert.equal(started, 0);
 });

@@ -18,7 +18,7 @@ function setup(context) {
   const girls = ["c01","c02","c03"].map(id => ({id,img:`assets/${id}.webp`}));
   Object.assign(browser.window,{SAVE:state,Store:store,BAT:null,GIRLS:girls,GROWTH:{maxLevel:150},toast:text => notices.push(text),nav:page => pages.push(page),requireGame:() => store.ready(),openHarborMail:tab => pages.push(`mail:${tab}`),openFleetRanking:board => pages.push(`rank:${board}`),openVoyage:port => pages.push(`voyage:${port}`),openVoyageChests:() => pages.push("chests"),voyageLedger:() => ({stars:17,maximum:156})});
   const ui = read("js/ui.js");
-  browser.window.eval(ui.slice(ui.indexOf("function esc("),ui.indexOf("/* ---------- 页面路由"))+ui.slice(ui.indexOf("function showModal("),ui.indexOf("function showPendingAction("))+read("js/captain.js")+`\nfunction renderTopbar(){renderCaptainSummary()}\nwindow.journalTest={renderCaptain,openCaptainProfile,syncCaptainProfile,renderCaptainSummary,captainJournalClick};renderCaptain();renderCaptainSummary();`);
+  browser.window.eval(ui.slice(ui.indexOf("function esc("),ui.indexOf("/* ---------- 页面路由"))+ui.slice(ui.indexOf("function showModal("),ui.indexOf("function showPendingAction("))+read("js/captain.js")+`\nfunction renderTopbar(){renderCaptainSummary()}\nwindow.journalTest={renderCaptain,openCaptainProfile,syncCaptainProfile,renderCaptainSummary,captainJournalClick,captainPoints,captainChestReady};renderCaptain();renderCaptainSummary();`);
   const api = browser.window.journalTest, document = browser.window.document;
   return {state,store,api,log,calls,notices,pages,document,clock:time => { now=Date.parse(time); api.renderCaptain(); api.renderCaptainSummary(); },click:selector => api.captainJournalClick({target:document.querySelector(selector)})};
 }
@@ -26,7 +26,7 @@ function setup(context) {
 test("captain journal reads confirmed progress and submits only dated task and meal IDs", async context => {
   const {document,log,calls,click,api,pages} = setup(context);
   assert.equal(document.querySelector("#res-captain").textContent,"Lv.3");
-  assert.match(document.querySelector("#captain-summary").textContent,/1 项任务待投递.*便当可领/);
+  assert.match(document.querySelector("#captain-summary").textContent,/1 项任务可领取.*便当可领/);
   assert.equal(document.querySelector(".captain-xp progress").value,8);
   await click('[data-captain-visit="voyage"]');
   assert.deepEqual(pages,["page-stage"]);
@@ -37,10 +37,11 @@ test("captain journal reads confirmed progress and submits only dated task and m
   assert.deepEqual(log.claimed,{});
   assert.deepEqual(log.supplies,{});
   log.claimed.rollcall = true; log.supplies.morning = true; api.renderCaptain();
-  assert.equal(document.querySelector('[data-captain-task="rollcall"]').disabled,false);
-  assert.match(document.querySelector('[data-captain-supply="morning"]').textContent,/已寄送/);
+  assert.equal(document.querySelector('[data-captain-task="rollcall"]').disabled,true);
+  assert.equal(document.querySelector('[data-captain-supply="morning"]').disabled,true);
+  assert.match(document.querySelector('[data-captain-supply="morning"]').textContent,/已领取/);
   await click('[data-captain-task="rollcall"]'); await click('[data-captain-supply="morning"]');
-  assert.deepEqual(pages.slice(-2),["mail:inbox","mail:inbox"]); assert.equal(calls.length,2);
+  assert.deepEqual(pages,["page-stage"]); assert.equal(calls.length,2);
 });
 
 test("home portrait opens a personal dossier with confirmed XP, full-card collection and working return and shortcuts", context => {
@@ -98,4 +99,48 @@ test("unfinished duties focus the wish or training control without performing th
   await click('[data-captain-visit="drill"]');
   assert.equal(document.activeElement.hasAttribute("data-growth-run"),true);
   assert.deepEqual(pages,["page-growth","page-growth"]); assert.equal(calls.length,0);
+});
+
+test("completed duties unlock dated chests before task claims and never grant assets in the browser", async context => {
+  const {api,store,state,log,document,click,calls,clock,pages} = setup(context);
+  store.profile.captain_rules = JSON.parse(read("backend/model/gacha_captain.json"));
+  const rules = store.profile.captain_rules;
+  api.renderCaptain();
+  assert.equal(document.querySelector('[data-captain-chest="25"]').disabled,true);
+  log.gear_review = true; api.renderCaptain();
+  assert.equal(document.querySelector('[data-captain-visit="equipment"]').textContent,"去实战复盘");
+  await click('[data-captain-visit="equipment"]'); assert.equal(pages.at(-1),"page-stage");
+  for (const task of rules.tasks) log.progress[task.id] = task.target;
+  api.renderCaptain(); api.renderCaptainSummary();
+  assert.match(document.querySelector("#captain-chests").textContent,/100\/100/);
+  assert.match(document.querySelector("#captain-summary").textContent,/4 个宝箱可领/);
+  assert.match(document.querySelector('[data-captain-chest="100"]').parentElement.textContent,/限定券/);
+  await click('[data-captain-chest="100"]');
+  assert.deepEqual(calls,[["captain_chest",{item_id:`${state.daily.date}:100`}]]);
+  assert.equal(log.chests,undefined); assert.deepEqual(log.claimed,{});
+  log.chests={"100":true}; api.renderCaptain();
+  assert.equal(document.querySelector('[data-captain-chest="100"]').disabled,true);
+  assert.equal(document.querySelector('[data-captain-chest="75"]').disabled,false);
+  clock("2026-11-27T16:00:00Z");
+  assert.equal(document.querySelector('[data-captain-chest="75"]').disabled,true);
+});
+
+test("every possible task completion set agrees with the published chest thresholds", context => {
+  const {api,log} = setup(context), rules = JSON.parse(read("backend/model/gacha_captain.json"));
+  const journal = {current:true,rules,log};
+  for (let mask = 0; mask < 2**rules.tasks.length; mask++) {
+    let total = 0;
+    for (const [index,task] of rules.tasks.entries()) {
+      const complete = Boolean(mask & (1 << index));
+      log.progress[task.id] = task.target - (complete ? 0 : 1);
+      if (complete) total += task.points;
+    }
+    assert.equal(api.captainPoints(journal),total);
+    for (const chest of rules.chests) {
+      log.chests = {};
+      assert.equal(api.captainChestReady(journal,chest),total >= chest.points);
+      log.chests[chest.id] = true;
+      assert.equal(api.captainChestReady(journal,chest),false);
+    }
+  }
 });

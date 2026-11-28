@@ -27,21 +27,13 @@ func TestGachaMailGiftIsServerDefinedAndRedeemsOnce(t *testing.T) {
 	require.NoError(t, ValidateGachaAction(intent))
 	receipt := &GachaActionResult{}
 	require.NoError(t, applyGachaMail(state, intent, receipt, now))
-	require.Len(t, state.Mailbox.Messages, 1)
-	mail := state.Mailbox.Messages[0]
-	assert.Equal(t, beforeGold, state.Gold)
-	assert.Equal(t, beforeStamina, state.Stamina)
-	assert.Zero(t, mail.CaptainXP)
-	assert.Equal(t, 30, mail.Resources["stamina"])
+	require.Empty(t, state.Mailbox.Messages)
 	assert.ErrorIs(t, applyGachaMail(state, intent, receipt, now), ErrGachaRedeemCode)
 	assert.ErrorIs(t, applyGachaMail(state, mailTestIntent("redeem_code", "NO-SUCH-GIFT"), receipt, now), ErrGachaRedeemCode)
 	assert.ErrorIs(t, applyGachaMail(state, mailTestIntent("mail_claim", "other-user-mail"), receipt, now), ErrGachaMailUnavailable)
-	require.NoError(t, applyGachaMail(state, mailTestIntent("mail_claim", mail.ID), receipt, now))
 	assert.Equal(t, beforeGold+300, state.Gold)
 	assert.Equal(t, beforeStamina+30, state.Stamina)
-	assert.True(t, mail.Read)
-	assert.True(t, mail.Claimed)
-	assert.ErrorIs(t, applyGachaMail(state, mailTestIntent("mail_claim", mail.ID), receipt, now), ErrGachaMailUnavailable)
+	assert.Equal(t, 2, state.Mats["field_notes"])
 	assert.Equal(t, 1, state.Captain.Level)
 	assert.Zero(t, state.Captain.XP)
 	forged := 500
@@ -74,28 +66,26 @@ func TestGachaMailClaimAllIsAtomicAndUnreadAttachmentsCannotBeDeleted(t *testing
 	assert.Empty(t, state.Mailbox.Messages)
 }
 
-func TestGachaMailDailyDeliveryKeepsRewardsAcrossCalendarChanges(t *testing.T) {
-	now := time.Date(2026, 11, 27, 23, 59, 0, 0, gameZone)
+func TestGachaLegacyDailyMailSurvivesDirectClaimUpgrade(t *testing.T) {
+	now := time.Date(2026, 11, 27, 12, 0, 0, 0, gameZone)
 	state := newGachaState(now)
 	require.NoError(t, syncGachaCaptain(state))
-	gold := state.Gold
-	require.NoError(t, deliverGachaDailyMail(state, now))
-	require.NoError(t, deliverGachaDailyMail(state, now))
-	require.Len(t, state.Mailbox.Messages, 1)
-	assert.Equal(t, gold, state.Gold)
-	assert.Zero(t, state.Captain.XP)
-	yesterday := state.Mailbox.Messages[0].ID
-	next := now.Add(2 * time.Minute)
+	id := "daily:" + gachaDay(now) + ":rollcall"
+	require.NoError(t, sendGachaMail(state, id, "旧任务奖励", "", map[string]int{"gold": 50}, 40, now))
+	state.Daily.CaptainLog.Claimed["rollcall"] = true
+	before := state.Gold
+	require.ErrorIs(t, applyGachaCaptainClaim(state, captainTestIntent(gachaDay(now), "captain_task", "rollcall"), &GachaActionResult{}, now), ErrGachaCaptainClaim)
+	next := now.AddDate(0, 0, 1)
 	regenGachaState(state, next)
 	require.NoError(t, syncGachaCaptain(state))
-	require.NoError(t, deliverGachaDailyMail(state, next))
-	require.Len(t, state.Mailbox.Messages, 2)
-	require.NoError(t, applyGachaMail(state, mailTestIntent("mail_claim", yesterday), &GachaActionResult{}, next))
-	assert.Equal(t, gold+50, state.Gold)
-	assert.Equal(t, GachaCaptain{Level: 2, XP: 10}, *state.Captain)
+	require.NoError(t, applyGachaMail(state, mailTestIntent("mail_claim", id), &GachaActionResult{}, next))
+	assert.Equal(t, before+50, state.Gold)
+	require.NoError(t, applyGachaCaptainClaim(state, captainTestIntent(gachaDay(next), "captain_task", "rollcall"), &GachaActionResult{}, next))
+	assert.Equal(t, before+100, state.Gold)
+	require.Len(t, state.Mailbox.Messages, 1)
 }
 
-func TestGachaMailboxCapacityPreservesPendingRewardsAndDoesNotBlockReading(t *testing.T) {
+func TestGachaRankingOverflowAndDirectClaimsAreIndependent(t *testing.T) {
 	now := time.Date(2026, 11, 27, 12, 0, 0, 0, gameZone)
 	state := newGachaState(now)
 	require.NoError(t, syncGachaCaptain(state))
@@ -103,53 +93,17 @@ func TestGachaMailboxCapacityPreservesPendingRewardsAndDoesNotBlockReading(t *te
 		require.NoError(t, sendGachaMail(state, fmt.Sprintf("pending-%d", index), "附件", "", map[string]int{"gold": 1}, 0, now))
 	}
 	assert.ErrorIs(t, sendGachaMail(state, "overflow", "未发放", "", map[string]int{"gold": 1}, 0, now), ErrGachaMailboxFull)
-	require.NoError(t, deliverGachaDailyMail(state, now))
-	assert.True(t, state.Daily.CaptainLog.Claimed["rollcall"])
+	before := state.Gold
+	require.NoError(t, applyGachaCaptainClaim(state, captainTestIntent(gachaDay(now), "captain_task", "rollcall"), &GachaActionResult{}, now))
+	assert.Equal(t, before+50, state.Gold)
+	require.Len(t, state.Mailbox.Messages, 200)
+	require.NoError(t, sendGachaMail(state, "ladder:daily:2026-11-27", "排名奖励", "", map[string]int{"token": 300}, 0, now))
+	require.NoError(t, sendGachaMail(state, "ladder:best:1", "历史排名", "", map[string]int{"token": 2500}, 0, now))
 	require.Len(t, state.Mailbox.Messages, 201)
-	next := now.AddDate(0, 0, 1)
-	regenGachaState(state, next)
-	require.NoError(t, syncGachaCaptain(state))
-	require.NoError(t, deliverGachaDailyMail(state, next))
-	require.NoError(t, sendGachaMail(state, "battle:completed", "副本结算", "", map[string]int{"forge_ore": 7}, 0, next))
-	require.Len(t, state.Mailbox.Messages, 201)
-	summary := state.Mailbox.Messages[200]
-	assert.Equal(t, 100, summary.Resources["gold"])
-	assert.Equal(t, 80, summary.CaptainXP)
-	assert.Equal(t, 7, summary.Resources["forge_ore"])
+	assert.Equal(t, 2800, state.Mailbox.Messages[200].Resources["token"])
+	beforeToken := state.Token
 	require.NoError(t, applyGachaMail(state, mailTestIntent("mail_all", ""), &GachaActionResult{}, now))
-	require.NoError(t, deliverGachaDailyMail(state, next))
-	assert.True(t, state.Daily.CaptainLog.Claimed["rollcall"])
-}
-
-func TestGachaMailGrowthContractDoesNotRouteTheDispatchContract(t *testing.T) {
-	assert.Equal(t, "每日契约奖励", gachaMailActionTitle("daily_contract_claim"))
-	assert.Equal(t, "每日契约奖励", gachaMailActionTitle("contract_claim"))
-	assert.Empty(t, gachaMailActionTitle("dispatch_contract_claim"))
-}
-
-func TestGachaMailRewardsCanBeDeliveredAtCapacityAndKeepActualStaminaCosts(t *testing.T) {
-	now := time.Date(2026, 11, 27, 12, 0, 0, 0, gameZone)
-	state := newGachaState(now)
-	state.Progression = &GachaProgressionState{Permits: 17, Marks: 9}
-	state.Gold, state.Mats["training_ink"] = gachaMaxResource, gachaMaxResource
-	state.Girls["c08"].Shards = 12
-	before := gachaMailableBalance(state)
-	buffer := beginGachaMailRewards(state)
-	drops, err := grantGachaVoyagePrize(state, []GachaVoyagePrize{{"gold", 25}, {"training_ink", 2}})
-	require.NoError(t, err)
-	require.NoError(t, spendGachaStamina(state, 6, now, &drops))
-	require.NoError(t, mailGachaRewards(state, buffer, "action:reward-at-capacity", "副本奖励", now, &drops))
-	before["stamina"] -= 6
-	assert.Equal(t, before, gachaMailableBalance(state))
-	assert.Equal(t, 6, state.Captain.XP)
-	require.Len(t, state.Mailbox.Messages, 1)
-	message := state.Mailbox.Messages[0]
-	assert.Equal(t, map[string]int{"gold": 25, "training_ink": 2}, message.Resources)
-	assert.ErrorIs(t, applyGachaMail(state, mailTestIntent("mail_claim", message.ID), &GachaActionResult{}, now), ErrGachaCapacity)
-	assert.False(t, message.Claimed)
-	assert.Equal(t, before, gachaMailableBalance(state))
-	buffer = beginGachaMailRewards(state)
-	require.NoError(t, mailGachaRewards(state, buffer, "battle:no-rewards", "未获得物资", now, &drops))
-	assert.Equal(t, before, gachaMailableBalance(state))
-	require.Len(t, state.Mailbox.Messages, 1)
+	assert.Equal(t, beforeToken+2800, state.Token)
+	assert.Equal(t, before+250, state.Gold)
+	assert.ErrorIs(t, applyGachaMail(state, mailTestIntent("mail_all", ""), &GachaActionResult{}, now), ErrGachaMailUnavailable)
 }

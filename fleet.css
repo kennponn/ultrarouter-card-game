@@ -6,6 +6,87 @@
 .fleet-nav button[aria-pressed="true"],.fleet-button:not(:disabled):hover { background:var(--fleet-teal); color:white; border-color:var(--fleet-teal); }
 .fleet-button:disabled { cursor:not-allowed; color:#61706c; background:#e5e8e0; border-color:#c8d0c8; }
 .fleet-reload { min-width:40px; }
+.guild-hero { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px 28px; margin-top:16px; padding:24px; border:1px solid #7f9e93; border-radius:10px; color:#f2f3e7; background:linear-gradient(125deg,#274f4c,#3e6655); }
+.guild-hero h3 { margin:5px 0; color:#fff0c5; font-size:27px; overflow-wrap:anywhere; }
+.guild-hero p { margin:6px 0 0; font-size:13px; color:#dfebdf; }
+.guild-kicker { font-size:11px; letter-spacing:1.4px; color:#d6c997; }
+.guild-wallet { display:grid; align-content:center; justify-items:end; gap:3px; }
+.guild-wallet strong { font:700 29px/1.2 Georgia,serif; color:#ffe1a2; }
+.guild-wallet small { font-size:12px; }
+.guild-wallet span { font-size:10px; color:#c6d8cb; }
+.guild-level { grid-column:1/-1; display:grid; gap:6px; }
+.guild-level label { display:flex; justify-content:space-between; gap:8px; font-size:12px; }
+.guild-level progress { width:100%; height:8px; accent-color:#dfbf78; }
+.guild-level small { color:#d7e4d7; font-size:11px; }
+.guild-overview-links { display:flex; flex-wrap:wrap; gap:8px; padding:12px 0; }
+.guild-roadmap { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:12px 0; }
+.guild-roadmap span { display:grid; gap:4px; padding:12px; border:1px solid #c7cbb5; border-top:3px solid #9b8550; background:#f8f5e9; font-size:11px; }
+.guild-roadmap b { font-size:16px; color:#586d4c; }
+.guild-raid-grid { display:grid; gap:12px; }
+.guild-raid-card { display:grid; grid-template-columns:56px minmax(0,1fr); gap:14px; padding:18px; border:1px solid #bdc9bb; background:#f7f7ee; border-radius:7px; }
+.guild-raid-card.is-active { border-color:#568b78; box-shadow:inset 4px 0 #568b78; background:#edf5e9; }
+.guild-raid-card.is-locked { background:#e8ebe4; color:#68756a; }
+.guild-raid-number { color:#829b8b; font:700 36px/1 Georgia,serif; padding-top:5px; }
+.guild-raid-card h4 { font-size:19px; margin:5px 0 11px; }
+.guild-raid-card progress { display:block; width:100%; height:9px; accent-color:#a76248; }
+.guild-raid-card p { font-size:12px; line-height:1.7; margin:7px 0; }
+.guild-prizes { color:#6b552d; }
+.guild-raid-action { margin-top:14px; padding:15px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#e0eadd; border-radius:6px; }
+.guild-raid-action small { display:block; margin-top:5px; font-size:11px; }
+.guild-raid-action .fleet-button { background:#285e51; color:#fff0c9; flex-shrink:0; }
+.guild-raid-action .fleet-button:disabled { background:#d0dbcc; color:#637369; }
+.guild-damage-board { margin:16px 0; padding:14px; border:1px solid #b6c7b9; border-radius:7px; background:#f5f8ef; }
+.guild-damage-board summary { cursor:pointer; font-weight:700; color:#285e51; }
+.guild-damage-board summary small { display:block; margin:6px 0 0 17px; font-weight:400; }
+.guild-damage-list { list-style:none; margin:10px 0 0; padding:0; max-height:350px; overflow-y:auto; }
+.guild-damage-list li { display:grid; grid-template-columns:28px minmax(0,1fr) auto; align-items:center; gap:10px; padding:11px 8px; border-top:1px solid #d5dfd0; font-size:13px; }
+.guild-damage-list li.is-mine { background:#e1edda; }
+.guild-damage-list b { overflow-wrap:anywhere; }
+.guild-damage-list small { display:block; margin-top:4px; font-size:11px; color:#53695d; }
+.guild-damage-rank { font:700 18px Georgia,serif; color:#8d692e; }
+.guild-damage-score { text-align:right; }
+.guild-shop-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.guild-shop-card { display:flex; flex-direction:column; align-items:center; gap:9px; min-width:0; padding:18px 10px; border:1px solid #c9c9ae; border-radius:6px; background:#fffaf0; text-align:center; }
+.guild-shop-icon { display:grid; place-items:center; height:46px; width:46px; background:#e8d8ad; border:1px solid #baa365; color:#9a6a24; border-radius:50%; font-size:26px; }
+.guild-shop-card h4,.guild-shop-card p { margin:0; }
+.guild-shop-card h4 { font-size:15px; }
+.guild-shop-card p,.guild-shop-card > span:last-of-type { font-size:11px; }
+.guild-shop-card strong { color:#8d692e; font-size:18px; }
+.guild-shop-card strong small { font-weight:400; font-size:10px; }
+.guild-shop-card .fleet-button { margin-top:auto; width:100%; }
+.guild-member-list { display:grid; gap:8px; margin:12px 0; }
+.guild-member-list article { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid #c8d2c4; background:#f5f8ef; border-radius:5px; }
+.guild-member-list article > div:first-child { display:flex; align-items:center; gap:9px; min-width:0; }
+.guild-member-list b { overflow-wrap:anywhere; }
+.guild-role { flex-shrink:0; font-size:10px; background:#e0e8d8; padding:3px 6px; border-radius:3px; }
+.guild-role-leader { color:#815328; background:#f0dfb0; }
+.guild-role-deputy { color:#2d5f64; background:#d3e9e5; }
+.guild-role-elder { color:#775775; background:#eadfec; }
+.guild-role-controls { display:flex; flex-wrap:wrap; gap:5px; }
+.guild-role-controls .fleet-button { min-height:32px; font-size:11px; padding:4px 7px; }
+.guild-welcome { padding:24px; margin-top:15px; border-radius:8px; color:#e7ecdf; background:linear-gradient(115deg,#234d4d,#49694e); }
+.guild-welcome h3 { font-size:24px; line-height:1.4; margin:10px 0; color:#fff0c5; }
+.guild-welcome p { font-size:13px; line-height:1.8; color:#dfe8d9; }
+.guild-benefits { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:20px 0; }
+.guild-benefits article { border-top:1px solid #bdc49c; padding-top:12px; }
+.guild-benefits b,.guild-benefits small { display:block; }
+.guild-benefits b { font-size:20px; color:#ffe6ad; margin-bottom:6px; }
+.guild-benefits small { font-size:11px; line-height:1.6; color:#dce5d5; }
+@media (max-width:700px) {
+  .guild-hero { padding:17px; gap:13px; }
+  .guild-hero h3 { font-size:23px; }
+  .guild-wallet span { max-width:118px; text-align:right; line-height:1.5; }
+  .guild-roadmap,.guild-shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .guild-raid-card { padding:13px; grid-template-columns:34px minmax(0,1fr); gap:10px; }
+  .guild-raid-number { font-size:28px; }
+  .guild-raid-action,.guild-member-list article { align-items:flex-start; flex-direction:column; }
+  .guild-raid-action .fleet-button { width:100%; }
+  .guild-welcome { padding:18px; }
+  .guild-welcome h3 { font-size:21px; }
+  .guild-benefits { gap:8px; }
+  .guild-benefits b { font-size:16px; }
+  .guild-benefits small { font-size:10px; }
+}
 .fleet-section,.fleet-enroll,.fleet-details { padding:14px 0; border-bottom:1px solid var(--fleet-line); }
 .fleet-section-title { justify-content:space-between; }
 .fleet-section h3,.fleet-section h4,.fleet-banner h3,.fleet-empty h3 { margin:0; color:var(--fleet-ink); }
@@ -157,3 +238,11 @@
   .rank-avatar { height:42px; width:36px; }
   .rank-faces img { width:29px; height:32px; }
 }
+.guild-daily-grid,.guild-mission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px}
+.guild-task{display:flex;flex-direction:column;gap:12px;border:1px solid #ceb58e;border-radius:14px;padding:18px;background:#fffaf0;color:#29434b}
+.guild-task h4{margin:6px 0;font-size:17px}.guild-task p{font-size:12px;line-height:1.7;margin:0;color:#556568}.guild-task small{color:#725533}
+.guild-task>progress{width:100%;accent-color:#287269;height:9px}.guild-task>.fleet-button{margin-top:auto}.guild-task>b{font-size:12px}
+.guild-materials{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.guild-materials>span{padding:7px 9px;border-radius:8px;background:#f3e7d2;color:#51432e;font-size:12px;line-height:1.5}.guild-materials .guild-coin-prize{background:#e4efdf;color:#245c45}
+.guild-xp-sources{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px}.guild-xp-sources article{display:flex;flex-direction:column;gap:7px;padding:14px;border-left:3px solid #c7a05b;background:#f8f0e1}.guild-xp-sources span,.guild-xp-sources small{font-size:12px;color:#506367}
+.guild-member-list .guild-danger,.guild-danger{background:#873f35;color:#fff;border-color:#713128}.guild-member-list [data-fleet-act="kick"]{border-color:#a46556;color:#873f35}
+.guild-raid-card h5{font-size:12px;margin:12px 0 0}.guild-raid-card .guild-materials{margin-top:7px}.guild-raid-card .fleet-note{margin:9px 0}

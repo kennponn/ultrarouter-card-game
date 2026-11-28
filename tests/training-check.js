@@ -34,7 +34,8 @@ test("all grades finish their own + tiers before crossing; card frames distingui
   own.training = {grade:1,plus:2}; own.star=1; own.level=20; state.mats.training_ink=42;
   view.paintWorkshop(); assert.match(document.querySelector('[data-break-cost]').textContent,/42 \/ 43 还差 1/);
   assert.equal(view.trainingQuote('c01').canBreak,false);
-  state.mats.training_ink++; assert.equal(view.trainingQuote('c01').canBreak,true);
+  state.mats.training_ink++; assert.equal(view.trainingQuote('c01').canBreak,false);
+  state.gold = view.trainingQuote('c01').breakGold; assert.equal(view.trainingQuote('c01').canBreak,true);
   own.level = 60; own.star = 12;
   let previous = 0;
   for (const [index,grade] of view.Store.profile.training.grades.entries()) {
@@ -93,6 +94,20 @@ test("effort carries floors, exposes its selected stat, and refuses an incomplet
   assert.match(document.querySelector('[data-effort-stat="res"]').textContent,/160\/400/);
 });
 
+test("effort stones can fund training but not a breakthrough", context => {
+  const {view,state,document} = setup(context);
+  state.mats.training_ink = 0;
+  state.mats.effort_stone = 3;
+  const quote = view.trainingQuote("c01","atk");
+  assert.equal(quote.canTrain, true);
+  assert.equal(quote.canBreak, false);
+  assert.equal(quote.batch, 3);
+  view.openWorkshop("c01","training"); view.selectTrainingPanel("effort");
+  assert.match(document.querySelector("[data-effort-budget]").parentElement.textContent,/努力培养石（3）/);
+  state.gold = 0;
+  assert.equal(view.trainingQuote("c01","atk").canTrain, false);
+});
+
 test("selected books quote a real multi-level gain, clamp at 150 and submit only material counts", async context => {
   const {view,state,document} = setup(context), own = state.girls.c01, calls = [];
   Object.assign(state.mats,{training_manual:1,field_notes:2,astral_treatise:10});
@@ -134,15 +149,16 @@ test("book preview and submit stop at the current captain level without spending
 
 test("skills use only confirmed shared points and gold; single, automatic and purchase intents are distinct", async context => {
   const {view,state,document} = setup(context), calls = [];
+  const {upgrade_gold_base:base,upgrade_gold_step:step} = view.Store.profile.training.skill_pool;
   view.Store.mutate = async (action,fields) => { calls.push([action,JSON.parse(JSON.stringify(fields))]); return null; };
   view.openWorkshop("c01","training"); view.selectTrainingPanel("skills");
   assert.equal(document.querySelectorAll("[data-skill-line]").length,3);
   assert.equal(document.querySelector("[data-skill-points]").textContent,"4/20");
   assert.equal(view.trainingSkillQuote("c01","normal").count,4);
-  assert.equal(view.trainingSkillQuote("c01","normal").cost,168);
+  assert.equal(view.trainingSkillQuote("c01","normal").cost,4*base+6*step);
   await view.actTraining("skill_point","invented"); await view.actTraining("skill_buy",-1); await view.actTraining("skill_buy",17);
   state.gold = 29; await view.actTraining("skill_point","normal"); await view.actTraining("skill_buy",1); assert.deepEqual(calls,[]);
-  state.gold = 100; assert.equal(view.trainingSkillQuote("c01","normal").count,2);
+  state.gold = 2*base+step; assert.equal(view.trainingSkillQuote("c01","normal").count,2);
   await view.actTraining("skill_point","normal"); await view.actTraining("skill_auto","normal");
   state.gold = 600; await view.actTraining("skill_buy",5);
   assert.deepEqual(calls,[["skill_point",{girl_id:"c01",choice:"normal"}],["skill_auto",{girl_id:"c01",choice:"normal"}],["skill_buy",{count:5}]]);

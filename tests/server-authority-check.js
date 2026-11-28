@@ -118,7 +118,7 @@ function harness(t, { signedIn = true, responder, url = "https://example.test/ga
       closeModal, retryGameAction, onSiteSessionEvent, battleEnd, syncSiteAccount,
       get save(){return SAVE;}, setSave(s){SAVE=s;}, get battle(){return BAT;},
       get running(){return battleRunning;},
-      setSleep(fn){sleep=fn;}, setStrike(fn){playStrike=fn;},
+      setSleep(fn){sleep=fn;}, setStrike(fn){playStrike=fn; if (window.BattleMotion) window.BattleMotion = { ...window.BattleMotion, beginBattleAction: fn };},
       battleControl(...args){return battleControl(...args);},
       stopPlayback(){playServerBattle=async()=>{};} };
   `);
@@ -829,7 +829,7 @@ test("late profile snapshots cannot overwrite a newly settled wallet receipt", a
   assert.match(h.d.getElementById("res-site").textContent, /1\.9000 E/);
 });
 
-test("lost token-exchange reply retries one intent and preserves its wallet receipt", async t => {
+test("retrying a game currency reward cannot change the separate site wallet", async t => {
   const h = harness(t); await until(() => h.game.Store.ready());
   let receipt;
   const oldProfile = h.profile();
@@ -837,25 +837,27 @@ test("lost token-exchange reply retries one intent and preserves its wallet rece
     if (call.path === ep.action) {
       if (!receipt) {
         h.database.state.token += 1; h.database.revision++;
-        receipt = {save:copy(h.database.state), revision:h.database.revision, exchange:{count:1,cost_quota:500000,wallet_quota:200000}};
+        receipt = {save:copy(h.database.state), revision:h.database.revision};
         throw new TypeError("REPLY_LOST_AFTER_COMMIT");
       }
       return ok(receipt);
     }
     return next(call);
   });
-  assert.equal(await h.game.Store.mutate("token_exchange", {count:1}), null);
+  h.w.eval("renderTopbar()");
+  const balance = h.d.getElementById("res-site").textContent;
+  assert.equal(await h.game.Store.mutate("captain_chest", {item_id:"2026-11-28:25"}), null);
   assert.equal(h.game.save.token, 0, "no optimistic currency change");
   await h.game.Store.retryPendingAction();
   const intents = h.calls.filter(call => call.path === ep.action).map(call => call.body);
   assert.deepEqual(intents[0], intents[1]);
   assert.equal(h.game.save.token, 1);
   h.w.eval("renderTopbar()");
-  assert.match(h.d.getElementById("res-site").textContent, /0\.4000 E/);
+  assert.equal(h.d.getElementById("res-site").textContent, balance);
   h.respond((call, next) => call.path === ep.profile ? ok(oldProfile) : next(call));
   await h.game.Store.refresh();
   h.w.eval("renderTopbar()");
-  assert.match(h.d.getElementById("res-site").textContent, /0\.4000 E/);
+  assert.equal(h.d.getElementById("res-site").textContent, balance);
   assert.equal(h.game.save.token, 1);
   assertPrivateStorage(h);
 });

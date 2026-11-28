@@ -1,0 +1,114 @@
+{
+  "desktopDrag": {
+    "before": [
+      "c08",
+      "c04",
+      "c07",
+      "c01",
+      "c06",
+      "c12"
+    ],
+    "after": [
+      "c12",
+      "c04",
+      "c07",
+      "c01",
+      "c06",
+      "c08"
+    ],
+    "persisted": true
+  },
+  "touchDrag": {
+    "after": [
+      "c06",
+      "c04",
+      "c07",
+      "c01",
+      "c12",
+      "c08"
+    ],
+    "persisted": true
+  },
+  "bestReward": {
+    "before": {
+      "token": 200,
+      "mails": 1,
+      "claimed": false
+    },
+    "after": {
+      "token": 400,
+      "mails": 1,
+      "disabled": true
+    }
+  },
+  "gift": {
+    "before": {
+      "gold": 88888,
+      "token": 400,
+      "mails": 1,
+      "redeemed": false
+    },
+    "after": {
+      "gold": 89188,
+      "token": 400,
+      "mails": 1
+    }
+  },
+  "checkin": {
+    "before": {
+      "coins": 160,
+      "xp": 6000,
+      "mails": 1,
+      "claimed": false
+    },
+    "after": {
+      "coins": 180,
+      "xp": 6020,
+      "mails": 1
+    }
+  },
+  "raid": {
+    "before": {
+      "stage": 1,
+      "hp": 1300000,
+      "coins": 180,
+      "ink": 230,
+      "mails": 1
+    },
+    "after": {
+      "hp": 809126,
+      "damage": 490874,
+      "rounds": 20,
+      "cleared": false,
+      "coins": 205,
+      "ink": 233,
+      "mails": 1,
+      "ranking": {
+        "week": "2026-W48",
+        "stage": 1,
+        "stage_name": "暗礁守卫",
+        "all_cleared": false,
+        "entries": [
+          {
+            "name": "本地试玩 · 六人远航",
+            "damage": 490874,
+            "attempts": 1,
+            "rank": 1,
+            "user_id": 7,
+            "member": true
+          }
+        ]
+      }
+    }
+  },
+  "kick": {
+    "before": 2,
+    "after": 1,
+    "cancelPreserved": true
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "errors": []
+}

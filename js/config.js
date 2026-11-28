@@ -13,8 +13,9 @@ const SITE = {
     finish:    "/api/user/gacha/run/finish",   // POST {run_id, abandon?}，不上传星级或奖励
     warehouse: "/api/user/gacha/warehouse",    // GET  倍率卡仓库
     activate:  "/api/user/gacha/card/activate",// POST {card_id}
-    social:    "/api/user/gacha/social",      // GET server shop, rankings, opponents
+    social:    "/api/user/gacha/social",      // GET rankings and opponents
     fleet:     "/api/user/gacha/fleet",
+    world:     "/api/user/gacha/world",
     arenaQueue: "/api/user/gacha/arena/queue",
     arenaRooms: "/api/user/gacha/arena/rooms",
     arenaReplay: "/api/user/gacha/arena/replay",

@@ -164,7 +164,7 @@ func TestGachaBattleRejectsInvalidInput(t *testing.T) {
 		change func(*GachaGameState, *GachaStage)
 	}{
 		{"empty squad", func(s *GachaGameState, _ *GachaStage) { s.Squad = nil }},
-		{"too many allies", func(s *GachaGameState, _ *GachaStage) { s.Squad = []string{"c01", "c02", "c03", "c04", "c05"} }},
+		{"too many allies", func(s *GachaGameState, _ *GachaStage) { s.Squad = []string{"c01", "c02", "c03", "c04", "c05", "c06", "c07"} }},
 		{"duplicate ally", func(s *GachaGameState, _ *GachaStage) { s.Squad = []string{"c01", "c01"} }},
 		{"missing ownership", func(s *GachaGameState, _ *GachaStage) { delete(s.Girls, "c01") }},
 		{"locked girl", func(s *GachaGameState, _ *GachaStage) { s.Girls["c01"].Star = 0 }},
@@ -178,7 +178,7 @@ func TestGachaBattleRejectsInvalidInput(t *testing.T) {
 		{"zero waves", func(_ *GachaGameState, s *GachaStage) { s.Waves = 0 }},
 		{"excess waves", func(_ *GachaGameState, s *GachaStage) { s.Waves = 9 }},
 		{"zero enemies", func(_ *GachaGameState, s *GachaStage) { s.EnemyCount = 0 }},
-		{"excess enemies", func(_ *GachaGameState, s *GachaStage) { s.EnemyCount = 9 }},
+		{"excess enemies", func(_ *GachaGameState, s *GachaStage) { s.EnemyCount = GachaSquadLimit + 1 }},
 		{"zero enemy level", func(_ *GachaGameState, s *GachaStage) { s.EnemyLv = 0 }},
 		{"excess enemy level", func(_ *GachaGameState, s *GachaStage) { s.EnemyLv = 201 }},
 	}
@@ -202,6 +202,7 @@ func TestGachaBattleRejectsInvalidInput(t *testing.T) {
 
 func assertBattleReportConsistent(t *testing.T, report *GachaBattleReport, stage GachaStage) {
 	t.Helper()
+	require.Equal(t, gachaBattleReportVersion, report.Version)
 	if report.Rounds < 1 || report.Rounds > 60 || report.DurationMS <= 0 || report.DurationMS >= int(GachaRunTTL/time.Millisecond) || report.TotalN != len(report.Allies) {
 		require.Failf(t, "battle invariant failed", "invalid combat limits: rounds=%d duration=%d allies=%d", report.Rounds, report.DurationMS, report.TotalN)
 	}
@@ -211,9 +212,12 @@ func assertBattleReportConsistent(t *testing.T, report *GachaBattleReport, stage
 		units[unit.UID], maxHP[unit.UID] = unit.GachaBattleSnapshot, unit.MaxHP
 	}
 	wave, timeline, lastRound := -1, 0, 0
-	for _, event := range report.Events {
+	for index, event := range report.Events {
+		require.Equal(t, index+1, event.Seq)
 		minimumDuration := 450
-		if event.Kind == "ailment" {
+		if event.Kind == "round" {
+			minimumDuration = 0
+		} else if event.Kind == "ailment" {
 			minimumDuration = 250
 		} else if event.Kind == "aura" {
 			minimumDuration = 350
@@ -236,6 +240,17 @@ func assertBattleReportConsistent(t *testing.T, report *GachaBattleReport, stage
 			for _, unit := range report.Waves[wave] {
 				units[unit.UID], maxHP[unit.UID] = unit.GachaBattleSnapshot, unit.MaxHP
 			}
+		} else if event.Kind == "round" && event.Wave == wave {
+			seenOrder := make(map[string]bool)
+			for _, uid := range event.Order {
+				require.True(t, units[uid].Alive, "round order contains an absent or dead unit: %s", uid)
+				require.False(t, seenOrder[uid], "round order duplicates a unit: %s", uid)
+				seenOrder[uid] = true
+			}
+			for uid, unit := range units {
+				require.Equal(t, unit.Alive, seenOrder[uid], "round order must include every living unit")
+			}
+			require.Zero(t, event.DurationMS)
 		} else if !slices.Contains([]string{"action", "ailment", "aura"}, event.Kind) || event.Wave != wave {
 			require.Failf(t, "battle invariant failed", "unknown or misplaced action event: %+v", event)
 		} else if src, ok := units[event.Src]; !ok || !src.Alive {
@@ -355,7 +370,7 @@ func TestGachaBattleResultsMatchSnapshots(t *testing.T) {
 	}
 	for _, stage := range []GachaStage{
 		{Waves: 1, EnemyCount: 1, EnemyLv: 1, StarRound: 4},
-		{Waves: 8, EnemyCount: 8, EnemyLv: 200, StarRound: 60},
+		{Waves: 8, EnemyCount: GachaSquadLimit, EnemyLv: 200, StarRound: 60},
 	} {
 		report, err := simulateGachaCombat(battleTestState([]string{"c01"}, 1, 1), stage, battleTestRNG())
 		if err != nil {

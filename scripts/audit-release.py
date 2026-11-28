@@ -9,13 +9,14 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_FILES = {
-    'index.html', 'style.css', 'mobile.css', 'harbor.css', 'voyage.css', 'voyage-map.css', 'voyage-screen.css', 'fleet.css', 'harbor-mail.css', 'package.json', 'package-lock.json',
+    'arena-ladder.css',
+    'index.html', 'style.css', 'battle.css', 'battle-motion.css', 'battle-menu.css', 'mobile.css', 'harbor.css', 'voyage.css', 'voyage-map.css', 'voyage-screen.css', 'fleet.css', 'harbor-mail.css', 'package.json', 'package-lock.json',
     '.gitignore', '.gitattributes',
     'README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'ASSETS.md',
     'LICENSE', 'NOTICE', 'THIRD-PARTY-LICENSES.md', 'SOURCE.lock.json',
     'release-review.json', 'VALIDATION.md', 'AGENTS.md',
 }
-ROOT_DIRECTORIES = {'backend', 'js', 'assets', 'tests', 'scripts', '.github'}
+ROOT_DIRECTORIES = {'backend', 'js', 'assets', 'content', 'tests', 'scripts', '.github'}
 NON_GAME_ROOT_FILES = {'Dockerfile', 'compose.yml', 'compose.yaml', 'docker-compose.yml', 'docker-compose.yaml'}
 SCOPED_FILES = {
     'backend': {
@@ -27,6 +28,9 @@ SCOPED_FILES = {
         'backend/model/gacha_social.go', 'backend/model/gacha_catalog.json',
         'backend/model/gacha_ladder.go', 'backend/model/gacha_ladder_test.go', 'backend/model/gacha_contract_database_test.go',
         'backend/model/gacha_game_test.go', 'backend/model/gacha_game_battle_test.go',
+        'backend/model/gacha_formation_test.go',
+        'backend/model/gacha_world.go', 'backend/model/gacha_world.json', 'backend/model/gacha_world_test.go', 'backend/model/gacha_world_database_test.go',
+        'backend/model/gacha_market.go', 'backend/model/gacha_market.json', 'backend/model/gacha_market_test.go', 'backend/model/gacha_captain.json',
         'backend/model/gacha_cultivation.go', 'backend/model/gacha_cultivation.json',
         'backend/model/gacha_cultivation_test.go', 'backend/model/gacha_artifacts.go', 'backend/model/gacha_artifacts_test.go',
         'backend/model/gacha_items.go', 'backend/model/gacha_items.json',
@@ -44,6 +48,8 @@ SCOPED_FILES = {
         'backend/model/gacha_voyage.go', 'backend/model/gacha_voyage_test.go',
         'backend/model/gacha_voyage_sweep.go', 'backend/model/gacha_voyage_sweep_test.go',
         'backend/model/gacha_fleet.go', 'backend/model/gacha_fleet_test.go',
+        'backend/model/gacha_guild_progression.go', 'backend/model/gacha_guild_progression_test.go',
+        'backend/model/gacha_guild_activity.go', 'backend/model/gacha_guild_activity_test.go',
         'backend/model/gacha_festival.go', 'backend/model/gacha_festival.json', 'backend/model/gacha_festival_test.go',
         'backend/model/gacha_mail.go', 'backend/model/gacha_mail.json', 'backend/model/gacha_mail_test.go', 'backend/model/gacha_mail_database_test.go',
         'backend/controller/gacha.go', 'backend/controller/gacha_authority_test.go',
@@ -52,7 +58,8 @@ SCOPED_FILES = {
     },
     'scripts': {
         'scripts/audit-release.py', 'scripts/package-release.py',
-        'scripts/build-half-cpu.sh', 'scripts/preview.py',
+        'scripts/build-half-cpu.sh', 'scripts/preview.py', 'scripts/sync-catalog.py',
+        'scripts/simulate-economy.js',
     },
     'tests': {
         'tests/server-ui-check.js', 'tests/server-authority-check.js',
@@ -61,8 +68,11 @@ SCOPED_FILES = {
         'tests/artifact-grades-check.js', 'tests/cases-check.js', 'tests/vigil-check.js', 'tests/dispatch-check.js', 'tests/cipher-check.js',
         'tests/test_release_privacy.py', 'tests/test_preview.py',
         'tests/festival-check.js', 'tests/captain-check.js', 'tests/voyage-check.js', 'tests/fleet-check.js', 'tests/mail-check.js',
+        'tests/ladder-rewards-check.js', 'tests/squad-drag-check.js', 'tests/guild-growth-check.js',
+        'tests/unit-catalog-check.js', 'tests/battle-formation-check.js', 'tests/battle-motion-check.js', 'tests/battle-menu-check.js',
+        'tests/world-check.js', 'tests/economy-check.js',
     },
-    'js': {'js/'+name+'.js' for name in ('config', 'store', 'data', 'ui', 'ladder', 'progression', 'atelier', 'carry', 'training', 'experience', 'cases', 'vigil', 'dispatch', 'cipher', 'workshop', 'battle', 'captain', 'voyage', 'voyage-map', 'fleet', 'festival', 'mail', 'main')},
+    'js': {'js/'+name+'.js' for name in ('config', 'store', 'data', 'ui', 'market', 'world', 'ladder', 'progression', 'atelier', 'carry', 'training', 'experience', 'cases', 'vigil', 'dispatch', 'cipher', 'workshop', 'battle', 'battle-motion', 'captain', 'voyage', 'voyage-map', 'fleet', 'festival', 'mail', 'main')},
     '.github': {'.github/workflows/game-checks.yml'},
 }
 IGNORED_PARTS = {'node_modules', 'dist', '__pycache__', '.git', '.local', '.cache'}
@@ -100,6 +110,12 @@ def release_files():
             raise RuntimeError('File is not card-game source: '+relative.as_posix())
         if relative.parts[0] == 'assets' and path.suffix.lower() != '.webp' and relative.as_posix() != 'assets/PROVENANCE.json':
             raise RuntimeError('File is not card-game source: '+relative.as_posix())
+        if relative.parts[0] == 'content':
+            unit_source = re.fullmatch(r'content/(cards|enemies|bosses)/[a-z][a-z0-9-]*/(card|enemy|boss)\.json', relative.as_posix())
+            unit_art = re.fullmatch(r'content/(cards|enemies|bosses)/[a-z][a-z0-9-]*/assets/[a-z][a-z0-9-]*\.webp', relative.as_posix())
+            unit_index = relative.as_posix() in {'content/README.md', 'content/ART-SPEC.md', 'content/cards/index.json', 'content/enemies/index.json', 'content/bosses/index.json'}
+            if not (unit_source or unit_art or unit_index):
+                raise RuntimeError('File is not card-game content: '+relative.as_posix())
         if path.suffix.lower() in PRIVATE_SUFFIXES or '.bak' in path.name:
             raise RuntimeError('Private or backup file in a source directory: '+relative.as_posix())
         if path.name.startswith('.env') and path.name != '.env.example':

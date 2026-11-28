@@ -1,10 +1,15 @@
 package model
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/QuantumNous/new-api/common"
+	"gorm.io/gorm"
 )
 
 var ErrGachaCaptainClaim = errors.New("captain reward not available")
@@ -18,9 +23,13 @@ type GachaCaptain struct {
 }
 
 type GachaCaptainDay struct {
-	Progress map[string]int  `json:"progress"`
-	Claimed  map[string]bool `json:"claimed"`
-	Supplies map[string]bool `json:"supplies"`
+	Edition     int             `json:"edition"`
+	Progress    map[string]int  `json:"progress"`
+	Claimed     map[string]bool `json:"claimed"`
+	Supplies    map[string]bool `json:"supplies"`
+	Chests      map[string]bool `json:"chests,omitempty"`
+	SkillReview bool            `json:"skill_review,omitempty"`
+	GearReview  bool            `json:"gear_review,omitempty"`
 }
 
 type GachaCaptainTask struct {
@@ -30,6 +39,13 @@ type GachaCaptainTask struct {
 	Target int    `json:"target"`
 	XP     int    `json:"xp"`
 	Gold   int    `json:"gold"`
+	Points int    `json:"points"`
+}
+
+type GachaCaptainChest struct {
+	ID        string         `json:"id"`
+	Points    int            `json:"points"`
+	Resources map[string]int `json:"resources"`
 }
 
 type GachaCaptainSupply struct {
@@ -45,21 +61,45 @@ type GachaCaptainRules struct {
 	XPStep   int                  `json:"xp_step"`
 	Tasks    []GachaCaptainTask   `json:"tasks"`
 	Supplies []GachaCaptainSupply `json:"supplies"`
+	Chests   []GachaCaptainChest  `json:"chests"`
 }
 
-var gachaCaptainRules = GachaCaptainRules{
-	XPBase: 20, XPStep: 10,
-	Tasks: []GachaCaptainTask{
-		{"rollcall", "港口点名", "今日抵达母港", 1, 40, 50},
-		{"voyage", "三程巡航", "赢得消耗体力的副本或经验训练", 3, 100, 160},
-		{"drill", "甲板晨练", "完成一次经验训练", 1, 60, 80},
-		{"wish", "向星许愿", "为一位伙伴定向许愿", 1, 50, 60},
-		{"outfit", "整装备航", "研读经验书、突破、努力训练或强化装备一次", 1, 60, 80},
-	},
-	Supplies: []GachaCaptainSupply{
-		{"morning", "晨航便当", 9, 12, 30}, {"noon", "正午炊烟", 12, 21, 30}, {"night", "夜航热汤", 21, 24, 30},
-	},
-}
+//go:embed gacha_captain.json
+var gachaCaptainRulesJSON []byte
+
+var gachaCaptainRules = func() GachaCaptainRules {
+	var rules GachaCaptainRules
+	if err := common.Unmarshal(gachaCaptainRulesJSON, &rules); err != nil {
+		panic(err)
+	}
+	if rules.XPBase <= 0 || rules.XPStep <= 0 || len(rules.Tasks) != 9 || len(rules.Chests) == 0 || len(rules.Supplies) != 3 {
+		panic("invalid captain rules")
+	}
+	points, last := 0, 0
+	seen := map[string]bool{}
+	for _, task := range rules.Tasks {
+		if task.ID == "" || seen[task.ID] || task.Target <= 0 || task.Points <= 0 || task.XP < 1 || task.Gold < 1 {
+			panic("invalid captain task")
+		}
+		points += task.Points
+		seen[task.ID] = true
+	}
+	for _, chest := range rules.Chests {
+		if chest.Points <= last || chest.ID != strconv.Itoa(chest.Points) || len(chest.Resources) == 0 {
+			panic("invalid captain chest")
+		}
+		for _, amount := range chest.Resources {
+			if amount < 1 || amount > gachaMaxResource {
+				panic("invalid captain chest resource")
+			}
+		}
+		last = chest.Points
+	}
+	if last != points {
+		panic("invalid captain point total")
+	}
+	return rules
+}()
 
 func gachaCaptainLevel(state *GachaGameState) int {
 	if state.Captain == nil {
@@ -90,6 +130,25 @@ func gachaCaptainSupply(id string) *GachaCaptainSupply {
 	return nil
 }
 
+func gachaCaptainChest(id string) *GachaCaptainChest {
+	for index := range gachaCaptainRules.Chests {
+		if gachaCaptainRules.Chests[index].ID == id {
+			return &gachaCaptainRules.Chests[index]
+		}
+	}
+	return nil
+}
+
+func gachaCaptainPoints(log *GachaCaptainDay) int {
+	points := 0
+	for _, task := range gachaCaptainRules.Tasks {
+		if log.Progress[task.ID] >= task.Target {
+			points += task.Points
+		}
+	}
+	return points
+}
+
 func syncGachaCaptain(state *GachaGameState) error {
 	peak := 1
 	for _, own := range state.Girls {
@@ -106,10 +165,10 @@ func syncGachaCaptain(state *GachaGameState) error {
 		return ErrGachaRunState
 	}
 	if state.Daily.CaptainLog == nil {
-		state.Daily.CaptainLog = &GachaCaptainDay{Progress: map[string]int{"rollcall": 1}, Claimed: map[string]bool{}, Supplies: map[string]bool{}}
+		state.Daily.CaptainLog = &GachaCaptainDay{Edition: 1, Progress: map[string]int{"rollcall": 1}, Claimed: map[string]bool{}, Supplies: map[string]bool{}}
 	}
 	log := state.Daily.CaptainLog
-	if log.Progress == nil || log.Claimed == nil || log.Supplies == nil || log.Progress["rollcall"] != 1 {
+	if log.Edition < 0 || log.Edition > 1 || log.Progress == nil || log.Claimed == nil || log.Supplies == nil || log.Progress["rollcall"] != 1 {
 		return ErrGachaRunState
 	}
 	for id, value := range log.Progress {
@@ -127,6 +186,31 @@ func syncGachaCaptain(state *GachaGameState) error {
 			return ErrGachaRunState
 		}
 	}
+	for id, claimed := range log.Chests {
+		if chest := gachaCaptainChest(id); !claimed || chest == nil || gachaCaptainPoints(log) < chest.Points {
+			return ErrGachaRunState
+		}
+	}
+	return nil
+}
+
+func migrateGachaCaptainDay(tx *gorm.DB, userID int, state *GachaGameState, now time.Time) error {
+	log := state.Daily.CaptainLog
+	if log.Edition == 1 {
+		return nil
+	}
+	day, err := gachaCalendarDay(state.Daily.Date)
+	if err != nil {
+		return err
+	}
+	var played int64
+	if err := tx.Model(&GachaLadderBattle{}).Where("attacker_id = ? AND played_at >= ? AND played_at <= ?", userID, day.UnixMilli(), now.UnixMilli()).Count(&played).Error; err != nil {
+		return err
+	}
+	if played > 0 {
+		log.Progress["ladder"] = int(min(played, int64(gachaCaptainTask("ladder").Target)))
+	}
+	log.Edition = 1
 	return nil
 }
 
@@ -170,8 +254,68 @@ func spendGachaStamina(state *GachaGameState, amount int, now time.Time, drops *
 }
 
 func advanceGachaCaptainTask(state *GachaGameState, id string) {
-	if log := state.Daily.CaptainLog; log != nil {
-		log.Progress[id] = min(gachaCaptainTask(id).Target, log.Progress[id]+1)
+	advanceGachaCaptainTaskBy(state, id, 1)
+}
+
+func advanceGachaCaptainTaskBy(state *GachaGameState, id string, amount int) {
+	if log := state.Daily.CaptainLog; log != nil && amount > 0 {
+		log.Progress[id] = min(gachaCaptainTask(id).Target, log.Progress[id]+amount)
+	}
+}
+
+func gachaCaptainMastery(state *GachaGameState) (bool, bool) {
+	owned, gear, skills := false, true, true
+	for _, girl := range state.Girls {
+		if !gachaCardOwned(girl) {
+			continue
+		}
+		owned = true
+		if gear {
+			for _, slot := range gachaEquipment.Slots {
+				if gachaEquipmentPiece(girl, slot.ID).Level < len(gachaEquipment.LevelCosts) {
+					gear = false
+					break
+				}
+			}
+		}
+		if skills && girl.Level > 0 {
+			for _, line := range []string{"normal", "rage", "passive"} {
+				if girl.Training == nil || girl.Training.Skills[line] < girl.Level {
+					skills = false
+					break
+				}
+			}
+		}
+		if !gear && !skills {
+			break
+		}
+	}
+	return owned && gear, owned && skills
+}
+
+func reconcileGachaCaptainDay(state *GachaGameState) {
+	log := state.Daily.CaptainLog
+	if log == nil {
+		return
+	}
+	log.GearReview, log.SkillReview = gachaCaptainMastery(state)
+	if state.Progression != nil {
+		for _, day := range state.Progression.Days {
+			if day.Date == state.Daily.Date {
+				if day.TrainingLeft < day.Rules.TrainingPerDay {
+					log.Progress["drill"] = 1
+				}
+				if len(day.WishTargets) > 0 {
+					log.Progress["wish"] = 1
+				}
+			}
+		}
+	}
+	if festival := state.Festival; festival != nil && festival.Day >= 0 && 2*festival.Day+1 < len(festivalEvents) {
+		first, second := festivalEvents[2*festival.Day].ID, festivalEvents[2*festival.Day+1].ID
+		if festival.Stamps[first] || festival.Stamps[second] || festival.Tries[first] == 3 && festival.Tries[second] == 3 {
+			log.Progress["festival"] = 1
+		}
 	}
 }
 
@@ -185,6 +329,18 @@ func settleGachaCaptainRun(state *GachaGameState, stage *GachaStage, snapshot *G
 		return
 	}
 	advanceGachaCaptainTask(state, "voyage")
+	if stage.Cost > 0 {
+		gear, skills := gachaCaptainMastery(state)
+		if gear {
+			advanceGachaCaptainTask(state, "equipment")
+		}
+		if skills {
+			advanceGachaCaptainTask(state, "skill")
+		}
+		if gear || skills {
+			advanceGachaCaptainTask(state, "outfit")
+		}
+	}
 	if snapshot.Mode == "training" {
 		advanceGachaCaptainTask(state, "drill")
 	}
@@ -194,7 +350,7 @@ func recordGachaCaptainAction(state *GachaGameState, action string) {
 	switch action {
 	case "wish":
 		advanceGachaCaptainTask(state, "wish")
-	case "card_feed", "use_manual", "card_breakthrough", "effort_train", "effort_train_max", "gear_upgrade", "gear_auto", "gear_star", "weapon_upgrade":
+	case "card_feed", "use_manual", "card_breakthrough", "effort_train", "effort_train_max", "gear_upgrade", "gear_auto", "gear_star", "weapon_upgrade", "carry_enhance", "skill_point", "skill_auto":
 		advanceGachaCaptainTask(state, "outfit")
 	}
 }
@@ -207,7 +363,7 @@ func validateGachaCaptainIntent(intent GachaActionIntent) error {
 	if _, err := gachaCalendarDay(day); !ok || err != nil {
 		return ErrGachaIntent
 	}
-	if intent.Action == "captain_task" && gachaCaptainTask(id) != nil || intent.Action == "captain_supply" && gachaCaptainSupply(id) != nil {
+	if intent.Action == "captain_task" && gachaCaptainTask(id) != nil || intent.Action == "captain_supply" && gachaCaptainSupply(id) != nil || intent.Action == "captain_chest" && gachaCaptainChest(id) != nil {
 		return nil
 	}
 	return ErrGachaIntent
@@ -219,29 +375,47 @@ func applyGachaCaptainClaim(state *GachaGameState, intent GachaActionIntent, res
 	if day != state.Daily.Date || day != gachaDay(now) || log == nil {
 		return ErrGachaCaptainClaim
 	}
+	if intent.Action == "captain_chest" {
+		chest := gachaCaptainChest(id)
+		if chest == nil || log.Chests[id] || gachaCaptainPoints(log) < chest.Points {
+			return ErrGachaCaptainClaim
+		}
+		if err := grantGachaDirectResources(state, chest.Resources, result, now); err != nil {
+			return err
+		}
+		if log.Chests == nil {
+			log.Chests = map[string]bool{}
+		}
+		log.Chests[id] = true
+		return nil
+	}
 	if intent.Action == "captain_supply" {
 		supply := gachaCaptainSupply(id)
 		hour := now.In(gameZone).Hour()
 		if supply == nil || hour < supply.Start || hour >= supply.End || log.Supplies[id] {
 			return ErrGachaCaptainClaim
 		}
-		if err := sendGachaMail(state, "meal:"+day+":"+id, supply.Name, "本时段补给已寄达，领取附件增加体力，超过自然恢复上限的部分保留。", map[string]int{"stamina": supply.Stamina}, 0, now); err != nil {
-			return err
+		if state.Stamina > gachaMaxResource-supply.Stamina {
+			return ErrGachaCapacity
+		}
+		state.Stamina += supply.Stamina
+		if state.Stamina >= state.StaminaMax {
+			state.StaminaTs = now.UnixMilli()
 		}
 		log.Supplies[id] = true
-		result.Drops = append(result.Drops, supply.Name+"已发送至邮箱")
+		result.Drops = append(result.Drops, fmt.Sprintf("%s · 体力 +%d", supply.Name, supply.Stamina))
 		return nil
 	}
 	task := gachaCaptainTask(id)
 	if task == nil || log.Claimed[id] || log.Progress[id] < task.Target {
 		return ErrGachaCaptainClaim
 	}
-	if err := deliverGachaDailyMail(state, now); err != nil {
-		return err
+	if state.Gold > gachaMaxResource-task.Gold {
+		return ErrGachaCapacity
 	}
-	if !log.Claimed[id] {
-		return ErrGachaMailboxFull
-	}
-	result.Drops = append(result.Drops, task.Name+"奖励已发送至邮箱")
+	state.Gold += task.Gold
+	grantGachaCaptainXP(state, task.XP, &result.Drops)
+	log.Claimed[id] = true
+	result.Drops = append(result.Drops, fmt.Sprintf("%s · 金币 +%d", task.Name, task.Gold))
 	return nil
 }

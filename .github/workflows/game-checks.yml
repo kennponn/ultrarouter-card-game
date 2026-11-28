@@ -8,6 +8,26 @@ permissions:
   contents: read
 
 jobs:
+  six-unit-compatibility:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feat/six-unit-guild-raids'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Compare upstream and candidate in disposable SQLite, MySQL and PostgreSQL
+        run: |
+          mkdir "$RUNNER_TEMP/six-unit-evidence"
+          sh scripts/build-half-cpu.sh --run --rm -e GOMAXPROCS=1 \
+            -v "$PWD:/src:ro" -v "$RUNNER_TEMP/six-unit-evidence:/out" \
+            ubuntu:24.04 sh /src/docs/pr-six-unit-guilds/harness/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: six-unit-compatibility
+          path: ${{ runner.temp }}/six-unit-evidence/
   consolidated-database:
     if: github.event_name == 'push' && github.ref == 'refs/heads/feat/cultivation-v8'
     runs-on: ubuntu-latest
@@ -60,6 +80,7 @@ jobs:
           python-version: '3.13'
       - name: Verify source and preview boundaries
         run: |
+          python scripts/sync-catalog.py --check
           python -m unittest discover -s tests -p 'test_*.py'
           python scripts/audit-release.py
       - name: Run game UI checks with the shared half-CPU quota

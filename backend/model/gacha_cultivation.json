@@ -125,8 +125,9 @@
   ],
   "individual": {
     "max_value": 31,
-    "ore_base": 2,
-    "ore_per_lock": 1,
+    "gold": 160,
+    "solvent": 1,
+    "lock_tokens": [0, 12, 64, 210, 335, 560],
     "stats": [
       {"stat":"hp","step":5}, {"stat":"atk","step":5}, {"stat":"def","step":5},
       {"stat":"spd","step":8}, {"stat":"cr","step":8}, {"stat":"cd","step":4}
@@ -140,6 +141,7 @@
     ],
     "chip_stars": [1, 2, 3, 4, 5, 6],
     "ticket_ore": 8,
+    "draw_token": 8,
     "gem_sets": {
       "ruby": {"name":"燎原星阵","tiers":[{"count":3,"stat":"cr","value":3},{"count":6,"stat":"atk","value":5},{"count":9,"stat":"cd","value":12}]},
       "jade": {"name":"长青星阵","tiers":[{"count":3,"stat":"hp","value":4},{"count":6,"stat":"def","value":6},{"count":9,"stat":"hp","value":8}]},

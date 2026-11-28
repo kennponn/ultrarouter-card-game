@@ -114,6 +114,7 @@ func sweepGachaVoyage(tx *gorm.DB, userID int, state *GachaGameState, intent Gac
 		return err
 	}
 	state.Activity = budget.Activity
+	advanceGachaCaptainTaskBy(state, "voyage", count)
 	result.Drops = drops
 	return nil
 }

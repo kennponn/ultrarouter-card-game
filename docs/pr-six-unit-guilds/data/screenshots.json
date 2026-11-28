@@ -1,0 +1,146 @@
+[
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/01-battle-desktop.png",
+    "sha256": "cad147752a233da642adc97e0ac041da047a448579e52718aa689d5e28db443f",
+    "dimensions": [
+      1366,
+      900
+    ],
+    "source": "Fixed DOM battle fixture captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/02-battle-mobile.png",
+    "sha256": "3146623783cbd57f963bd77ad7881952764fc56057b6cdae0b58518808635b20",
+    "dimensions": [
+      390,
+      844
+    ],
+    "source": "Fixed DOM battle fixture captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/03-battle-boss.png",
+    "sha256": "938b27b5f827605c7b9b934f1e1704c5669b42f05ad5534c49abd03c102966be",
+    "dimensions": [
+      1366,
+      900
+    ],
+    "source": "Fixed DOM battle fixture captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/04-pause-menu.png",
+    "sha256": "2019e96794c03288be66f30953f9ddb7d72dae8a830224ea8f454590f6786d30",
+    "dimensions": [
+      390,
+      844
+    ],
+    "source": "Fixed DOM battle fixture captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/05-squad-desktop.png",
+    "sha256": "6e2797b2c9b3d2e3d7d8e9bd27e8773d805ffdbbd0c6e835fe2b6ce2cb43402f",
+    "dimensions": [
+      1366,
+      768
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/06-squad-mobile.png",
+    "sha256": "309b13233dd2c1d024637dbcfb025fac21b12e29373f49010aac198d95e24c50",
+    "dimensions": [
+      390,
+      844
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/07-guild-growth.png",
+    "sha256": "2ed56092de90c7def099aa8962ded3359e01738cfa14fe07c89b989a4b02b52f",
+    "dimensions": [
+      1366,
+      768
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/08-guild-mobile.png",
+    "sha256": "6d22b906bb56dbac3f6cb47c2e647d76153ef95e47b28a2d2571f91507ff2dd4",
+    "dimensions": [
+      390,
+      844
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/09-guild-damage.png",
+    "sha256": "5d969f771a59f8b116a327449abb1bfc58a1dd67114de39b4874c0e7af262d13",
+    "dimensions": [
+      1366,
+      768
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/10-guild-damage-mobile.png",
+    "sha256": "94822e36f25e9e8c727c62d1d31af14a5ed6ae06b3cc2a0be4dc5285be45211c",
+    "dimensions": [
+      390,
+      844
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/11-arena-desktop.png",
+    "sha256": "5b0e8cf2faa202ce088f1a88b79adb3094044acd4944e635143ce4c098235c02",
+    "dimensions": [
+      1366,
+      768
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/12-arena-mobile.png",
+    "sha256": "e5d1a092fd7a7d7a9a2ae447dd838bc32f8aec5ed64bfa42890546520306b767",
+    "dimensions": [
+      390,
+      844
+    ],
+    "source": "Synthetic local Mock interaction captured in Microsoft Edge"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/13-boss-damage.png",
+    "sha256": "3871a91fb0d54315f7d065d83293368954da02e994af264ddfc926b4c1957612",
+    "dimensions": [
+      1449,
+      778
+    ],
+    "source": "Matplotlib chart from CI artifacts; see VALIDATION.md for derivation"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/14-boss-days.png",
+    "sha256": "c3a9a69338b85d28f6b84019b0f29e073d4eef25aa19e5fe93464ca483003b85",
+    "dimensions": [
+      1420,
+      778
+    ],
+    "source": "Matplotlib chart from CI artifacts; see VALIDATION.md for derivation"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/15-database-upgrade.png",
+    "sha256": "813c9ebde1b7e7c20b0031c3e621f44172616a4b8fc582555ddaa1f5699b928e",
+    "dimensions": [
+      1454,
+      743
+    ],
+    "source": "Matplotlib chart from CI artifacts; see VALIDATION.md for derivation"
+  },
+  {
+    "url": "https://1810551251.github.io/ultrarouter-card-game-screenshots/six-unit-guilds-20261127/16-go-checks.png",
+    "sha256": "f8a25db207cda43f252d0f789e49452ef2814cbe7097d58ab3c138d550b0cab0",
+    "dimensions": [
+      1454,
+      738
+    ],
+    "source": "Matplotlib chart from CI artifacts; see VALIDATION.md for derivation"
+  }
+]

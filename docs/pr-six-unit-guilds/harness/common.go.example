@@ -1,0 +1,47 @@
+// Isolated test adapter only. No production account or wallet service.
+package common
+
+import (
+	"encoding/json"
+	"errors"
+	"github.com/shopspring/decimal"
+	"math"
+	"os"
+	"strconv"
+)
+
+var Marshal = json.Marshal
+var Unmarshal = json.Unmarshal
+
+type RawMessage = json.RawMessage
+
+var SQLitePath string
+var IsMasterNode, RedisEnabled, BatchUpdateEnabled bool
+
+const RoleAdminUser, RoleCommonUser, RoleRootUser = 10, 1, 100
+const UserStatusEnabled, UserStatusDisabled = 1, 2
+const MaxWalletQuota = 1<<53 - 1
+
+var mainDBType, logDBType string
+
+func MainDatabaseType() string                    { return mainDBType }
+func LogDatabaseType() string                     { return logDBType }
+func SetDatabaseTypes(main, log string)           { mainDBType, logDBType = main, log }
+func UnmarshalJsonStr(v string, target any) error { return json.Unmarshal([]byte(v), target) }
+func QuotaRound(v float64) int                    { return int(math.Round(v)) }
+func GetEnvOrDefaultBool(name string, fallback bool) bool {
+	v, err := strconv.ParseBool(os.Getenv(name))
+	if err != nil {
+		return fallback
+	}
+	return v
+}
+func SysError(message string) { panic(message) }
+func WalletQuotaFromDecimalStrict(value decimal.Decimal) (int, error) {
+	// Callers already express the amount in integral wallet quota units.
+	quota := value
+	if quota.IsNegative() || !quota.Equal(quota.Truncate(0)) || quota.GreaterThan(decimal.NewFromInt(MaxWalletQuota)) {
+		return 0, errors.New("invalid quota")
+	}
+	return int(quota.IntPart()), nil
+}

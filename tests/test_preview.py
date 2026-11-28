@@ -26,6 +26,10 @@ class GamePreviewTests(unittest.TestCase):
             'fleet.css': b'.fleet-board {}',
             'js/config.js': b'const apiBase = "";',
             'assets/portrait.webp': b'RIFF',
+            'content/cards/c01/assets/portrait.webp': b'RIFF-card',
+            'content/enemies/wolf/assets/portrait-cut.webp': b'RIFF-enemy',
+            'content/bosses/abyss-lord/assets/portrait.webp': b'RIFF-boss',
+            'content/cards/c01/card.json': b'{"maintenance": true}',
             '.env': b'private configuration',
             'backend/model/gacha.go': b'private source, not a browser asset',
             'scripts/preview.py': b'private development script',
@@ -57,7 +61,7 @@ class GamePreviewTests(unittest.TestCase):
             connection.close()
 
     def test_game_frontend_and_artwork_are_served(self):
-        for path in ('/gacha/', '/gacha/style.css', '/gacha/mobile.css', '/gacha/harbor.css', '/gacha/voyage.css', '/gacha/fleet.css', '/gacha/js/config.js', '/gacha/assets/portrait.webp'):
+        for path in ('/gacha/', '/gacha/style.css', '/gacha/mobile.css', '/gacha/harbor.css', '/gacha/voyage.css', '/gacha/fleet.css', '/gacha/js/config.js', '/gacha/assets/portrait.webp', '/gacha/content/cards/c01/assets/portrait.webp', '/gacha/content/enemies/wolf/assets/portrait-cut.webp', '/gacha/content/bosses/abyss-lord/assets/portrait.webp'):
             with self.subTest(path=path):
                 status, headers, content = self.request(path)
                 self.assertEqual(status, 200)
@@ -78,7 +82,7 @@ class GamePreviewTests(unittest.TestCase):
         self.assertEqual(after, before)
 
     def test_source_environment_database_and_dev_files_are_not_served(self):
-        for path in ('/gacha/.env', '/gacha/backend/model/gacha.go', '/gacha/scripts/preview.py', '/gacha/.local/data/game.db', '/backend/model/gacha.go'):
+        for path in ('/gacha/.env', '/gacha/backend/model/gacha.go', '/gacha/scripts/preview.py', '/gacha/.local/data/game.db', '/backend/model/gacha.go', '/gacha/content/cards/c01/card.json'):
             with self.subTest(path=path):
                 status, _, content = self.request(path)
                 self.assertEqual(status, 404)

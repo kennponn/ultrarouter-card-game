@@ -133,6 +133,7 @@ func applyGachaEquipmentAction(state *GachaGameState, girlID, id, action string,
 		return ErrGachaIntent
 	}
 	piece := gachaEquipmentPiece(own, id)
+	levelBefore := piece.Level
 	material, cost, markCost := slot.LevelMat, 0, 0
 	var receipt string
 	switch action {
@@ -171,6 +172,7 @@ func applyGachaEquipmentAction(state *GachaGameState, girlID, id, action string,
 		return ErrGachaIntent
 	}
 	state.Mats[material] -= cost
+	advanceGachaCaptainTaskBy(state, "equipment", piece.Level-levelBefore)
 	if markCost > 0 {
 		state.Mats[gachaEquipment.StarMarkMat] -= markCost
 	}

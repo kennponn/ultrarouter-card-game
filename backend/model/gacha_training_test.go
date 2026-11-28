@@ -20,6 +20,7 @@ func trainingTestIntent(action, choice string) GachaActionIntent {
 
 func TestGachaTrainingAllGradeStepsAndNoPartialSpending(t *testing.T) {
 	state := battleTestState([]string{"c01"}, 60, 12)
+	state.Gold = 100_000
 	state.Mats["training_ink"], state.Mats["break_seal"] = 99999, 999
 	own := state.Girls["c01"]
 	own.Exp = 325
@@ -84,6 +85,26 @@ func TestGachaTrainingAllGradeStepsAndNoPartialSpending(t *testing.T) {
 	}
 }
 
+func TestGachaTrainingGoldIsRequiredBeforeAnyMaterialOrProgressIsSpent(t *testing.T) {
+	state := battleTestState([]string{"c01"}, 20, 2)
+	state.Mats["training_ink"] = 30
+	state.Gold = gachaTraining.BreakCost.GoldBase - 1
+	intent := trainingTestIntent("card_breakthrough", "")
+	require.ErrorIs(t, applyGachaTrainingAction(state, intent, &GachaActionResult{}), ErrGachaFunds)
+	require.Equal(t, 30, state.Mats["training_ink"])
+	require.Nil(t, state.Girls["c01"].Training)
+	state.Gold++
+	require.NoError(t, applyGachaTrainingAction(state, intent, &GachaActionResult{}))
+	require.Zero(t, state.Gold)
+	require.Equal(t, 1, state.Girls["c01"].Training.Plus)
+	state.Gold = 3*gachaTraining.EffortGoldBase - 1
+	require.NoError(t, applyGachaTrainingAction(state, trainingTestIntent("effort_train_max", "hp"), &GachaActionResult{}))
+	require.Equal(t, 2, state.Daily.EffortSpent["c01"])
+	require.Equal(t, gachaTraining.EffortGoldBase-1, state.Gold)
+	require.ErrorIs(t, applyGachaTrainingAction(state, trainingTestIntent("effort_train", "hp"), &GachaActionResult{}), ErrGachaFunds)
+	require.Equal(t, 2, state.Daily.EffortSpent["c01"])
+}
+
 func TestGachaGreenToBlueNeedsCurrentLevelNotStars(t *testing.T) {
 	state := battleTestState([]string{"c01"}, 19, 1)
 	own := state.Girls["c01"]
@@ -129,7 +150,7 @@ func TestGachaTrainingIntentAndEffortFloors(t *testing.T) {
 	state := battleTestState([]string{"c01"}, 40, 3)
 	own := state.Girls["c01"]
 	clock := time.Date(2026, 11, 1, 9, 0, 0, 0, time.UTC)
-	state.Mats["training_ink"], state.Mats["break_seal"] = 80, 1
+	state.Mats["training_ink"], state.Mats["break_seal"], state.Gold = 80, 1, 80*gachaTraining.EffortGoldBase
 	for day := range 8 {
 		regenGachaState(state, clock.AddDate(0, 0, day))
 		for _, stat := range gachaTraining.EffortStats {
@@ -152,6 +173,7 @@ func TestGachaTrainingIntentAndEffortFloors(t *testing.T) {
 	}
 	assert.Zero(t, state.Mats["training_ink"])
 	assert.Zero(t, state.Mats["break_seal"])
+	assert.Zero(t, state.Gold)
 	regenGachaState(state, clock.AddDate(0, 0, 8))
 	require.ErrorIs(t, applyGachaTrainingAction(state, trainingTestIntent("effort_train", "spd"), &GachaActionResult{}), ErrGachaFunds)
 	assert.Equal(t, 160, own.Training.Effort["spd"])
@@ -211,7 +233,7 @@ func TestGachaSkillClockDoesNotBankTimeAtCapacityOrOnClockRollback(t *testing.T)
 		assert.Equal(t, check.points, state.SkillPool.Points)
 		assert.Equal(t, base.Add(check.anchor).UnixMilli(), state.SkillPool.TickAt)
 	}
-	state.Gold = 40
+	state.Gold = gachaTraining.SkillPool.UpgradeGoldBase
 	require.NoError(t, applyGachaSkillAction(state, trainingTestIntent("skill_point", "normal"), &GachaActionResult{}, base.Add(2*time.Hour)))
 	require.NoError(t, regenGachaSkillPool(state, base.Add(2*time.Hour+19*time.Second)))
 	assert.Equal(t, 19, state.SkillPool.Points)
@@ -229,13 +251,13 @@ func TestGachaSkillLevelZeroThroughMaximumAndRestoredCombat(t *testing.T) {
 	own.PeakLevel = maxLevel
 	own.Training = &GachaCardTraining{Grade: 1, Skills: map[string]int{"normal": maxLevel - 1, "rage": maxLevel, "passive": maxLevel}}
 	state.SkillPool = &GachaSkillPool{Points: 7}
-	state.Gold = 5000
+	state.Gold = gachaTraining.SkillPool.UpgradeGoldBase + gachaTraining.SkillPool.UpgradeGoldStep*(maxLevel-1)
 	base := time.Unix(2000, 0)
 	intent := trainingTestIntent("skill_auto", "normal")
 	require.NoError(t, applyGachaSkillAction(state, intent, &GachaActionResult{}, base))
 	assert.Equal(t, maxLevel, own.Training.Skills["normal"])
 	assert.Equal(t, 6, state.SkillPool.Points)
-	assert.Equal(t, 5000-30-8*(maxLevel-1), state.Gold)
+	assert.Zero(t, state.Gold)
 	assert.False(t, validGachaSkillRanks(own, false))
 	for _, level := range []int{0, 1, 11, maxLevel} {
 		own.Level, own.Exp = level, 0

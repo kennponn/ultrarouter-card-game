@@ -130,6 +130,7 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 	t.Run("picked_books_and_oaths_are_idempotent_server_spends", func(t *testing.T) {
 		user := gachaUser(t)
 		state := gachaState(t, user.Id, now)
+		state.Captain.Level = 60 // Feeding requires room below the captain's cap.
 		state.Mats["field_notes"], state.Mats["break_seal"] = 2, 10
 		seedGachaState(t, user.Id, state)
 		feed := cultivationIntent("card_feed", "c01")
@@ -174,7 +175,10 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		assert.Zero(t, state.Daily.SkillSpent)
 		assert.Equal(t, now.UnixMilli(), state.SkillPool.TickAt)
 		state.Girls["c01"].Level, state.Girls["c08"].Level = 30, 30
-		state.Gold, state.SkillPool.Points = 1000, 2
+		pool := profile.Training.SkillPool
+		secondLevel := pool.UpgradeGoldBase + pool.UpgradeGoldStep
+		levelsTwoToFive := 4*pool.UpgradeGoldBase + 10*pool.UpgradeGoldStep
+		state.Gold, state.SkillPool.Points = 2*pool.UpgradeGoldBase+secondLevel+5*pool.BuyGold+levelsTwoToFive+1, 2
 		seedGachaState(t, user.Id, state)
 		upgrade := func(action, id, choice string) model.GachaActionIntent {
 			intent := cultivationIntent(action, id)
@@ -185,26 +189,26 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		first, err := model.ApplyGachaAction(user.Id, single, now)
 		require.NoError(t, err)
 		assert.Equal(t, 1, first.Save.SkillPool.Points)
-		assert.Equal(t, 970, first.Save.Gold)
+		assert.Equal(t, state.Gold-pool.UpgradeGoldBase, first.Save.Gold)
 		replay, err := model.ApplyGachaAction(user.Id, single, now.Add(19*time.Second))
 		require.NoError(t, err)
 		assert.Equal(t, first, replay)
 		second, err := model.ApplyGachaAction(user.Id, upgrade("skill_auto", "c08", "rage"), now)
 		require.NoError(t, err)
 		assert.Zero(t, second.Save.SkillPool.Points)
-		assert.Equal(t, 940, second.Save.Gold)
+		assert.Equal(t, first.Save.Gold-pool.UpgradeGoldBase, second.Save.Gold)
 		_, err = model.ApplyGachaAction(user.Id, upgrade("skill_point", "c01", "normal"), now.Add(19999*time.Millisecond))
 		require.ErrorIs(t, err, model.ErrGachaFunds)
 		tick := now.Add(20 * time.Second)
 		next, err := model.ApplyGachaAction(user.Id, upgrade("skill_point", "c01", "normal"), tick)
 		require.NoError(t, err)
-		assert.Equal(t, 902, next.Save.Gold)
+		assert.Equal(t, second.Save.Gold-secondLevel, next.Save.Gold)
 		assert.Equal(t, tick.UnixMilli(), next.Save.SkillPool.TickAt)
 		five := 5
 		buy := model.GachaActionIntent{Action: "skill_buy", Count: &five, RequestID: uuid.NewString()}
 		bought, err := model.ApplyGachaAction(user.Id, buy, tick)
 		require.NoError(t, err)
-		assert.Equal(t, 302, bought.Save.Gold)
+		assert.Equal(t, next.Save.Gold-5*pool.BuyGold, bought.Save.Gold)
 		assert.Equal(t, 5, bought.Save.SkillPool.Points)
 		receipt, err := model.ApplyGachaAction(user.Id, buy, tick)
 		require.NoError(t, err)
@@ -216,10 +220,11 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		require.ErrorIs(t, err, model.ErrGachaReplay)
 		up, err := model.ApplyGachaAction(user.Id, upgrade("skill_auto", "c08", "rage"), tick)
 		require.NoError(t, err)
-		assert.Equal(t, 32, up.Save.Gold)
-		assert.Zero(t, up.Save.SkillPool.Points)
-		assert.Equal(t, 6, up.Save.Girls["c08"].Training.Skills["rage"])
-		other.RequestID = uuid.NewString()
+		assert.Equal(t, 1, up.Save.Gold)
+		assert.Equal(t, 1, up.Save.SkillPool.Points)
+		assert.Equal(t, 5, up.Save.Girls["c08"].Training.Skills["rage"])
+		two := 2
+		other.Count, other.RequestID = &two, uuid.NewString()
 		_, err = model.ApplyGachaAction(user.Id, other, tick)
 		require.ErrorIs(t, err, model.ErrGachaFunds)
 		later := gachaState(t, user.Id, tick.Add(24*time.Hour))
@@ -228,12 +233,15 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		_, err = model.ApplyGachaAction(user.Id, other, tick.Add(24*time.Hour))
 		require.ErrorIs(t, err, model.ErrGachaCapacity)
 	})
-	t.Run("cultivation_individual_reroll_charges_only_ore_preserves_locked_values_and_replays", func(t *testing.T) {
+	t.Run("cultivation_individual_reroll_prices_locks_and_replays_once", func(t *testing.T) {
 		user := gachaUser(t)
 		id := "c01"
-		state := gachaState(t, user.Id, now)
+		profile, err := model.GetGachaProfile(user.Id, now)
+		require.NoError(t, err)
+		state := profile.Save
+		prices := profile.Cultivation.Individual.LockTokens
 		state.Squad = []string{"c08"}
-		state.Mats["forge_ore"], state.Gold = 13, 0
+		state.Mats["iv_solvent"], state.Gold, state.Token = 3, 480, prices[2]+prices[5]
 		state.Girls[id].Chips, state.Girls[id].ChipLocks = []string{"edge_1"}, 1
 		seedGachaState(t, user.Id, state)
 		lock := func(stat string, enabled bool) (*model.GachaActionResult, error) {
@@ -241,7 +249,7 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 			intent.Choice, intent.Enabled = &stat, &enabled
 			return model.ApplyGachaAction(user.Id, intent, now)
 		}
-		_, err := lock("hp", true)
+		_, err = lock("hp", true)
 		require.ErrorIs(t, err, model.ErrGachaCultivationLocked)
 		_, err = model.ApplyGachaAction(user.Id, cultivationIntent("iv_roll", "c04"), now)
 		require.ErrorIs(t, err, model.ErrGachaIntent)
@@ -254,7 +262,9 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 			assert.GreaterOrEqual(t, value, 0)
 			assert.LessOrEqual(t, value, 31)
 		}
-		assert.Equal(t, 11, out.Save.Mats["forge_ore"])
+		assert.Equal(t, 2, out.Save.Mats["iv_solvent"])
+		assert.Equal(t, 320, out.Save.Gold)
+		assert.Equal(t, state.Token, out.Save.Token)
 		replayed, err := model.ApplyGachaAction(user.Id, first, now)
 		require.NoError(t, err)
 		assert.Equal(t, out, replayed)
@@ -264,7 +274,9 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		}
 		out, err = model.ApplyGachaAction(user.Id, cultivationIntent("iv_roll", id), now)
 		require.NoError(t, err)
-		assert.Equal(t, 7, out.Save.Mats["forge_ore"])
+		assert.Equal(t, 1, out.Save.Mats["iv_solvent"])
+		assert.Equal(t, 160, out.Save.Gold)
+		assert.Equal(t, prices[5], out.Save.Token)
 		assert.Equal(t, 33, out.Save.Girls[id].IVLocks)
 		assert.Equal(t, initial[0], out.Save.Girls[id].IVValues[0])
 		assert.Equal(t, initial[5], out.Save.Girls[id].IVValues[5])
@@ -280,7 +292,8 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		assert.Equal(t, 61, out.Save.Girls[id].IVLocks)
 		out, err = model.ApplyGachaAction(user.Id, cultivationIntent("iv_roll", id), now)
 		require.NoError(t, err)
-		assert.Zero(t, out.Save.Mats["forge_ore"])
+		assert.Zero(t, out.Save.Mats["iv_solvent"])
+		assert.Zero(t, out.Save.Token)
 		assert.Equal(t, 1, out.Save.Girls[id].ChipLocks)
 		for index, value := range out.Save.Girls[id].IVValues {
 			if index != 1 {
@@ -517,20 +530,13 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 			clock = time.UnixMilli(run.ReadyAt + 1)
 			return run
 		}
-		check := func(run *model.GachaRunResult, abandon, mailed bool, ore, bosses, gemTickets, chipTickets int) {
-			before := gachaState(t, user.Id, clock).Mats
+		check := func(run *model.GachaRunResult, abandon, checkReplay bool, ore, bosses, gemTickets, chipTickets int) {
 			out, err := model.FinishGachaRun(user.Id, run.ID, abandon, clock)
 			require.NoError(t, err)
 			assert.Equal(t, !abandon, out.Win)
 			expected := map[string]int{"forge_ore": ore, "weapon_core": bosses, "training_manual": bosses, "gem_ticket": gemTickets, "chip_ticket": chipTickets}
 			saved := out.Save
-			if mailed {
-				letter := requireGachaTestMail(t, out.Save, "battle:"+run.ID)
-				for id, amount := range expected {
-					assert.Equal(t, before[id], out.Save.Mats[id], id)
-					assert.Equal(t, amount-before[id], letter.Resources[id], id)
-				}
-				saved = claimGachaTestMail(t, user.Id, letter, clock)
+			if checkReplay {
 				replay, err := model.FinishGachaRun(user.Id, run.ID, abandon, clock)
 				require.NoError(t, err)
 				assert.Equal(t, out, replay)
@@ -565,32 +571,24 @@ func runGachaCultivationMatrix(t *testing.T, now time.Time) {
 		state.Mats["training_manual"] = 1_000_000_000
 		seedGachaState(t, user.Id, state)
 		fullStore := start("s3")
-		out, err := model.FinishGachaRun(user.Id, fullStore.ID, false, clock)
-		require.NoError(t, err)
-		require.True(t, out.Win)
-		letter := requireGachaTestMail(t, out.Save, "battle:"+fullStore.ID)
-		assert.Equal(t, 1, letter.Resources["training_manual"])
-		assert.Equal(t, 2, letter.Resources["forge_ore"])
-		claim := model.GachaActionIntent{Action: "mail_claim", RequestID: uuid.NewString(), ItemID: &letter.ID}
-		_, err = model.ApplyGachaAction(user.Id, claim, clock)
+		_, err := model.FinishGachaRun(user.Id, fullStore.ID, false, clock)
 		require.ErrorIs(t, err, model.ErrGachaCapacity)
 		state = gachaState(t, user.Id, clock)
-		assert.False(t, requireGachaTestMail(t, state, letter.ID).Claimed)
 		assert.Equal(t, 3, state.Mats["forge_ore"])
 		assert.Equal(t, 1, state.Mats["weapon_core"])
 		assert.Equal(t, 1_000_000_000, state.Mats["training_manual"])
 		assert.Equal(t, 1, state.Mats["gem_ticket"])
 		state.Mats["training_manual"] = 1
 		seedGachaState(t, user.Id, state)
-		paid, err := model.ApplyGachaAction(user.Id, claim, clock)
+		paid, err := model.FinishGachaRun(user.Id, fullStore.ID, false, clock)
 		require.NoError(t, err)
-		assert.True(t, requireGachaTestMail(t, paid.Save, letter.ID).Claimed)
+		require.True(t, paid.Win)
 		for id, amount := range map[string]int{"forge_ore": 5, "weapon_core": 2, "training_manual": 2, "gem_ticket": 2, "chip_ticket": 0} {
 			assert.Equal(t, amount, paid.Save.Mats[id], id)
 		}
 		replay, err := model.FinishGachaRun(user.Id, fullStore.ID, false, clock)
 		require.NoError(t, err)
-		assert.Equal(t, out, replay)
+		assert.Equal(t, paid, replay)
 		check(start("r1"), false, true, 8, 3, 2, 1)
 		check(asVersion(start("s3"), 3), false, false, 10, 4, 2, 1)
 	})
