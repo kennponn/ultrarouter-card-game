@@ -44,6 +44,38 @@ func TestJoineryRealBattlePresentationFixture(t *testing.T) {
 	}
 }
 
+func TestJoineryWoundedEntryRescuePresentation(t *testing.T) {
+	state := battleTestState([]string{"xs039", "c13", "c01"}, 40, 5)
+	allies, err := gachaSquadUnits(state, "ally", "a")
+	require.NoError(t, err)
+	foes, err := gachaSquadUnits(battleTestState([]string{"c04", "c07", "c19"}, 20, 3), "enemy", "e")
+	require.NoError(t, err)
+	// Isolate rescue selection with a wounded ally at entry and an early caster.
+	allies[0].Spd = 200
+	allies[2].HP = allies[2].MaxHP / 10
+	report := &GachaBattleReport{Waves: [][]GachaBattleUnit{{}}}
+	for _, unit := range allies {
+		report.Allies = append(report.Allies, unit.GachaBattleUnit)
+	}
+	for _, unit := range foes {
+		report.Waves[0] = append(report.Waves[0], unit.GachaBattleUnit)
+	}
+	b := &gachaCombat{allies: allies, waves: [][]*gachaCombatUnit{foes}, formula: gachaCatalog.Formula, rng: battleTestRNG(), report: report}
+	b.fight(60)
+	index := slices.IndexFunc(report.Events, func(event GachaBattleEvent) bool { return event.Variant == "rescue" })
+	require.GreaterOrEqual(t, index, 0)
+	event := report.Events[index]
+	patient := slices.IndexFunc(event.Units, func(unit GachaBattleSnapshot) bool { return unit.UID == "a2" })
+	require.NotNil(t, event.Units[patient].Position)
+	require.NotEqual(t, 2, *event.Units[patient].Position)
+	require.Greater(t, event.Units[patient].HP, report.Allies[2].HP)
+	if directory := os.Getenv("GACHA_REVIEW_OUTPUT"); directory != "" {
+		data, err := common.Marshal(map[string]any{"report": report, "scenario": "Server combat with wounded entry and early caster, isolated for rescue playback"})
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(filepath.Join(directory, "xs039-rescue-battle.json"), data, 0644))
+	}
+}
+
 func joineryBattle(t *testing.T) (*gachaCombat, *gachaCombatUnit) {
 	t.Helper()
 	card := *gachaGirl("xs039")
