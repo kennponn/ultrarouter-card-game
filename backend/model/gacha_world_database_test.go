@@ -14,6 +14,44 @@ import (
 )
 
 func runGachaWorldMatrix(t *testing.T) {
+	t.Run("xs039_synthesis_persists_five_stars_and_immutable_battle", func(t *testing.T) {
+		now := time.Date(2026, 11, 30, 10, 0, 0, 0, time.FixedZone("Beijing", 8*3600))
+		user := gachaUser(t)
+		state := gachaState(t, user.Id, now)
+		state.Girls["xs039"] = &model.GachaOwnedGirl{Shards: 80}
+		seedGachaState(t, user.Id, state)
+		id := "xs039"
+		intent := model.GachaActionIntent{Action: "shard_unlock", GirlID: &id, RequestID: uuid.NewString()}
+		first, err := model.ApplyGachaAction(user.Id, intent, now)
+		require.NoError(t, err)
+		require.Equal(t, 5, first.Save.Girls[id].Star)
+		require.Zero(t, first.Save.Girls[id].Shards)
+		replay, err := model.ApplyGachaAction(user.Id, intent, now)
+		require.NoError(t, err)
+		require.Equal(t, first, replay)
+		intent.RequestID = uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, intent, now)
+		require.Error(t, err)
+		require.Equal(t, 5, gachaState(t, user.Id, now).Girls[id].Star)
+		team := []string{id}
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{Action: "squad", Squad: &team, RequestID: uuid.NewString()}, now)
+		require.NoError(t, err)
+		run, err := model.StartGachaRun(user.Id, "s1", uuid.NewString(), now)
+		require.NoError(t, err)
+		require.NotNil(t, run.Result.Allies[0].Joinery)
+		profile, err := model.GetGachaProfile(user.Id, now.Add(time.Second))
+		require.NoError(t, err)
+		require.NotNil(t, profile.ActiveRun)
+		require.Equal(t, run.Result, profile.ActiveRun.Result, "database reload must retain pulses, positions and every event")
+		require.Equal(t, team, profile.Save.Squad, "battle swaps cannot edit account formation")
+		doneAt := time.UnixMilli(run.ReadyAt).Add(time.Second)
+		finished, err := model.FinishGachaRun(user.Id, run.ID, false, doneAt)
+		require.NoError(t, err)
+		again, err := model.FinishGachaRun(user.Id, run.ID, false, doneAt)
+		require.NoError(t, err)
+		require.Equal(t, finished, again)
+		require.Equal(t, 5, gachaState(t, user.Id, doneAt).Girls[id].Star)
+	})
 	t.Run("world_ticket_replay_week_close_top20_and_permanent_prizes", func(t *testing.T) {
 		zone := time.FixedZone("Beijing", 8*3600)
 		monday := time.Date(2028, 1, 3, 0, 0, 0, 0, zone)

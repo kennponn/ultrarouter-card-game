@@ -133,7 +133,7 @@ func testGachaMailDatabase(t *testing.T, _ time.Time) {
 		for id, amount := range map[string]int{"field_notes": 2, "training_ink": 2, "gear_rivet": 5} {
 			assert.Equal(t, before.Mats[id]+amount, paid.Save.Mats[id], id)
 		}
-		assert.Equal(t, &model.GachaCaptain{Level: 1, XP: rollcall.CaptainXP}, paid.Save.Captain)
+		assert.Equal(t, &model.GachaCaptain{Level: 2, XP: 10}, paid.Save.Captain, "40 stored captain XP crosses the current 30-XP first level")
 		for _, message := range paid.Save.Mailbox.Messages {
 			assert.True(t, message.Claimed)
 			assert.True(t, message.Read)

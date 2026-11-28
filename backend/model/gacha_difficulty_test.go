@@ -26,9 +26,12 @@ func difficultyPlayer(team []string, level, stars, skill int, equipped bool) *Ga
 	state.Captain.Level = gachaCatalog.Growth.MaxLevel
 	state.Squad = slices.Clone(team)
 	for _, girl := range gachaCatalog.Girls {
-		own := &GachaOwnedGirl{Level: 1, Star: gachaCatalog.Rarity[girl.Rarity].BaseStar, Gems: newGachaGemSlots()}
+		own := &GachaOwnedGirl{Level: 1, Star: gachaInitialStars(&girl), Gems: newGachaGemSlots()}
 		if slices.Contains(team, girl.ID) {
 			own.Level, own.Star = level, max(own.Star, stars)
+			if own.Star >= gachaFirstAdvancedStar {
+				own.Awakening = gachaCultivation.AdvancedAwakening[own.Star-gachaFirstAdvancedStar]
+			}
 			own.Training = &GachaCardTraining{Skills: map[string]int{"normal": skill, "rage": skill, "passive": skill}}
 			if equipped {
 				own.WeaponLevel = 20
@@ -68,6 +71,7 @@ func difficultyScene(t *testing.T, key string, team []string, week time.Time) (*
 		case "training":
 			state.Cleared["s3"], state.Cleared["s6"] = number >= 2, number >= 3
 		case "awakening":
+			state.Girls[team[0]].Star = 5 // Awakening candidates have not unlocked advanced stars yet.
 			state.Girls[team[0]].Awakening = number - 1
 			mode = fmt.Sprintf("trial_%s_%d", team[0], number)
 		case "dual_trial":

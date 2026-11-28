@@ -19,7 +19,7 @@ func runGachaDailyEconomyMatrix(t *testing.T, clock time.Time) {
 		}
 		return intent
 	}
-	t.Run("daily_real_gear_and_skill_actions_to_chest_and_mail", func(t *testing.T) {
+	t.Run("daily_real_gear_and_skill_actions_to_direct_task_and_chest_rewards", func(t *testing.T) {
 		owner, other := gachaUser(t), gachaUser(t)
 		profile, err := model.GetGachaProfile(owner.Id, now)
 		require.NoError(t, err)
@@ -55,10 +55,19 @@ func runGachaDailyEconomyMatrix(t *testing.T, clock time.Time) {
 			out, err := model.ApplyGachaAction(owner.Id, test.intent, now)
 			require.NoError(t, err)
 			require.Equal(t, 5, out.Save.Daily.CaptainLog.Progress[test.task])
-			require.True(t, out.Save.Daily.CaptainLog.Claimed[test.task], "task reward sent automatically once")
+			require.False(t, out.Save.Daily.CaptainLog.Claimed[test.task], "completing the task must still require an explicit claim")
 			replay, err := model.ApplyGachaAction(owner.Id, test.intent, now)
 			require.NoError(t, err)
 			require.Equal(t, out.Revision, replay.Revision)
+			claim := command("captain_task", out.Save.Daily.Date+":"+test.task)
+			claimed, err := model.ApplyGachaAction(owner.Id, claim, now)
+			require.NoError(t, err)
+			require.True(t, claimed.Save.Daily.CaptainLog.Claimed[test.task])
+			require.Greater(t, claimed.Save.Gold, out.Save.Gold)
+			require.Len(t, claimed.Save.Mailbox.Messages, len(out.Save.Mailbox.Messages))
+			again, err := model.ApplyGachaAction(owner.Id, claim, now)
+			require.NoError(t, err)
+			require.Equal(t, claimed, again)
 		}
 		before := gachaState(t, owner.Id, now)
 		out, err := model.ApplyGachaAction(owner.Id, chest, now)

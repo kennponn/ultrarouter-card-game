@@ -16,7 +16,9 @@ import (
 func TestJoineryRealBattlePresentationFixture(t *testing.T) {
 	state := battleTestState([]string{"xs039", "c13", "c01"}, 40, 5)
 	state.Girls["xs039"].Talent = "swift"
-	state.Girls["xs039"].WeaponAwake = 3
+	state.Girls["xs039"].WeaponLevel = 10
+	state.Girls["xs039"].WeaponAwake = 2
+	state.Girls["xs039"].Awakening = 3
 	stage := GachaStage{ID: "", Name: "三榫弦场演练", EnemyLv: 10, Waves: 1, EnemyCount: 6, HPScale: 20, StarRound: 60}
 	report, err := simulateGachaCombat(state, stage, battleTestRNG())
 	require.NoError(t, err)

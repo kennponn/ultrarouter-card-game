@@ -427,6 +427,21 @@ func TestGachaBattleCatalogSkills(t *testing.T) {
 		girl := &gachaCatalog.Girls[i]
 		t.Run(girl.ID, func(t *testing.T) {
 			combat, caster, ally := battleTestSkillCombat(girl)
+			if girl.CombatProfile == "joinery" {
+				combat, caster = joineryBattle(t)
+				caster.Rage = gachaCatalog.Formula.RageMax
+				combat.act(caster)
+				event := combat.report.Events[0]
+				require.True(t, event.Skill)
+				require.Equal(t, girl.Skills.JoineryUltimate.Name, event.SkillName)
+				require.Equal(t, "xs039-skill-2", event.SkillKey)
+				require.Zero(t, caster.Rage)
+				require.Len(t, event.Targets, 2)
+				for _, hit := range event.Targets {
+					require.Positive(t, hit.Damage)
+				}
+				return
+			}
 			if girl.ID == "c13" {
 				caster.DefBreak, caster.DefBreakT = 30, 3
 				ally.StunT, ally.Slow, ally.SlowT = 1, 25, 2

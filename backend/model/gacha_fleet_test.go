@@ -161,7 +161,7 @@ func testGachaFleetDatabase(t *testing.T, now time.Time) {
 	require.GreaterOrEqual(t, index, 0)
 	require.Less(t, index+1, len(collection.Entries))
 	assert.Equal(t, displays[1], collection.Entries[index+1].Name)
-	assert.Equal(t, 28, collection.CatalogSize)
+	assert.Equal(t, 29, collection.CatalogSize)
 	assert.Equal(t, 27, collection.MyValue)
 	assert.EqualValues(t, index+1, collection.MyRank)
 	assert.Zero(t, board(leader.Id, "power", 0, now).MyRank)

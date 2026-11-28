@@ -217,7 +217,7 @@ func TestGuildDailyResetAndCompletedLegacyBossAdvanceOnlyOnce(t *testing.T) {
 	require.NoError(t, syncGachaGuildProgress(state, tomorrow))
 	assert.Zero(t, p.Attempts, "old day flag cannot consume a new day's attempt")
 	assert.Equal(t, 1, p.Claims)
-	assert.Equal(t, 2, p.Bought["tokens"])
+	assert.Zero(t, p.Bought["tokens"], "a new market refresh window resets purchase counts")
 	assert.Equal(t, 80, p.Coins)
 	owner.RaidVersion, owner.RaidCleared, owner.BossHP = 0, 0, 0
 	owner.BossMaxHP = 24000
