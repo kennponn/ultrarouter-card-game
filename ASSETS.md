@@ -2,8 +2,14 @@
 
 The maintainer confirmed on 2026-11-24 that the 28 character images were AI-generated. Character names, IDs and image paths are listed in `assets/PROVENANCE.json`. The generation tool and its terms have not been supplied.
 
+Character artwork now lives alongside its definitions under `content/cards/<id>/assets/`; normal enemies use `content/enemies/` and bosses use `content/bosses/`. Shared scenes and UI artwork remain under `assets/`. See [content maintenance](content/README.md). Image bytes were preserved during the move; legacy report paths are resolved through the generated unit asset aliases.
+
 The maintainer requested publication of the existing card game, including the supplied artwork. The artwork is retained for inspection, but no independent public artwork license has been specified and the generation tool's terms have not been verified. Public availability is not a commercial-use or redistribution license. Before reusing or redistributing an image, confirm its permitted uses, including modification and commercial use. Unconfirmed images can instead be replaced with distributable placeholders.
 
 Background and UI artwork provenance still needs confirmation. The code's AGPL license does not automatically establish an artwork license.
 
 The previous asset inspection found no EXIF or XMP metadata in the 95 WebP files; animation/playback metadata is not a licensing review. The source ZIP is checked again for known private markers, including binary metadata.
+
+Strong World UI assets in `assets/world/` were extracted on 2026-11-28 from the legacy mobile game project supplied by the user, at their request to reproduce that activity screen. This set contains only activity backgrounds, title artwork, controls, rank badges and reward chests; characters continue to use this project's artwork. The 40 PNG resources were converted to lossless WebP without resizing and checked for identical RGBA pixels. `assets/PROVENANCE.json` records the source APK hash, each original logical asset path and SHA256, output SHA256 and dimensions. This source record and reproduction request do not establish an independent public artwork license.
+
+The six `xs039` runtime WebP files were copied without modification from the user-supplied completed battle-system card on 2026-11-28. Their SHA-256 hashes are recorded under `xs039_runtime_art` in `assets/PROVENANCE.json`. Review screenshots are stored separately in the screenshot repository.

@@ -24,6 +24,14 @@ test("seven actual desks share an authoritative profile; old hosts do not advert
   for (const name of ["clock","route","mosaic","mirror","contract","relic"]) {room(name);assert.equal(find("#dispatch-panel").dataset.deskRoom,name);assert.ok(find("#dispatch-panel .dp-sheet button"));}
   assert.match(view.dispatchEvidenceBag(),/苍蓝|藍|蓝/);delete view.Store.profile.dispatch;view.openWorkshop("c01","overview");assert.equal(find('[data-workshop-tab="dispatch"]'),null);
 });
+test("contract notices only promise sweep reports advertised by the host", context => {
+  const {view,rules,room,find} = desk(context);
+  room("contract");
+  assert.match(find(".dp-sheet .dp-note").textContent,/主线由服务器逐场核验/);
+  delete rules.sweep_reports;
+  view.paintWorkshop();
+  assert.match(find(".dp-sheet .dp-note").textContent,/请手动出战/);
+});
 test("the cabinet needs the right ending AND its evidence; ownership is not activation", async context => {
   const {view,state,calls,find} = desk(context), button = type => find(`[data-desk-action="relic_${type}"]`);
   assert.equal(button("bind").disabled,false);assert.equal(button("wear").disabled,true);assert.match(find(".dp-trade").textContent,/28.*10%/);

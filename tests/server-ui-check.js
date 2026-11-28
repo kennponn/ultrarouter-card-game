@@ -5,12 +5,14 @@ const { JSDOM } = require("jsdom");
 
 const root = path.resolve(__dirname, "..");
 const catalog = JSON.parse(fs.readFileSync(path.join(root, "backend/model/gacha_catalog.json")));
+const market = JSON.parse(fs.readFileSync(path.join(root, "backend/model/gacha_market.json")));
 const clone = value => JSON.parse(JSON.stringify(value));
 const server = {
   revision: 2, active: null, rejectFinish: false, calls: [], quota: 2500000,
   save: {
     stamina: 120, staminaMax: 120, staminaTs: Date.now(), token: 0, gold: 600,
     multi: 1, multiOn: false, daily: { date: "2026-11-17", tokenGained: 0 },
+    market: {slot:Date.now()-1000, next:Date.now()+3600000, bought:{}},
     pity: 0, totalPull: 0, squad: ["c08", "c06", "c01", "c12"],
     girls: Object.fromEntries(["c08", "c06", "c01", "c12"].map(id => [id, { star: 1, level: 1, exp: 0, shards: 0 }])),
     cleared: { s1: true }, stars: { s1: 3 }, history: [], mats: { mat_r: 0, mat_sr: 0, mat_ssr: 0 },
@@ -39,6 +41,7 @@ w.fetch = async (url, options) => {
     ...snapshot(), user_id: 7, name: "UI test", quota: server.quota, stored: 0, active: null,
     today: { runs: 21, run_limit: null, quota: 8000000, quota_limit: null }, active_run: server.active,
     stage_rewards: { s1: { quota_min: 75000, quota_max: 110000 } },
+    market,
   };
   else if (ep.endsWith("/action")) {
     if (body.action === "ladder_join") server.ladder.me = { ...rival, id: 7, rank: 101, best_rank: 101, cooldown_until: 0 };
@@ -52,12 +55,20 @@ w.fetch = async (url, options) => {
     if (body.action === "multi") server.save.multiOn = body.enabled;
     if (body.action === "squad") server.save.squad = body.squad;
     if (body.action === "shop") {
-      server.save.token -= 30; server.save.gold += 150;
-      server.save.daily.shopBought = { gold: 1 };
+      const offer = market.offers.find(item => item.id === body.item_id);
+      if (offer.shop === "token") server.save.token -= offer.price;
+      else server.save.mats[offer.shop+"_coin"] -= offer.price;
+      if (offer.resource === "gold") server.save.gold += offer.amount;
+      else server.save.mats[offer.resource] = (server.save.mats[offer.resource] || 0) + offer.amount;
+      server.save.market.bought[offer.id] = (server.save.market.bought[offer.id] || 0) + 1;
     }
-    if (body.action === "token_exchange") {
-      server.quota -= body.count * 500000;
-      server.save.token += body.count;
+    if (body.action === "shop_refresh") {
+      server.save.token -= market.refresh_price;
+      market.offers.filter(item => item.shop === body.item_id).forEach(item => delete server.save.market.bought[item.id]);
+    }
+    if (body.action === "use_stamina_pack") {
+      server.save.mats[body.item_id]--;
+      server.save.stamina += market.packs[body.item_id];
     }
     if (body.action === "arena_join") {
       server.queue = { id: "00000000-0000-4000-8000-000000000001", status: "waiting", stake_e: body.stake_e, power: 10000, min_power: 8334, max_power: 12000, expire_at: Date.now()+120000, quota: 5000000-body.stake_e*500000 };
@@ -68,7 +79,6 @@ w.fetch = async (url, options) => {
     server.revision++;
     data = snapshot();
     if (body.action === "ladder_challenge") data.ladder = clone(server.ladderResult);
-    if (body.action === "token_exchange") data.exchange = {count:body.count, cost_quota:body.count*500000, wallet_quota:server.quota};
     if (body.action.startsWith("arena_")) data.queue = clone(server.queue);
     if (body.action === "room_join") {
       server.room = { ...server.rooms.find(r => r.id === body.room_id), guest_id: 7, guest_name: "UI test", guest_power: 4567, host_ready: false, guest_ready: false };
@@ -80,7 +90,7 @@ w.fetch = async (url, options) => {
     data = { ...clone(server.ladder), server_now: Date.now(), next_settlement: Date.now() + 3600000, next_reset: Date.now() + 7200000 };
   } else if (ep.endsWith("/social")) {
     const opponent = { user_id: 9, name: '<img src=x onerror="bad()">', power: 4000, arena_points: 40, squad: [{ id: "c06", level: 10, star: 2 }] };
-    data = { arena_enabled: server.arenaEnabled !== false, shop_daily_limit: 20, token_exchange:{enabled:true, quota_per_token:500000, max_count:1000000000}, shop: [{ id: "gold", name: "金币补给", resource: "gold", amount: 150, price: 30, limit: 20 }, { id: "stamina", name: "体力补给", resource: "stamina", amount: 30, price: 20, limit: 20 }], power_board: [opponent], arena_board: [opponent], opponents: [opponent], power_rank: 2, arena_rank: 0, arena_limit: 5 };
+    data = { arena_enabled: server.arenaEnabled !== false, power_board: [opponent], arena_board: [opponent], opponents: [opponent], power_rank: 2, arena_rank: 0, arena_limit: 5 };
   } else if (ep.endsWith("/arena/queue")) {
     data = clone(server.queue || { status: "idle", quota: 5000000 });
   } else if (ep.endsWith("/arena/rooms")) {
@@ -138,7 +148,7 @@ function check(condition, label) { assert.ok(condition, label); checks++; consol
   await G.Store.profilePromise;
   check(G.Store.ready(), "valid site session unlocks server save");
   check(w.document.getElementById("title-screen").classList.contains("hidden"), "authenticated gate is hidden");
-  for (const page of ["home", "gacha", "squad", "stage", "growth", "bag"]) {
+  for (const page of ["home", "gacha", "squad", "codex", "stage", "growth", "bag"]) {
     G.nav("page-" + page);
     check(w.document.body.dataset.page === "page-" + page, "renders " + page);
   }
@@ -168,11 +178,12 @@ function check(condition, label) { assert.ok(condition, label); checks++; consol
   w.pickChapter(5);
   check(w.document.querySelectorAll("#node-track .node.locked").length === 6, "nightmare rifts remain locked before their corresponding rifts are cleared");
   G.nav("page-squad");
-  const locked = w.document.querySelector('[data-id="c14"]');
-  check(locked.classList.contains("card-locked") && !locked.querySelector(".quick-toggle"), "shards do not count as owned or permit squad toggle");
-  check(w.document.getElementById("owned-title").textContent.includes("4/" + catalog.GIRLS.length), "owned count excludes locked shards");
+  check(!w.document.querySelector('#owned-list [data-id="c14"]'), "shard-only heroes do not appear in the formation roster");
+  check(w.document.querySelectorAll("#owned-list .card").length === 4, "formation roster only contains acquired heroes");
   G.openGirl("c14");
-  check(!w.document.getElementById("modal-box").innerHTML.includes("levelUp("), "locked character has no upgrade action");
+  check(w.document.body.dataset.page === "page-codex", "unacquired hero details open in the codex");
+  check(w.document.querySelector('#codex-grid [data-codex-id="c14"]').dataset.status === "shards", "codex shows the shard-only hero's actual acquisition state");
+  check(!w.document.querySelector('#codex-detail [data-codex-action="workshop"],#codex-detail [data-codex-action="squad"]'), "unacquired codex hero cannot train or join a squad");
   G.closeModal();
   const beforeGrowth = server.calls.length;
   await G.levelUp("c08");
@@ -220,36 +231,33 @@ function check(condition, label) { assert.ok(condition, label); checks++; consol
   server.revision++;
   await G.Store.refresh();
   G.nav("page-shop"); await tick();
-  check(w.document.querySelectorAll(".shop-item").length === 2, "shop renders products and prices from server");
+  check(w.document.querySelectorAll(".shop-item").length === market.offers.filter(item => item.shop === "token").length, "shop renders products and prices from server");
   check(w.document.querySelector(".shop-stamina button").disabled, "shop blocks a stamina purchase that would overflow");
   w.confirmShopItem("gold");
   check(w.document.getElementById("modal-box").textContent.includes("30 代币"), "shop confirmation shows the server price");
   await w.buyShopItem("gold"); await tick();
   const purchase = server.calls.filter(c => c.body?.action === "shop").at(-1).body;
   check(Object.keys(purchase).sort().join() === "action,item_id,request_id", "shop sends item intent without price, reward or save claims");
-  check(G.save.token === 70 && G.save.daily.shopBought.gold === 1, "shop uses returned inventory and daily purchase counts");
-  server.save.daily.shopBought = {};
+  check(G.save.token === 70 && G.save.market.bought.gold === 1, "shop uses returned personal shelf stock");
+  server.save.market.bought = {};
   server.revision++;
   G.nav("page-shop"); await tick();
-  check(w.document.getElementById("shop-daily-remaining").textContent.includes("20 / 20"), "reopening shop refreshes shared daily allowance");
-  const input = w.document.getElementById("token-exchange-count");
-  for (const invalid of ["0", "-1", "1.5", "6", "1000000001", ""]) {
-    input.value = invalid; w.updateTokenExchange();
-    check(w.document.getElementById("token-exchange-submit").disabled, "exchange rejects invalid or unaffordable quantity " + invalid);
-  }
-  input.value = "3"; w.updateTokenExchange();
-  check(w.document.getElementById("token-exchange-cost").textContent.includes("消耗 3 E，获得 3 代币"), "exchange previews exact one-to-one cost");
-  const beforeConfirm = server.calls.length;
-  w.confirmTokenExchange();
-  check(w.document.getElementById("modal-box").textContent.includes("扣除 3 E") && server.calls.length === beforeConfirm, "wallet spend requires explicit confirmation");
-  await w.exchangeTokens(3); await tick();
-  const exchange = server.calls.filter(c => c.body?.action === "token_exchange").at(-1).body;
-  check(Object.keys(exchange).sort().join() === "action,count,request_id" && exchange.count === 3, "exchange sends quantity intent without client cost or rate");
-  check(G.save.token === 73 && w.document.getElementById("res-site").textContent.includes("2.0000 E"), "confirmed server receipt updates tokens and wallet");
-  server.save.daily.shopBought = {gold: 12, mat_r: 8}; server.revision++;
+  check(w.document.querySelector(".shop-gold .shop-stock").textContent.includes("2 / 2"), "reopening shop synchronizes replenished item stock");
+  check(!w.document.getElementById("token-exchange-submit") && !w.exchangeTokens, "the shop has no site balance exchange");
+  server.save.market.bought = {gold: 2}; server.save.mats.arena_coin = 64; server.revision++;
   G.nav("page-shop"); await tick();
-  check(w.document.querySelector(".shop-gold button").disabled && w.document.getElementById("shop-daily-remaining").textContent.includes("0 / 20"), "twenty purchases across products disables further shopping");
-  check(!w.document.getElementById("token-exchange-submit").disabled, "wallet exchange remains available after shop allowance is used");
+  check(w.document.querySelector(".shop-gold button").disabled && !w.document.querySelector(".shop-mat_r button").disabled, "sold-out items do not block other personal stock");
+  w.openGameMarket("arena"); await tick();
+  w.confirmShopItem("arena_pack_30");
+  check(w.document.getElementById("modal-box").textContent.includes("32 竞技场币"), "arena shop quotes its own currency");
+  await w.buyShopItem("arena_pack_30"); await tick();
+  check(G.save.mats.arena_coin === 32 && G.save.token === 70 && G.save.mats.stamina_pack_30 === 1, "arena purchase grants a stored stamina pack, not immediate energy");
+  await w.openStaminaPack("stamina_pack_30", G.Store.sessionEpoch);
+  check(G.save.stamina === 150 && G.save.mats.stamina_pack_30 === 0, "opening the pack credits the exact stamina amount");
+  w.confirmMarketRefresh("arena");
+  check(w.document.getElementById("modal-box").textContent.includes("45 代币"), "paid shelf refresh shows the cost first");
+  await w.refreshMarketStock("arena", G.save.market.slot, G.Store.sessionEpoch);
+  check(G.save.token === 25 && !G.save.market.bought.arena_pack_30 && G.save.market.bought.gold === 2, "refresh consumes tokens only for the selected market");
   G.nav("page-arena"); await tick();
   check(w.document.querySelector('[data-arena-tab="ladder"]').getAttribute("aria-pressed") === "true", "arena navigation opens the ladder");
   check(w.document.querySelector('#page-home [data-arena-mode="queue"]').textContent.includes("匹配对战"), "home has an explicit matchmaking entrance");
@@ -266,13 +274,16 @@ function check(condition, label) { assert.ok(condition, label); checks++; consol
   await w.submitLadderChallenge();
   const rankedIntent = server.calls.filter(call => call.body?.action === 'ladder_challenge').at(-1).body;
   check(Object.keys(rankedIntent).sort().join() === 'action,count,opponent_id,request_id', "challenge does not send a result or a balance stake");
-  check(w.document.querySelector('.arena-award').textContent.includes('#101 → #80'), "normal challenge displays confirmed rank change");
-  G.closeModal();
-  const renderArena = w.renderArena;
-  w.renderArena = async () => { G.Store.sessionEpoch++; };
+  check(w.document.body.dataset.page === 'page-battle' && G.battle.arena?.ladder, "confirmed ranked challenge enters battle directly");
+  check(!w.document.querySelector('.arena-award'), "rank change stays hidden until the battle presentation ends");
+  w.skipBattlePlayback(); await tick();
+  check(w.document.querySelector('.arena-award').textContent.includes('#101 → #80'), "completed ranked playback displays the server-confirmed rank change");
+  w.leaveArenaReplay(); await tick();
+  const mutateBeforeStale = G.Store.mutate;
+  G.Store.mutate = async (...args) => { const result = await mutateBeforeStale.apply(G.Store, args); G.Store.sessionEpoch++; return result; };
   await w.ladderAction('ladder_challenge', { opponent_id: -80, count: 80 });
-  w.renderArena = renderArena;
-  check(w.document.getElementById('modal-mask').classList.contains('hidden'), "a session change during post-action refresh discards the earlier account's result");
+  G.Store.mutate = mutateBeforeStale;
+  check(w.document.getElementById('modal-mask').classList.contains('hidden') && w.document.body.dataset.page === 'page-arena', "a session change during a ranked request discards the earlier account's result");
   await w.ladderAction('ladder_leave');
   check(!!w.document.querySelector('.ladder-welcome'), "withdrawal reopens the opt-in screen");
   w.pickArenaTab("power"); await tick(); await tick();

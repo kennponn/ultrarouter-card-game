@@ -13,10 +13,27 @@ function festivalHarness() {
   window.SAVE = {daily:{date:"2026-11-23"},festival:{week:"2026-W48",day:0,stamps:{},tries:{},claimed:{}}};
   window.esc = value => String(value).replaceAll("<", "&lt;");
   window.renderTopbar = () => {};
+  window.requireGame = () => window.Store.ready();
+  window.nav = page => { window.document.body.dataset.page = page; window.renderFestival(); };
+  window.eval(fs.readFileSync(path.join(root,"js/reward-chests.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root,"js/festival.js"), "utf8"));
   window.renderFestival();
   return dom;
 }
+
+test("daily activity shortcut restores today after previewing another day without submitting a proposal", () => {
+  const dom = festivalHarness(), {window} = dom, doc = window.document, calls = [];
+  try {
+    window.Store.mutate = (...args) => { calls.push(args); };
+    doc.querySelector('[data-day="6"]').click();
+    assert.equal(doc.querySelectorAll("form[data-fest-id]").length,0);
+    window.openFestivalToday();
+    assert.equal(doc.querySelector('[data-day="0"]').getAttribute("aria-pressed"),"true");
+    assert.equal(doc.querySelectorAll("form[data-fest-id]").length,2);
+    assert.ok(doc.activeElement.matches("form[data-fest-id] input, form[data-fest-id] select"));
+    assert.deepEqual(calls,[]);
+  } finally { window.close(); }
+});
 
 test("seven ports preview all fourteen fixtures but only today's events accept a proposal", () => {
   const dom = festivalHarness(), doc = dom.window.document;

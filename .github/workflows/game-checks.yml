@@ -3,54 +3,15 @@ name: Card Game Checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  consolidated-database:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/cultivation-v8'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Run the three database engines inside one capped container
-        run: |
-          mkdir "$RUNNER_TEMP/consolidated-output"
-          sh scripts/build-half-cpu.sh --run --rm -e GOMAXPROCS=1 \
-            -v "$PWD:/src:ro" -v "$RUNNER_TEMP/consolidated-output:/out" \
-            ubuntu:24.04 sh /src/docs/pr-2-evidence/harness/run.sh
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: consolidated-database
-          path: ${{ runner.temp }}/consolidated-output/
-  same-database:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/feat/harbor-campaign-calendar' || github.ref == 'refs/heads/feat/cultivation-v8')
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Run both game revisions in a disposable capped container
-        run: |
-          mkdir "$RUNNER_TEMP/review-output"
-          revision="d5271c30f34faee8ea88866b3e6548623e11e503"
-          if [ "$GITHUB_REF" = refs/heads/feat/cultivation-v8 ]; then revision="$GITHUB_SHA"; fi
-          sh scripts/build-half-cpu.sh --run --rm -e GOMAXPROCS=1 -e REVIEW_CURRENT="$revision" \
-            -v "$PWD:/src:ro" -v "$RUNNER_TEMP/review-output:/out" \
-            golang:1.25-bookworm sh /src/docs/pr-3-evidence/harness/run.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sqlite-review
-          path: ${{ runner.temp }}/review-output/
-          if-no-files-found: error
   game-source:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,10 +21,31 @@ jobs:
           python-version: '3.13'
       - name: Verify source and preview boundaries
         run: |
+          python scripts/sync-catalog.py --check
           python -m unittest discover -s tests -p 'test_*.py'
           python scripts/audit-release.py
-      - name: Run game UI checks with the shared half-CPU quota
+      - name: Run all UI regressions under the hard CPU quota
         run: >-
           sh scripts/build-half-cpu.sh --run --rm
           -v "$PWD:/workspace" -w /workspace node:24-bookworm-slim
           sh -c 'npm ci --ignore-scripts && npm test'
+  consolidated-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run combat, real three-engine databases and same-database upgrades
+        run: |
+          mkdir "$RUNNER_TEMP/game-evidence"
+          sh scripts/build-half-cpu.sh --run --rm -e GOMAXPROCS=1 \
+            -v "$PWD:/src:ro" -v "$RUNNER_TEMP/game-evidence:/out" \
+            ubuntu:24.04 sh /src/docs/pr-six-unit-guilds/harness/run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: consolidated-game-evidence
+          path: ${{ runner.temp }}/game-evidence/
+          if-no-files-found: error

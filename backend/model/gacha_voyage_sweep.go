@@ -106,6 +106,10 @@ func sweepGachaVoyage(tx *gorm.DB, userID int, state *GachaGameState, intent Gac
 	if err := spendGachaVoyageAttempts(state, point, count); err != nil {
 		return err
 	}
+	notices, err := verifyGachaDispatchSweep(state, point, count)
+	if err != nil {
+		return err
+	}
 	drops, err := grantGachaVoyagePrize(state, prizes)
 	if err != nil {
 		return err
@@ -114,6 +118,7 @@ func sweepGachaVoyage(tx *gorm.DB, userID int, state *GachaGameState, intent Gac
 		return err
 	}
 	state.Activity = budget.Activity
-	result.Drops = drops
+	advanceGachaCaptainTaskBy(state, "voyage", count)
+	result.Drops = append(drops, notices...)
 	return nil
 }

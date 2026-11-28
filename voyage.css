@@ -62,3 +62,6 @@ body[data-page="page-stage"][data-voyage="open"] #page-stage.active { display:bl
 .voy-legacy-loot .sd-info { padding:0; }
 .voy-legacy-loot .sd-title,.voy-legacy-loot .sd-desc { display:none; }
 .voy-result { text-align:center; color:#39535f; font-weight:700; }
+.voy-briefing { margin:10px 0; padding:8px 12px; border-inline-start:3px solid #706043; background:#f3eddf; color:#392e21; text-align:left; overflow-wrap:anywhere; }
+.voy-briefing p { margin:4px 0; }
+.voy-briefing small { color:#594a37; }

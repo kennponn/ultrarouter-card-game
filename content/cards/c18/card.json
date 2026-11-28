@@ -1,0 +1,45 @@
+{
+  "id": "c18",
+  "name": "朱笺",
+  "rarity": "SR",
+  "elem": "dark",
+  "role": "support",
+  "atkType": "magic",
+  "img": "content/cards/c18/assets/portrait.webp",
+  "base": {
+    "hp": 1180,
+    "atk": 215,
+    "def": 94,
+    "spd": 103,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 25
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "飞符",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "四方镇印",
+      "mult": 0,
+      "target": "team",
+      "shieldMult": 1.6,
+      "teamAtkUp": 10,
+      "buffTurns": 2,
+      "desc": "全队获得160%攻击的护盾，攻击提升10%（2回合）"
+    }
+  },
+  "desc": "雨廊符师，寡言却细心。她把守护的约定，一枚一枚盖进朱红符印。",
+  "battleImg": "content/cards/c18/assets/portrait-cut.webp",
+  "fxColor": "#8a93a8",
+  "legacyImages": {
+    "assets/c18-zhujian.webp": "content/cards/c18/assets/portrait.webp",
+    "assets/c18-zhujian-cut.webp": "content/cards/c18/assets/portrait-cut.webp"
+  }
+}

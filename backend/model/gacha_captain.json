@@ -1,0 +1,26 @@
+{
+  "xp_base": 20,
+  "xp_step": 10,
+  "tasks": [
+    {"id":"rollcall","name":"港口点名","goal":"今日抵达母港","target":1,"xp":5,"gold":50,"points":5},
+    {"id":"voyage","name":"三程巡航","goal":"通关或扫荡消耗体力的副本，或赢得经验训练","target":3,"xp":20,"gold":60,"points":15},
+    {"id":"drill","name":"甲板晨练","goal":"赢得一次经验训练","target":1,"xp":15,"gold":40,"points":10},
+    {"id":"wish","name":"向星许愿","goal":"为一位伙伴定向许愿","target":1,"xp":10,"gold":25,"points":5},
+    {"id":"outfit","name":"整装备航","goal":"读经验书、突破、努力训练、学技能、强化装备或毕业复盘一次","target":1,"xp":10,"gold":30,"points":5},
+    {"id":"ladder","name":"试剑竞技场","goal":"主动完成五场排名挑战，胜负均计入","target":5,"xp":20,"gold":65,"points":20},
+    {"id":"equipment","name":"锤火不息","goal":"累计提升装备五级；所有已拥有伙伴装备强化满级后，每赢一场消耗体力的实战计一级","target":5,"xp":15,"gold":45,"points":15},
+    {"id":"skill","name":"勤学五式","goal":"累计提升技能五级；所有已拥有伙伴技能练到各自等级后，每赢一场消耗体力的实战计一级","target":5,"xp":15,"gold":45,"points":15},
+    {"id":"festival","name":"今日航章","goal":"取得今日任一航章，或用完今日两场活动的全部尝试","target":1,"xp":10,"gold":40,"points":10}
+  ],
+  "chests": [
+    {"id":"25","points":25,"resources":{"stamina_pack_30":1,"token":5}},
+    {"id":"50","points":50,"resources":{"gem_ticket":1,"token":8}},
+    {"id":"75","points":75,"resources":{"chip_ticket":1,"token":12}},
+    {"id":"100","points":100,"resources":{"limited_ticket":1,"token":15}}
+  ],
+  "supplies": [
+    {"id":"morning","name":"晨航便当","start":9,"end":12,"stamina":30},
+    {"id":"noon","name":"正午炊烟","start":12,"end":21,"stamina":30},
+    {"id":"night","name":"夜航热汤","start":21,"end":24,"stamina":30}
+  ]
+}

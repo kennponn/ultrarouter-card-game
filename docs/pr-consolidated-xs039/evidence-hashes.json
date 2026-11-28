@@ -1,0 +1,36 @@
+{
+  "code_commit": "a4d5fe4e23c9c49f5e7109491e40a67b3f90b08d",
+  "ci_run": 46149978429,
+  "runtime_assets": {
+    "content/cards/xs039/assets/portrait-cut.webp": "8e1e2397b87f898e6da74164b68b4bbb5b860f7aea36903a924299096c545aad",
+    "content/cards/xs039/assets/portrait.webp": "903b75e35ec2c4b520808c3b6980372d7b770204d95061110e22e82512bd5edf",
+    "content/cards/xs039/assets/fx/skill/cast.webp": "566c692ad5c5b2821a7fe3893873e4e5d5dbe9db9cb3c98dc03d84889147c9de",
+    "content/cards/xs039/assets/fx/skill/impact.webp": "03f999cc43e071021d8fdbe31420e5c42d414091115f05fda6ff87d541747352",
+    "content/cards/xs039/assets/fx/xs039-skill-2/cast.webp": "7100baaa3245b374ef6f7836de89eb94d7f63d0b2a7b848cf32f3bb588d269d4",
+    "content/cards/xs039/assets/fx/xs039-skill-2/impact.webp": "998f867309869699ac260e67cc97da551c737ba02943b5d63549a027258e7fc0"
+  },
+  "ci_files": {
+    "actual-combat-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "actual-combat-tests.jsonl": "624efd2eae7ec2b98eec4a4b978217438cd06749f6115db065fff1dc479dcced",
+    "actual-guild-combat.json": "ba1f20c5c04797c6e7bb963c99066ffde8348cecc6f6d4a44f0687178d61f43c",
+    "baseline-build.txt": "e0a59debb365aeff28728528a5ca8b4a486998f54470e2b68307405dd0ab1046",
+    "baseline-source-hashes.json": "3bb9de79ee93d4a00b6df3671c3134c67d7e6835b2b68cff7eff8505e69c5493",
+    "baseline-tests.jsonl": "c69fbb4a3d00e305784a148b74ab52949f50fddfbff2017d1db4b173cf1e63bc",
+    "baseline-upgrade-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-upgrade-tests.jsonl": "0672a1e3a9059d3ddf19179b7a014594460d250f3aaa5151354b7a20cf0692c8",
+    "candidate-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-source-hashes.json": "6fa9252a83e53298c813ee0a342888f93cc63a2ae73800bb07944c33596b9f39",
+    "candidate-tests.jsonl": "c0e5a8fdbd56d04aacbe82a1c1c5b27eb9956d7f3d004103b505ef7f9cdf8631",
+    "candidate-upgrade-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-upgrade-tests.jsonl": "1d2572adb8c5205551e12e0cd1aede3e9cb431e4fba92e2eaa3525551a748a50",
+    "mysql-legacy-corpus.json": "4777be6587db04dc2b2fbc430c473c57bb5d45dcf420a8775d08369312ff85f6",
+    "postgres-legacy-corpus.json": "dbb4770ca2c9a525434a05d3f5513157d8d91214d8074ecee73331d574590e55",
+    "sqlite-legacy-corpus.json": "bfae5c7df56e425dcb6d9ea2ba02f51cb62829fd53d0dd09c088b111efc8153d",
+    "summary.json": "ecc6c76f25c94fe50ebe9b54830a3ab1b46e01b6a30a88f2290d60e6c7f33ddb",
+    "upgrade.sqlite": "64120c4c78202d026144d3fb6d23dcd60bc5bfb7adae13570208db6f8fe66cf3",
+    "xs039-real-battle.json": "e5348b6473490156d1e4071ec3a8da23060f7fed7ce1a8b94f5fff8a8f9028a4",
+    "xs039-rescue-battle.json": "08f523540c3f3d12c737ab3cc85156232ddeec9b3e010cfef8911beb2b73cf5e"
+  },
+  "browser_report_sha256": "e5348b6473490156d1e4071ec3a8da23060f7fed7ce1a8b94f5fff8a8f9028a4",
+  "browser_rescue_report_sha256": "08f523540c3f3d12c737ab3cc85156232ddeec9b3e010cfef8911beb2b73cf5e"
+}

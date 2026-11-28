@@ -140,8 +140,10 @@ type GachaDailyView struct {
 }
 
 type GachaProfile struct {
+	Market         *GachaMarketRules               `json:"market"`
 	CaptainRules   *GachaCaptainRules              `json:"captain_rules"`
 	Voyage         *GachaVoyageCatalog             `json:"voyage"`
+	Difficulty     *GachaDifficultyCatalog         `json:"difficulty"`
 	Festival       *GachaFestivalRules             `json:"festival"`
 	Dispatch       *GachaDispatchRules             `json:"dispatch"`
 	Vigil          *GachaVigilRules                `json:"vigil"`
@@ -176,6 +178,8 @@ type GachaRunRules struct {
 }
 
 type GachaStageRewardView struct {
+	TokenMin int `json:"token_min"`
+	TokenMax int `json:"token_max"`
 	QuotaMin int `json:"quota_min"`
 	QuotaMax int `json:"quota_max"`
 }
@@ -295,8 +299,10 @@ func GetGachaProfile(userID int, now time.Time) (*GachaProfile, error) {
 		profile.Equipment = &gachaEquipment
 		profile.ArtifactGrades = &gachaArtifactGrades
 		profile.Carry = &gachaCarry
+		profile.Market = &gachaMarket
 		profile.Items = &gachaItems
 		profile.Voyage = &gachaVoyage
+		profile.Difficulty = &gachaDifficulty
 		profile.Progression = GachaProgressionView{Rules: state.ProgressionRules, Branches: map[string][]GachaAwakeningBranch{},
 			CanConfigure: user.Role >= common.RoleAdminUser, DailyBankDays: 7, WeeklyBankWeeks: 2, PowerWeights: maps.Clone(gachaAwakeningPowerWeights)}
 		for _, girl := range gachaCatalog.Girls {
@@ -308,6 +314,12 @@ func GetGachaProfile(userID int, now time.Time) (*GachaProfile, error) {
 		profile.StageRewards = make(map[string]GachaStageRewardView, len(gachaStageRules))
 		for stage, rule := range gachaStageRules {
 			profile.StageRewards[stage] = GachaStageRewardView{QuotaMin: rule.QuotaMin, QuotaMax: rule.QuotaMax}
+		}
+		for index := range gachaCatalog.Stages {
+			stage := &gachaCatalog.Stages[index]
+			view, payout := profile.StageRewards[stage.ID], stage.TokenRange
+			view.TokenMin, view.TokenMax = payout[0], payout[1]
+			profile.StageRewards[stage.ID] = view
 		}
 		var active GachaCard
 		if err := tx.Where("user_id = ? AND status = ? AND expire_at > ?", userID, "active", now.UnixMilli()).Order("discount DESC").First(&active).Error; err == nil {

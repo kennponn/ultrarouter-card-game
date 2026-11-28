@@ -6,147 +6,21 @@ import (
 	"errors"
 	"math"
 	"math/rand/v2"
-	"slices"
 
 	"github.com/QuantumNous/new-api/common"
-	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
 const GachaArenaDailyLimit = 5
-const GachaShopDailyLimit = 20
 const gachaPowerVersion = 8
 
 var (
-	ErrGachaShopLimit           = errors.New("daily shop limit reached")
-	ErrGachaCapacity            = errors.New("resource capacity would be exceeded")
-	ErrGachaArenaLimit          = errors.New("daily arena limit reached")
-	ErrGachaOpponent            = errors.New("arena opponent is unavailable")
-	ErrGachaArenaPending        = errors.New("arena is not open")
-	ErrGachaWalletFunds         = errors.New("insufficient wallet balance for token exchange")
-	ErrGachaExchangeUnavailable = errors.New("token exchange requires immediate wallet billing")
+	ErrGachaShopLimit    = errors.New("personal shop stock is unavailable")
+	ErrGachaCapacity     = errors.New("resource capacity would be exceeded")
+	ErrGachaArenaLimit   = errors.New("daily arena limit reached")
+	ErrGachaOpponent     = errors.New("arena opponent is unavailable")
+	ErrGachaArenaPending = errors.New("arena is not open")
 )
-
-type GachaShopItem struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Resource string `json:"resource"`
-	Amount   int    `json:"amount"`
-	Price    int    `json:"price"`
-	Limit    int    `json:"limit"`
-}
-
-var gachaShopItems = []GachaShopItem{
-	{ID: "gold", Name: "金币补给", Resource: "gold", Amount: 150, Price: 30, Limit: GachaShopDailyLimit},
-	{ID: "stamina", Name: "体力补给", Resource: "stamina", Amount: 30, Price: 20, Limit: GachaShopDailyLimit},
-	{ID: "mat_r", Name: "微光结晶", Resource: "mat_r", Amount: 20, Price: 15, Limit: GachaShopDailyLimit},
-	{ID: "mat_sr", Name: "元素结晶", Resource: "mat_sr", Amount: 10, Price: 25, Limit: GachaShopDailyLimit},
-	{ID: "mat_ssr", Name: "星屑", Resource: "mat_ssr", Amount: 5, Price: 40, Limit: GachaShopDailyLimit},
-	{ID: "multi", Name: "副本双倍卡", Resource: "multi", Amount: 1, Price: 80, Limit: GachaShopDailyLimit},
-}
-
-func gachaShopItem(id string) *GachaShopItem {
-	for i := range gachaShopItems {
-		if gachaShopItems[i].ID == id {
-			return &gachaShopItems[i]
-		}
-	}
-	return nil
-}
-
-func buyGachaShopItem(state *GachaGameState, id string) error {
-	item := gachaShopItem(id)
-	if item == nil {
-		return ErrGachaIntent
-	}
-	remaining := GachaShopDailyLimit
-	for _, bought := range state.Daily.ShopBought {
-		if bought < 0 {
-			return ErrGachaRunState
-		}
-		if bought >= remaining {
-			return ErrGachaShopLimit
-		}
-		remaining -= bought
-	}
-	if state.Token < item.Price {
-		return ErrGachaFunds
-	}
-	current, capacity := 0, gachaMaxResource
-	switch item.Resource {
-	case "gold":
-		current = state.Gold
-	case "stamina":
-		current, capacity = state.Stamina, state.StaminaMax
-	case "multi":
-		current = state.Multi
-	default:
-		current = state.Mats[item.Resource]
-	}
-	if current > capacity-item.Amount {
-		return ErrGachaCapacity
-	}
-	state.Token -= item.Price
-	switch item.Resource {
-	case "gold":
-		state.Gold += item.Amount
-	case "stamina":
-		state.Stamina += item.Amount
-	case "multi":
-		state.Multi += item.Amount
-	default:
-		state.Mats[item.Resource] += item.Amount
-	}
-	if state.Daily.ShopBought == nil {
-		state.Daily.ShopBought = map[string]int{}
-	}
-	state.Daily.ShopBought[id]++
-	return nil
-}
-
-type GachaTokenExchangeRules struct {
-	Enabled       bool `json:"enabled"`
-	QuotaPerToken int  `json:"quota_per_token"`
-	MaxCount      int  `json:"max_count"`
-}
-
-type GachaTokenExchangeReceipt struct {
-	Count       int `json:"count"`
-	CostQuota   int `json:"cost_quota"`
-	WalletQuota int `json:"wallet_quota"`
-}
-
-func exchangeGachaTokens(tx *gorm.DB, userID int, state *GachaGameState, count int) (*GachaTokenExchangeReceipt, error) {
-	if common.BatchUpdateEnabled {
-		return nil, ErrGachaExchangeUnavailable
-	}
-	if count < 1 || count > gachaMaxResource {
-		return nil, ErrGachaIntent
-	}
-	if state.Token > gachaMaxResource-count {
-		return nil, ErrGachaCapacity
-	}
-	cost, err := common.WalletQuotaFromDecimalStrict(decimal.NewFromInt(int64(count)).Mul(decimal.NewFromInt(GachaArenaQuotaPerE)))
-	if err != nil {
-		return nil, ErrGachaIntent
-	}
-	// The conditional SQL debit shares the wallet row with relay reservations and
-	// PvP escrow. The caller commits the debit, tokens and replay receipt together.
-	r := tx.Model(&User{}).Where("id = ? AND status = ? AND quota >= ? AND quota <= ?", userID, common.UserStatusEnabled, cost, common.MaxWalletQuota).
-		Update("quota", gorm.Expr("quota - ?", cost))
-	if r.Error != nil {
-		return nil, r.Error
-	}
-	if r.RowsAffected != 1 {
-		return nil, ErrGachaWalletFunds
-	}
-	var wallet User
-	if err := lockForUpdate(tx).Select("quota").First(&wallet, userID).Error; err != nil {
-		return nil, err
-	}
-	state.Token += count
-	return &GachaTokenExchangeReceipt{Count: count, CostQuota: cost, WalletQuota: wallet.Quota}, nil
-}
 
 type GachaArenaMatch struct {
 	ID         string `json:"id"`
@@ -183,16 +57,13 @@ type GachaCompetitor struct {
 	State       string            `json:"-"`
 }
 type GachaSocialView struct {
-	ArenaEnabled   bool                    `json:"arena_enabled"`
-	Shop           []GachaShopItem         `json:"shop"`
-	PowerBoard     []GachaCompetitor       `json:"power_board"`
-	ArenaBoard     []GachaCompetitor       `json:"arena_board"`
-	Opponents      []GachaCompetitor       `json:"opponents"`
-	PowerRank      int64                   `json:"power_rank"`
-	ArenaRank      int64                   `json:"arena_rank"`
-	ArenaLimit     int                     `json:"arena_limit"`
-	ShopDailyLimit int                     `json:"shop_daily_limit"`
-	TokenExchange  GachaTokenExchangeRules `json:"token_exchange"`
+	ArenaEnabled bool              `json:"arena_enabled"`
+	PowerBoard   []GachaCompetitor `json:"power_board"`
+	ArenaBoard   []GachaCompetitor `json:"arena_board"`
+	Opponents    []GachaCompetitor `json:"opponents"`
+	PowerRank    int64             `json:"power_rank"`
+	ArenaRank    int64             `json:"arena_rank"`
+	ArenaLimit   int               `json:"arena_limit"`
 }
 
 // Power includes combat stats and a bounded estimate of each awakening route's utility.
@@ -260,10 +131,8 @@ func GetGachaSocial(userID int) (*GachaSocialView, error) {
 	if err := DB.First(&player, "user_id = ?", userID).Error; err != nil {
 		return nil, err
 	}
-	view := &GachaSocialView{Shop: slices.Clone(gachaShopItems), PowerBoard: []GachaCompetitor{}, ArenaBoard: []GachaCompetitor{}, Opponents: []GachaCompetitor{}, ArenaLimit: GachaArenaDailyLimit}
+	view := &GachaSocialView{PowerBoard: []GachaCompetitor{}, ArenaBoard: []GachaCompetitor{}, Opponents: []GachaCompetitor{}, ArenaLimit: GachaArenaDailyLimit}
 	view.ArenaEnabled = GachaArenaEnabled()
-	view.ShopDailyLimit = GachaShopDailyLimit
-	view.TokenExchange = GachaTokenExchangeRules{Enabled: !common.BatchUpdateEnabled, QuotaPerToken: GachaArenaQuotaPerE, MaxCount: gachaMaxResource}
 	for i, target := range []*[]GachaCompetitor{&view.PowerBoard} {
 		query := gachaCompetitors(DB).Select("gacha_players.user_id, gacha_players.power, gacha_players.arena_points, gacha_players.state, COALESCE(users.display_name, '') AS name")
 		switch i {

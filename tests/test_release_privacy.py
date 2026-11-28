@@ -123,6 +123,16 @@ class ReleasePrivacyTests(unittest.TestCase):
                     self.audit.release_files()
                 target.unlink()
 
+    def test_content_release_allowlist_accepts_units_and_rejects_unrelated_files(self):
+        for relative in ('content/README.md', 'content/cards/index.json', 'content/cards/c01/card.json', 'content/enemies/wolf/enemy.json', 'content/bosses/abyss-lord/boss.json', 'content/bosses/abyss-lord/assets/portrait.webp'):
+            target = self.write(relative, b'{}')
+            self.assertIn(target, self.audit.release_files())
+        for relative in ('content/config.json', 'content/cards/c01/accounts.json', 'content/bosses/abyss-lord/assets/private.env'):
+            target = self.write(relative, b'{}')
+            with self.assertRaisesRegex(RuntimeError, 'not card-game content'):
+                self.audit.release_files()
+            target.unlink()
+
     def test_packager_blocks_a_complete_host_backend(self):
         for name in ('audit-release.py', 'package-release.py'):
             target = self.root/'scripts'/name

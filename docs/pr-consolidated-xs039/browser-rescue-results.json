@@ -1,0 +1,23 @@
+{
+  "scope": "Synthetic account; unmodified Go report from isolated wounded-entry scenario",
+  "records": [
+    {
+      "name": "desktop",
+      "errors": [],
+      "httpErrors": [],
+      "checks": [
+        "Server-selected rescue healed wounded ally and swapped DOM slots; resource badges visible",
+        "Reload resumes original report; skip retains server final HP, life and formation"
+      ]
+    },
+    {
+      "name": "phone",
+      "errors": [],
+      "httpErrors": [],
+      "checks": [
+        "Server-selected rescue healed wounded ally and swapped DOM slots; resource badges visible",
+        "Reload resumes original report; skip retains server final HP, life and formation"
+      ]
+    }
+  ]
+}

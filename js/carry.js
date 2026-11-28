@@ -9,6 +9,35 @@ let carryPending = null;
 
 function carryName(id) { return atelierItem(id)?.name || id; }
 function carryEffect(effect) { return CARRY_EFFECTS[effect.stat](effect.value); }
+function carryLevel(xp) { return Math.max(1, (Store.profile?.carry?.level_xp || [0]).filter(threshold => threshold <= xp).length); }
+
+function carryEnhancement(girlId, id) {
+  const rules = Store.profile.carry, own = SAVE.girls[girlId];
+  if (!rules.stones || !rules.level_xp || own.carry !== id) return "";
+  const xp = own.carry_xp || 0, level = carryLevel(xp), goal = rules.level_xp[level], capacity = rules.level_xp.at(-1)-xp;
+  return `<section class="carry-resonance"><h4>奇物强化 · Lv.${level} / ${rules.level_xp.length}</h4><p>${goal ? `累计经验 ${xp} / ${goal}；每升一级，主属性再加一档。` : "已满级"} 等级跟随此件奇物；同名库存优先佩戴经验最高的一件。</p>${Object.entries(rules.stones).filter(([stone]) => /^[a-z_]+$/.test(stone)).map(([stone,value]) => `<button type="button" class="ws-command" data-carry-stone="${stone}" onclick="enhanceCarryObject('${stone}')" ${goal && SAVE.mats[stone] > 0 && !carryPending ? "" : "disabled"}>${esc(carryName(stone))} · +${Math.min(value,capacity)} 经验（${SAVE.mats[stone] || 0}）</button>`).join("")}</section>`;
+}
+
+async function enhanceCarryObject(stone) {
+  const view = currentWorkshop();
+  if (view?.tab !== "carry" || carryPending || !Object.hasOwn(Store.profile.carry.stones || {}, stone)) return;
+  const quote = carryQuote(view.id, view.carryChoice);
+  if (!quote || quote.own.carry !== quote.id || !(SAVE.mats[stone] > 0)) return;
+  const token = {epoch:view.epoch};
+  carryPending = token;
+  let result;
+  try {
+    paintWorkshop();
+    result = await Store.mutate("carry_enhance", {girl_id:view.id, item_id:stone});
+  } finally {
+    if (carryPending === token) carryPending = null;
+    if (Store.ready() && token.epoch === Store.sessionEpoch && currentWorkshop() === view) {
+      if (result) refreshCultivationViews(view.id);
+      else paintWorkshop();
+    }
+  }
+  if (result && token.epoch === Store.sessionEpoch) toast((result.drops || []).join(" · "));
+}
 
 function carryQuote(girlId, choice) {
   const rules = Store.profile?.carry, own = SAVE.girls[girlId];
@@ -50,7 +79,7 @@ async function carryWorkshopAction(action) {
       if (currentWorkshop()?.tab === "carry" && document.querySelector('#modal-mask:not(.hidden) .hero-workshop') && (!result || currentWorkshop().id !== view.id)) paintWorkshop();
     }
   }
-  if (result && Store.ready() && Store.sessionEpoch === token.epoch) toast((result.drops || []).join(" · ") || "随身道具已更新");
+  if (result && Store.ready() && Store.sessionEpoch === token.epoch) toast((result.drops || []).join(" · ") || "随身奇物已更新");
 }
 
 function carryWorkshopPanel(girlId, choice) {
@@ -60,9 +89,9 @@ function carryWorkshopPanel(girlId, choice) {
   const grade = Store.profile.items.qualities[atelierItem(id).quality];
   const button = (action, label) => `<button type="button" class="ws-command" data-carry-action="carry_${action}" onclick="carryWorkshopAction('carry_${action}')" ${quote[action] && carryPending?.epoch !== Store.sessionEpoch ? "" : "disabled"}>${label}</button>`;
   return `<div class="carry-folio"><section class="carry-case"><small class="ws-kicker">随行匣 / 06</small><h4>行旅藏具</h4>${Object.entries(rules.sets).map(([family, group]) => `<fieldset><legend>${esc(group.name)}</legend><div>${Object.entries(rules.items).filter(([, piece]) => piece.set === family).map(([key]) => `<button type="button" data-carry-object="${key}" aria-pressed="${key === id}" onclick="selectCarryObject('${key}')">${atelierIcon(key)}<b>${esc(carryName(key))}</b><small>${own.carry === key ? "本卡携带" : `库存 ${SAVE.carry_inventory?.[key] || 0}`}</small></button>`).join("")}</div></fieldset>`).join("")}</section>
-    <section class="carry-exhibit" style="--carry-accent:${grade.color}"><small>FIELD KIT · 随身一席</small><div class="carry-astrolabe">${atelierIcon(id)}</div><p class="carry-grade">${esc(grade.name)}</p><h4>${esc(carryName(id))}</h4><p>${esc(set.name)} / ${esc(workshopEffect(item))}</p><strong>${esc(carryEffect(item.effect))}</strong><footer>当前佩戴：${own.carry ? esc(carryName(own.carry)) : "空位"} · 未装备 ${count} 件</footer></section>
-    <section class="carry-log"><small class="ws-kicker">配方 / 制作一件</small><div class="carry-recipe">${recipe.map(({key, cost, have}) => `<div class="${have >= cost ? "has-stock" : ""}">${atelierIcon(key)}<b>${esc(carryName(key))}</b><span>${have} / ${cost}</span></div>`).join("")}</div><div class="ws-actions">${button("craft","制作一件")}${button("equip", own.carry ? "替换佩戴" : "佩戴")}${button("remove","卸下当前道具")}</div><p class="carry-hint">每人一席。替换时旧件退回背包。行旅徽记在主线及裂隙胜利后获得。</p>
-    <div class="carry-resonance"><h4>${esc(set.name)} <small>编队 ${distinct} / 3 种</small></h4><p>仅同系道具的上阵携带者受益；相同道具不重复计数。</p>${set.tiers.map(tier => `<div data-carry-tier="${tier.count}" class="${wearerActive && distinct >= tier.count ? "is-active" : ""}"><b>${tier.count} 种</b><span>${esc(carryEffect(tier))}</span><small>${wearerActive && distinct >= tier.count ? "本卡生效" : "未生效"}</small></div>`).join("")}</div></section></div>`;
+    <section class="carry-exhibit" style="--carry-accent:${grade.color}"><small>FIELD KIT · 随身一席</small><div class="carry-astrolabe">${atelierIcon(id)}</div><p class="carry-grade">${esc(grade.name)}</p><h4>${esc(carryName(id))}</h4><p>${esc(set.name)} / ${esc(workshopEffect({...item,value:item.value+(own.carry === id ? carryLevel(own.carry_xp || 0)-1 : 0)}))}</p><strong>${esc(carryEffect(item.effect))}</strong><footer>当前佩戴：${own.carry ? esc(carryName(own.carry)) : "空位"} · 未装备 ${count} 件</footer>${carryEnhancement(girlId,id)}</section>
+    <section class="carry-log"><small class="ws-kicker">配方 / 制作一件</small><div class="carry-recipe">${recipe.map(({key, cost, have}) => `<div class="${have >= cost ? "has-stock" : ""}">${atelierIcon(key)}<b>${esc(carryName(key))}</b><span>${have} / ${cost}</span></div>`).join("")}</div><div class="ws-actions">${button("craft","制作一件")}${button("equip", own.carry ? "替换佩戴" : "佩戴")}${button("remove","卸下当前奇物")}</div><p class="carry-hint">每人一席。替换时旧件退回背包。行旅徽记在主线及裂隙胜利后获得。</p>
+    <div class="carry-resonance"><h4>${esc(set.name)} <small>编队 ${distinct} / 3 种</small></h4><p>仅同系奇物的上阵携带者受益；相同奇物不重复计数。</p>${set.tiers.map(tier => `<div data-carry-tier="${tier.count}" class="${wearerActive && distinct >= tier.count ? "is-active" : ""}"><b>${tier.count} 种</b><span>${esc(carryEffect(tier))}</span><small>${wearerActive && distinct >= tier.count ? "本卡生效" : "未生效"}</small></div>`).join("")}</div></section></div>`;
 }
 
 function openCarryFromBag(id) {

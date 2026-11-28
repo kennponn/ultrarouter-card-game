@@ -97,6 +97,8 @@ func TestGachaVoyageChestCannotBorrowStarsOrClaimTwice(t *testing.T) {
 	state.Stars["v1h1"] = 2
 	require.ErrorIs(t, claimGachaVoyageChest(state, id, result), ErrGachaVoyageChest)
 	state.Stars["v1h1"] = 3
+	require.ErrorIs(t, claimGachaVoyageChest(state, id, result), ErrGachaVoyageChest, "uncleared stars cannot unlock chests")
+	state.Cleared["v1h1"] = true
 	state.Mats["training_manual"] = gachaMaxResource
 	before := state.Gold
 	require.ErrorIs(t, claimGachaVoyageChest(state, id, result), ErrGachaCapacity)
@@ -142,4 +144,32 @@ func TestGachaVoyageSupplyCombatPaysBorrowedOathCostWithoutCampaignMarks(t *test
 	require.NoError(t, settleGachaVoyagePoint(state, point, snapshot, &GachaBattleReport{Win: true, Stars: 2}, &GachaFinishResult{Win: true}))
 	assert.Equal(t, gachaVigil.StrainGain, own.Vigil.Strain)
 	assert.Zero(t, own.Vigil.Marks)
+}
+
+func TestGachaVoyageFailedAndAbandonedRunsCannotWriteStars(t *testing.T) {
+	state := newGachaState(time.Now())
+	point := gachaVoyage.Stages["res_manifest"]
+	snapshot := &GachaRunSnapshot{Squad: state.Squad}
+	gold := state.Gold
+	for _, report := range []*GachaBattleReport{{Win: false, Stars: 0}, {Win: true, Stars: 3}} {
+		require.NoError(t, settleGachaVoyagePoint(state, point, snapshot, report, &GachaFinishResult{Win: false}))
+		assert.False(t, state.Cleared[point.ID])
+		assert.Zero(t, state.Stars[point.ID])
+		assert.Equal(t, gold, state.Gold)
+	}
+}
+
+func TestGachaVoyageNormalizesOrphanStarsWithoutFabricatingClears(t *testing.T) {
+	state := newGachaState(time.Now())
+	state.VoyageEdition = 1
+	state.Stars["res_manifest"], state.Stars["s1"] = 3, 2
+	state.Cleared["s1"] = true
+	migrateGachaVoyage(state)
+	assert.Zero(t, state.Stars["res_manifest"])
+	assert.False(t, state.Cleared["res_manifest"])
+	assert.Equal(t, 2, state.Stars["s1"])
+	point := &GachaVoyagePoint{GachaStage: GachaStage{UnlockStage: "s2"}, Requires: []string{"s1"}}
+	assert.ErrorIs(t, checkGachaVoyagePoint(state, point), ErrGachaLocked)
+	state.Cleared["s2"] = true
+	assert.NoError(t, checkGachaVoyagePoint(state, point))
 }

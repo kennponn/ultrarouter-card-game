@@ -3,6 +3,7 @@ package model_test
 import (
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -45,6 +46,20 @@ func TestGachaArtifactIntentBoundaries(t *testing.T) {
 			draw.GirlID, draw.Count = nil, &invalidCount
 			assert.ErrorIs(t, model.ValidateGachaAction(draw), model.ErrGachaIntent)
 		}
+		free, token, invalid, day := "free", "token", "gold", "2026-11-28"
+		one := 1
+		draw.Count, draw.Choice, draw.ItemID = &count, &free, &day
+		require.ErrorIs(t, model.ValidateGachaAction(draw), model.ErrGachaIntent)
+		draw.Count = &one
+		require.NoError(t, model.ValidateGachaAction(draw))
+		draw.Choice = &token
+		require.ErrorIs(t, model.ValidateGachaAction(draw), model.ErrGachaIntent)
+		draw.ItemID = nil
+		require.NoError(t, model.ValidateGachaAction(draw))
+		draw.Choice = &invalid
+		require.ErrorIs(t, model.ValidateGachaAction(draw), model.ErrGachaIntent)
+		draw.Choice = &free
+		require.ErrorIs(t, model.ValidateGachaAction(draw), model.ErrGachaIntent)
 	}
 	convert := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "convert_tickets", ItemID: &ticket}
 	require.NoError(t, model.ValidateGachaAction(convert))
@@ -58,6 +73,156 @@ func TestGachaArtifactIntentBoundaries(t *testing.T) {
 }
 
 func runGachaArtifactMatrix(t *testing.T, now time.Time) {
+	t.Run("free_draws_token_and_ticket_choices_are_daily_personal_and_replay_safe", func(t *testing.T) {
+		user := gachaUser(t)
+		profile, err := model.GetGachaProfile(user.Id, now)
+		require.NoError(t, err)
+		state := profile.Save
+		price := profile.Cultivation.Artifacts.DrawToken
+		require.Positive(t, price)
+		state.Token, state.Mats["gem_ticket"] = 10*price, 1
+		seedGachaState(t, user.Id, state)
+		one, ten := 1, 10
+		free, token, ticket, day := "free", "token", "ticket", state.Daily.Date
+		for _, action := range []string{"draw_gems", "draw_chips"} {
+			for _, cost := range []struct {
+				choice *string
+				count  *int
+			}{{nil, &ten}, {&ticket, &one}, {&ticket, &ten}, {&token, &one}, {&token, &ten}} {
+				_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: action, Count: cost.count, Choice: cost.choice}, now)
+				require.ErrorIs(t, err, model.ErrGachaArtifactFreeFirst)
+			}
+		}
+		unchanged := gachaState(t, user.Id, now)
+		require.Equal(t, state.Token, unchanged.Token)
+		require.Equal(t, state.Mats, unchanged.Mats)
+		require.Empty(t, unchanged.Daily.ArtifactFree)
+		require.Empty(t, unchanged.GemInventory)
+		require.Empty(t, unchanged.ChipInventory)
+		first := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "draw_gems", Count: &one, Choice: &free, ItemID: &day}
+		var commands [2]model.GachaActionIntent
+		var outputs [2]*model.GachaActionResult
+		var errors [2]error
+		var workers sync.WaitGroup
+		for index := range commands {
+			commands[index] = first
+			commands[index].RequestID = uuid.NewString()
+			workers.Add(1)
+			go func(index int) {
+				defer workers.Done()
+				outputs[index], errors[index] = model.ApplyGachaAction(user.Id, commands[index], now)
+			}(index)
+		}
+		workers.Wait()
+		winner := 0
+		if errors[0] != nil {
+			winner = 1
+		}
+		require.NoError(t, errors[winner])
+		require.ErrorIs(t, errors[1-winner], model.ErrGachaArtifactFree)
+		out := outputs[winner]
+		require.Equal(t, &model.GachaArtifactPayment{Resource: "free"}, out.ArtifactPayment)
+		require.True(t, out.Save.Daily.ArtifactFree["gem_ticket"])
+		require.False(t, out.Save.Daily.ArtifactFree["chip_ticket"])
+		require.Equal(t, state.Token, out.Save.Token)
+		require.Equal(t, 1, out.Save.Mats["gem_ticket"])
+		replay, err := model.ApplyGachaAction(user.Id, commands[winner], now)
+		require.NoError(t, err)
+		require.Equal(t, out, replay)
+		chipPaid := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "draw_chips", Count: &one, Choice: &token}
+		_, err = model.ApplyGachaAction(user.Id, chipPaid, now)
+		require.ErrorIs(t, err, model.ErrGachaArtifactFreeFirst)
+		first.Action = "draw_chips"
+		out, err = model.ApplyGachaAction(user.Id, first, now)
+		require.NoError(t, err)
+		require.True(t, out.Save.Daily.ArtifactFree["chip_ticket"])
+		paid := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "draw_gems", Count: &ten, Choice: &token}
+		out, err = model.ApplyGachaAction(user.Id, paid, now)
+		require.NoError(t, err)
+		require.Equal(t, &model.GachaArtifactPayment{Resource: "token", Amount: price * 10}, out.ArtifactPayment)
+		require.Zero(t, out.Save.Token)
+		require.Equal(t, 1, out.Save.Mats["gem_ticket"])
+		paidBatch, batchReceipt := paid, out
+		paid.Count, paid.RequestID = &one, uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, paid, now)
+		require.ErrorIs(t, err, model.ErrGachaFunds)
+		paid.Choice = nil
+		out, err = model.ApplyGachaAction(user.Id, paid, now)
+		require.NoError(t, err)
+		require.Equal(t, &model.GachaArtifactPayment{Resource: "gem_ticket", Amount: 1}, out.ArtifactPayment)
+		require.Zero(t, out.Save.Mats["gem_ticket"])
+		tomorrow := now.AddDate(0, 0, 1)
+		fresh := gachaState(t, user.Id, tomorrow)
+		require.Empty(t, fresh.Daily.ArtifactFree)
+		replay, err = model.ApplyGachaAction(user.Id, paidBatch, tomorrow)
+		require.NoError(t, err)
+		require.Equal(t, batchReceipt, replay)
+		replay, err = model.ApplyGachaAction(user.Id, commands[winner], tomorrow)
+		require.NoError(t, err)
+		require.Equal(t, outputs[winner], replay)
+		paidBatch.RequestID = uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, paidBatch, tomorrow)
+		require.ErrorIs(t, err, model.ErrGachaArtifactFreeFirst)
+		require.Empty(t, gachaState(t, user.Id, tomorrow).Daily.ArtifactFree)
+		first.RequestID = uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, first, tomorrow)
+		require.ErrorIs(t, err, model.ErrGachaArtifactFree)
+		first.ItemID = &fresh.Daily.Date
+		out, err = model.ApplyGachaAction(user.Id, first, tomorrow)
+		require.NoError(t, err)
+		require.True(t, out.Save.Daily.ArtifactFree["chip_ticket"])
+		legacySingle := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "draw_gems", Count: &one}
+		out, err = model.ApplyGachaAction(user.Id, legacySingle, tomorrow)
+		require.NoError(t, err)
+		require.Equal(t, &model.GachaArtifactPayment{Resource: "free"}, out.ArtifactPayment)
+		replay, err = model.ApplyGachaAction(user.Id, legacySingle, tomorrow)
+		require.NoError(t, err)
+		require.Equal(t, out, replay)
+		legacySingle.RequestID = uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, legacySingle, tomorrow)
+		require.ErrorIs(t, err, model.ErrGachaFunds)
+	})
+	t.Run("captain_upgrade_counters_and_chest_are_committed_with_the_paid_actions", func(t *testing.T) {
+		user := gachaUser(t)
+		state := gachaState(t, user.Id, now)
+		state.Captain.Level, state.Girls["c01"].Level = 10, 10
+		state.Gold, state.Mats["gear_thread"] = 0, 0
+		seedGachaState(t, user.Id, state)
+		hero, slot, line := "c01", "head", "normal"
+		gear := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "gear_auto", ItemID: &slot, GirlID: &hero}
+		skill := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "skill_auto", Choice: &line, GirlID: &hero}
+		for _, command := range []model.GachaActionIntent{gear, skill} {
+			_, err := model.ApplyGachaAction(user.Id, command, now)
+			require.ErrorIs(t, err, model.ErrGachaFunds)
+		}
+		unchanged := gachaState(t, user.Id, now)
+		require.Equal(t, map[string]int{"rollcall": 1}, unchanged.Daily.CaptainLog.Progress)
+		state.Gold, state.Mats["gear_thread"] = 100000, 25
+		seedGachaState(t, user.Id, state)
+		out, err := model.ApplyGachaAction(user.Id, gear, now)
+		require.NoError(t, err)
+		require.Equal(t, 5, out.Save.Daily.CaptainLog.Progress["equipment"])
+		require.Equal(t, 1, out.Save.Daily.CaptainLog.Progress["outfit"])
+		out, err = model.ApplyGachaAction(user.Id, skill, now)
+		require.NoError(t, err)
+		require.Equal(t, 5, out.Save.Daily.CaptainLog.Progress["skill"])
+		replay, err := model.ApplyGachaAction(user.Id, skill, now)
+		require.NoError(t, err)
+		require.Equal(t, out, replay)
+		chestID := state.Daily.Date + ":25"
+		chest := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "captain_chest", ItemID: &chestID}
+		out, err = model.ApplyGachaAction(user.Id, chest, now)
+		require.NoError(t, err)
+		require.Equal(t, state.Token+5, out.Save.Token)
+		require.Equal(t, 1, out.Save.Mats["stamina_pack_30"])
+		require.Empty(t, out.Save.Daily.CaptainLog.Claimed)
+		replay, err = model.ApplyGachaAction(user.Id, chest, now)
+		require.NoError(t, err)
+		require.Equal(t, out, replay)
+		chest.RequestID = uuid.NewString()
+		_, err = model.ApplyGachaAction(user.Id, chest, now)
+		require.ErrorIs(t, err, model.ErrGachaCaptainClaim)
+	})
 	t.Run("graded_artifact_exact_price_at_cap_and_slot_transfer", func(t *testing.T) {
 		user := gachaUser(t)
 		state := gachaState(t, user.Id, now)
@@ -265,6 +430,7 @@ func runGachaArtifactMatrix(t *testing.T, now time.Time) {
 		state := gachaState(t, user.Id, now)
 		state.Gold, state.Token = 0, 0
 		state.Mats["forge_ore"], state.Mats["gem_ticket"], state.Mats["chip_ticket"] = 16, 9, 9
+		state.Daily.ArtifactFree = map[string]bool{"gem_ticket": true, "chip_ticket": true}
 		seedGachaState(t, user.Id, state)
 		for _, entry := range []struct{ ticket, action string }{{"gem_ticket", "draw_gems"}, {"chip_ticket", "draw_chips"}} {
 			convert := model.GachaActionIntent{RequestID: uuid.NewString(), Action: "convert_tickets", ItemID: &entry.ticket}
@@ -326,6 +492,14 @@ func runGachaArtifactMatrix(t *testing.T, now time.Time) {
 		one := 1
 		_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "draw_gems", Count: &one}, now)
 		require.ErrorIs(t, err, model.ErrGachaCapacity)
-		assert.Equal(t, 1, gachaState(t, user.Id, now).Mats["gem_ticket"])
+		after := gachaState(t, user.Id, now)
+		assert.Equal(t, 1, after.Mats["gem_ticket"])
+		assert.True(t, after.Daily.ArtifactFree["gem_ticket"])
+		tomorrow := now.AddDate(0, 0, 1)
+		_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{RequestID: uuid.NewString(), Action: "draw_gems", Count: &one}, tomorrow)
+		require.ErrorIs(t, err, model.ErrGachaCapacity)
+		after = gachaState(t, user.Id, tomorrow)
+		assert.Equal(t, 1, after.Mats["gem_ticket"])
+		assert.False(t, after.Daily.ArtifactFree["gem_ticket"])
 	})
 }

@@ -9,6 +9,7 @@ function boot() {
 }
 
 function lockGame(message) {
+  if (typeof closeCodexDialogs === "function") closeCodexDialogs(false);
   if (typeof closeFleetOfficial === "function") closeFleetOfficial();
   document.getElementById("app").classList.add("hidden");
   document.getElementById("title-screen").classList.remove("hidden");
@@ -40,6 +41,7 @@ function unlockGame() {
     if (page === "page-captain" && typeof renderCaptain === "function") renderCaptain();
     if (page === "page-festival" && typeof festivalView !== "undefined" && festivalView?.date !== SAVE.daily.date) renderFestival();
     if (page === "page-home" && typeof renderFestivalToday === "function") renderFestivalToday();
+    if (page === "page-codex" && typeof renderCodex === "function") renderCodex();
     return;
   }
   if (battleRunning && BAT) { renderTopbar(); return; }
@@ -70,6 +72,7 @@ document.querySelectorAll("[data-nav]").forEach(el => {
   if (!el.classList.contains("nav-btn")) {
     el.addEventListener("click", () => {
       nav(el.dataset.nav);
+      if (el.dataset.homePool && Store.ready()) selectDrawPool(el.dataset.homePool);
       if (el.dataset.arenaMode) pickArenaTab(el.dataset.arenaMode);
     });
   }

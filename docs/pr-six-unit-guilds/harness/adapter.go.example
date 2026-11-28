@@ -1,0 +1,100 @@
+// Disposable host contracts used by the game tests, excluded from game releases.
+package model
+
+import (
+	"github.com/QuantumNous/new-api/common"
+	"github.com/glebarez/sqlite"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
+	"os"
+	"strings"
+	"time"
+)
+
+var DB, LOG_DB *gorm.DB
+var gameZone = time.FixedZone("UTC+8", 8*60*60)
+
+const LogTypeSystem = 1
+
+type User struct {
+	Id                                              int `gorm:"primaryKey"`
+	Username, DisplayName, Password, Group, AffCode string
+	Role, Status, Quota, AuthVersion                int
+	DeletedAt                                       gorm.DeletedAt
+}
+type Option struct {
+	Key   string `gorm:"primaryKey"`
+	Value string
+}
+type ReviewLog struct {
+	UserID, Kind int
+	Message      string
+}
+
+func InitDB() error {
+	dsn := os.Getenv("SQL_DSN")
+	var driver gorm.Dialector
+	switch {
+	case strings.HasPrefix(dsn, "host="):
+		driver = postgres.New(postgres.Config{DSN: dsn, PreferSimpleProtocol: true})
+		common.SetDatabaseTypes("postgres", "postgres")
+	case dsn != "" && dsn != "local":
+		driver = mysql.Open(dsn)
+		common.SetDatabaseTypes("mysql", "mysql")
+	default:
+		driver = sqlite.Open(common.SQLitePath)
+		common.SetDatabaseTypes("sqlite", "sqlite")
+	}
+	var err error
+	DB, err = gorm.Open(driver, &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	if err != nil {
+		return err
+	}
+	db, err := DB.DB()
+	if err != nil {
+		return err
+	}
+	db.SetMaxOpenConns(8)
+	db.SetMaxIdleConns(4)
+	if err = DB.AutoMigrate(&User{}, &Option{}, &ReviewLog{}); err != nil {
+		return err
+	}
+	return MigrateGachaTables()
+}
+func lockForUpdate(tx *gorm.DB) *gorm.DB {
+	if tx.Dialector.Name() == "sqlite" {
+		return tx
+	}
+	return tx.Clauses(clause.Locking{Strength: "UPDATE"})
+}
+func cacheIncrUserQuota(int, int64) error {
+	// Host wallet helpers may invoke this after committing even with Redis off.
+	// Disabled caches are a no-op; an enabled cache needs a real host adapter.
+	if common.RedisEnabled {
+		panic("cache enabled during review")
+	}
+	return nil
+}
+func syncCreditUserQuotaCache(int, int, string) {
+	if common.RedisEnabled {
+		panic("cache enabled during review")
+	}
+}
+func RecordLog(id, kind int, message string) {
+	if err := DB.Create(&ReviewLog{id, kind, message}).Error; err != nil {
+		panic(err)
+	}
+}
+
+// Represents another host subsystem reserving the same wallet row. The SQL
+// condition is atomic; this fixture contains no relay or production service.
+func TryReserveUserQuota(id, amount int) (bool, error) {
+	if amount <= 0 {
+		return false, nil
+	}
+	result := DB.Model(&User{}).Where("id = ? AND status = ? AND quota >= ?", id, common.UserStatusEnabled, amount).Update("quota", gorm.Expr("quota - ?", amount))
+	return result.RowsAffected == 1, result.Error
+}

@@ -360,10 +360,6 @@ const Store = {
       if (accepted && pending.body.action.startsWith("guild_") && this.profile) {
         this.profile.guild = d.guild || null;
       }
-      if (accepted && SITE_ACCOUNT && Number.isSafeInteger(d.exchange?.wallet_quota)) {
-        SITE_ACCOUNT.quota = d.exchange.wallet_quota;
-        if (this.profile) this.profile.quota = d.exchange.wallet_quota;
-      }
       this.pendingAction = null;
       return d;
     } catch (e) {

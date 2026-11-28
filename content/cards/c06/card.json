@@ -1,0 +1,43 @@
+{
+  "id": "c06",
+  "sources": ["crew", "summon", "world", "voyage", "growth"],
+  "name": "铃羽",
+  "rarity": "R",
+  "elem": "plant",
+  "role": "sdps",
+  "atkType": "ranged",
+  "img": "content/cards/c06/assets/portrait.webp",
+  "base": {
+    "hp": 780,
+    "atk": 185,
+    "def": 55,
+    "spd": 108,
+    "cr": 8,
+    "cd": 150,
+    "ehr": 0,
+    "res": 10
+  },
+  "matBonus": 0,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "疾风箭",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "贯穿之矢",
+      "mult": 3.2,
+      "target": "enemy",
+      "desc": "对单体造成320%攻击伤害"
+    }
+  },
+  "desc": "草原弓手，怒气技对单体造成高额伤害。",
+  "battleImg": "content/cards/c06/assets/portrait-cut.webp",
+  "fxColor": "#a5e07a",
+  "legacyImages": {
+    "assets/c06-lingyu.webp": "content/cards/c06/assets/portrait.webp",
+    "assets/c06-lingyu-cut.webp": "content/cards/c06/assets/portrait-cut.webp"
+  }
+}

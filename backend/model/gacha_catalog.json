@@ -2,12 +2,19 @@
   "GIRLS": [
     {
       "id": "c01",
+      "sources": [
+        "crew",
+        "summon",
+        "world",
+        "voyage",
+        "growth"
+      ],
       "name": "灯里",
       "rarity": "R",
       "elem": "fire",
       "role": "adps",
       "atkType": "magic",
-      "img": "assets/c01-dengli.webp",
+      "img": "content/cards/c01/assets/portrait.webp",
       "base": {
         "hp": 820,
         "atk": 168,
@@ -34,7 +41,9 @@
           "desc": "对全体造成160%攻击伤害"
         }
       },
-      "desc": "喜欢念书的火系见习魔法师，怒气技为全体火焰。"
+      "desc": "喜欢念书的火系见习魔法师，怒气技为全体火焰。",
+      "battleImg": "content/cards/c01/assets/portrait-cut.webp",
+      "fxColor": "#ff8a5c"
     },
     {
       "id": "c02",
@@ -43,7 +52,7 @@
       "elem": "plant",
       "role": "support",
       "atkType": "ranged",
-      "img": "assets/c02-xiaoman.webp",
+      "img": "content/cards/c02/assets/portrait.webp",
       "base": {
         "hp": 900,
         "atk": 120,
@@ -71,16 +80,25 @@
           "desc": "治疗全队（80%攻击），并提升本次副本材料掉落"
         }
       },
-      "desc": "菜园少女，上阵时副本材料掉落+5%。"
+      "desc": "菜园少女，上阵时副本材料掉落+5%。",
+      "battleImg": "content/cards/c02/assets/portrait-cut.webp",
+      "fxColor": "#9adf6e"
     },
     {
       "id": "c06",
+      "sources": [
+        "crew",
+        "summon",
+        "world",
+        "voyage",
+        "growth"
+      ],
       "name": "铃羽",
       "rarity": "R",
       "elem": "plant",
       "role": "sdps",
       "atkType": "ranged",
-      "img": "assets/c06-lingyu.webp",
+      "img": "content/cards/c06/assets/portrait.webp",
       "base": {
         "hp": 780,
         "atk": 185,
@@ -107,16 +125,25 @@
           "desc": "对单体造成320%攻击伤害"
         }
       },
-      "desc": "草原弓手，怒气技对单体造成高额伤害。"
+      "desc": "草原弓手，怒气技对单体造成高额伤害。",
+      "battleImg": "content/cards/c06/assets/portrait-cut.webp",
+      "fxColor": "#a5e07a"
     },
     {
       "id": "c08",
+      "sources": [
+        "crew",
+        "summon",
+        "world",
+        "voyage",
+        "growth"
+      ],
       "name": "小椛",
       "rarity": "R",
       "elem": "plant",
       "role": "tank",
       "atkType": "melee",
-      "img": "assets/c08-xiaohua.webp",
+      "img": "content/cards/c08/assets/portrait.webp",
       "base": {
         "hp": 1450,
         "atk": 105,
@@ -145,16 +172,25 @@
           "desc": "获得相当于220%攻击的护盾并嘲讽全体敌人1回合"
         }
       },
-      "desc": "举着樱花木盾的少女，队伍前排。"
+      "desc": "举着樱花木盾的少女，队伍前排。",
+      "battleImg": "content/cards/c08/assets/portrait-cut.webp",
+      "fxColor": "#ffb0c8"
     },
     {
       "id": "c12",
+      "sources": [
+        "crew",
+        "summon",
+        "world",
+        "voyage",
+        "growth"
+      ],
       "name": "苺",
       "rarity": "R",
       "elem": "plant",
       "role": "heal",
       "atkType": "ranged",
-      "img": "assets/c12-mei.webp",
+      "img": "content/cards/c12/assets/portrait.webp",
       "base": {
         "hp": 880,
         "atk": 128,
@@ -182,16 +218,22 @@
           "desc": "治疗当前生命最低的队友（260%攻击）"
         }
       },
-      "desc": "庭院草药少女，单体急救。"
+      "desc": "庭院草药少女，单体急救。",
+      "battleImg": "content/cards/c12/assets/portrait-cut.webp",
+      "fxColor": "#8ff0b6"
     },
     {
       "id": "c20",
+      "sources": [
+        "world",
+        "voyage"
+      ],
       "name": "暖弦",
       "rarity": "R",
       "elem": "plant",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c20-nuanxian.webp",
+      "img": "content/cards/c20/assets/portrait.webp",
       "base": {
         "hp": 910,
         "atk": 135,
@@ -220,7 +262,9 @@
           "desc": "全队攻击提升12%，持续2回合"
         }
       },
-      "desc": "风铃旅人，抱着旧琴走过集市与花田，用轻快的歌声鼓舞同伴。"
+      "desc": "风铃旅人，抱着旧琴走过集市与花田，用轻快的歌声鼓舞同伴。",
+      "battleImg": "content/cards/c20/assets/portrait-cut.webp",
+      "fxColor": "#4fbf7f"
     },
     {
       "id": "c21",
@@ -229,7 +273,7 @@
       "elem": "plant",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c21-youya.webp",
+      "img": "content/cards/c21/assets/portrait.webp",
       "base": {
         "hp": 920,
         "atk": 140,
@@ -259,16 +303,22 @@
           "desc": "治疗全队（100%攻击），全队攻击提升8%（2回合）"
         }
       },
-      "desc": "花房里的见习药剂师，将晨露与草叶调成清甜药剂，为同伴恢复精神。"
+      "desc": "花房里的见习药剂师，将晨露与草叶调成清甜药剂，为同伴恢复精神。",
+      "battleImg": "content/cards/c21/assets/portrait-cut.webp",
+      "fxColor": "#4fbf7f"
     },
     {
       "id": "c22",
+      "sources": [
+        "world",
+        "growth"
+      ],
       "name": "榛果",
       "rarity": "R",
       "elem": "plant",
       "role": "tank",
       "atkType": "heavy",
-      "img": "assets/c22-zhenguo.webp",
+      "img": "content/cards/c22/assets/portrait.webp",
       "base": {
         "hp": 1500,
         "atk": 125,
@@ -298,7 +348,9 @@
           "desc": "自身获得240%攻击的护盾，嘲讽全体敌人并提升15%防御1回合"
         }
       },
-      "desc": "扛着重锤的林间护卫，走得慢却站得稳，总把最危险的位置留给自己。"
+      "desc": "扛着重锤的林间护卫，走得慢却站得稳，总把最危险的位置留给自己。",
+      "battleImg": "content/cards/c22/assets/portrait-cut.webp",
+      "fxColor": "#4fbf7f"
     },
     {
       "id": "c11",
@@ -307,7 +359,7 @@
       "elem": "fire",
       "role": "sdps",
       "atkType": "melee",
-      "img": "assets/c11-jianhua.webp",
+      "img": "content/cards/c11/assets/portrait.webp",
       "base": {
         "hp": 1150,
         "atk": 265,
@@ -335,16 +387,23 @@
           "desc": "对单体造成两段210%攻击伤害"
         }
       },
-      "desc": "拳法少女，单体爆发。"
+      "desc": "拳法少女，单体爆发。",
+      "battleImg": "content/cards/c11/assets/portrait-cut.webp",
+      "fxColor": "#ff9c5c"
     },
     {
       "id": "c05",
+      "sources": [
+        "summon",
+        "voyage",
+        "growth"
+      ],
       "name": "霜音",
       "rarity": "SR",
       "elem": "water",
       "role": "adps",
       "atkType": "magic",
-      "img": "assets/c05-shuangyin.webp",
+      "img": "content/cards/c05/assets/portrait.webp",
       "base": {
         "hp": 1080,
         "atk": 240,
@@ -373,16 +432,23 @@
           "desc": "对全体造成180%攻击伤害，并使目标速度降低25%，持续2回合"
         }
       },
-      "desc": "雪街的冰系少女，群体减速。"
+      "desc": "雪街的冰系少女，群体减速。",
+      "battleImg": "content/cards/c05/assets/portrait-cut.webp",
+      "fxColor": "#a8e0ff"
     },
     {
       "id": "c13",
+      "sources": [
+        "summon",
+        "voyage",
+        "growth"
+      ],
       "name": "圣愈",
       "rarity": "SR",
       "elem": "water",
       "role": "heal",
       "atkType": "magic",
-      "img": "assets/c13-shengyu.webp",
+      "img": "content/cards/c13/assets/portrait.webp",
       "base": {
         "hp": 1250,
         "atk": 210,
@@ -410,7 +476,9 @@
           "desc": "治疗全队（160%攻击）并解除1个负面效果"
         }
       },
-      "desc": "教堂修女，群体治疗。"
+      "desc": "教堂修女，群体治疗。",
+      "battleImg": "content/cards/c13/assets/portrait-cut.webp",
+      "fxColor": "#8fd0ff"
     },
     {
       "id": "c10",
@@ -419,7 +487,7 @@
       "elem": "dark",
       "role": "sdps",
       "atkType": "melee",
-      "img": "assets/c10-feipo.webp",
+      "img": "content/cards/c10/assets/portrait.webp",
       "base": {
         "hp": 1120,
         "atk": 258,
@@ -448,7 +516,9 @@
           "desc": "对单体造成300%攻击伤害，并使其防御降低30%，持续3回合"
         }
       },
-      "desc": "雨夜刀客，破甲削减防御。"
+      "desc": "雨夜刀客，破甲削减防御。",
+      "battleImg": "content/cards/c10/assets/portrait-cut.webp",
+      "fxColor": "#b06eff"
     },
     {
       "id": "c14",
@@ -457,7 +527,7 @@
       "elem": "dark",
       "role": "support",
       "atkType": "ranged",
-      "img": "assets/c14-fusuo.webp",
+      "img": "content/cards/c14/assets/portrait.webp",
       "base": {
         "hp": 1100,
         "atk": 220,
@@ -486,16 +556,22 @@
           "desc": "对单体造成120%攻击伤害，60%概率使其眩晕1回合（受效果命中影响）"
         }
       },
-      "desc": "锁链使，控制敌方关键单位。"
+      "desc": "锁链使，控制敌方关键单位。",
+      "battleImg": "content/cards/c14/assets/portrait-cut.webp",
+      "fxColor": "#9a7aff"
     },
     {
       "id": "c17",
+      "sources": [
+        "voyage",
+        "growth"
+      ],
       "name": "澄汐",
       "rarity": "SR",
       "elem": "water",
       "role": "heal",
       "atkType": "magic",
-      "img": "assets/c17-chengxi.webp",
+      "img": "content/cards/c17/assets/portrait.webp",
       "base": {
         "hp": 1200,
         "atk": 205,
@@ -524,7 +600,9 @@
           "desc": "治疗全队（120%攻击），并给予相当于80%攻击的护盾"
         }
       },
-      "desc": "潮泉守望者，将港湾的潮声收进瓷碗，为远行归来的伙伴疗伤。"
+      "desc": "潮泉守望者，将港湾的潮声收进瓷碗，为远行归来的伙伴疗伤。",
+      "battleImg": "content/cards/c17/assets/portrait-cut.webp",
+      "fxColor": "#4a7dff"
     },
     {
       "id": "c18",
@@ -533,7 +611,7 @@
       "elem": "dark",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c18-zhujian.webp",
+      "img": "content/cards/c18/assets/portrait.webp",
       "base": {
         "hp": 1180,
         "atk": 215,
@@ -563,7 +641,9 @@
           "desc": "全队获得160%攻击的护盾，攻击提升10%（2回合）"
         }
       },
-      "desc": "雨廊符师，寡言却细心。她把守护的约定，一枚一枚盖进朱红符印。"
+      "desc": "雨廊符师，寡言却细心。她把守护的约定，一枚一枚盖进朱红符印。",
+      "battleImg": "content/cards/c18/assets/portrait-cut.webp",
+      "fxColor": "#8a93a8"
     },
     {
       "id": "c19",
@@ -572,7 +652,7 @@
       "elem": "plant",
       "role": "sdps",
       "atkType": "melee",
-      "img": "assets/c19-lanling.webp",
+      "img": "content/cards/c19/assets/portrait.webp",
       "base": {
         "hp": 1110,
         "atk": 250,
@@ -601,16 +681,23 @@
           "desc": "对单体造成两段200%攻击伤害，无视目标10%防御"
         }
       },
-      "desc": "追风游哨，踏着溪石穿行山野，长枪与青色围巾总比报信的风先到。"
+      "desc": "追风游哨，踏着溪石穿行山野，长枪与青色围巾总比报信的风先到。",
+      "battleImg": "content/cards/c19/assets/portrait-cut.webp",
+      "fxColor": "#4fbf7f"
     },
     {
       "id": "c23",
+      "sources": [
+        "summon",
+        "voyage",
+        "growth"
+      ],
       "name": "夜萤",
       "rarity": "SR",
       "elem": "dark",
       "role": "sdps",
       "atkType": "melee",
-      "img": "assets/c23-yeying.webp",
+      "img": "content/cards/c23/assets/portrait.webp",
       "base": {
         "hp": 1070,
         "atk": 255,
@@ -638,7 +725,9 @@
           "desc": "对单体造成两段215%攻击伤害"
         }
       },
-      "desc": "巡行夜巷的双刃斥候，以萤火为暗号，在敌人察觉前结束交锋。"
+      "desc": "巡行夜巷的双刃斥候，以萤火为暗号，在敌人察觉前结束交锋。",
+      "battleImg": "content/cards/c23/assets/portrait-cut.webp",
+      "fxColor": "#8a93a8"
     },
     {
       "id": "c24",
@@ -647,7 +736,7 @@
       "elem": "water",
       "role": "tank",
       "atkType": "melee",
-      "img": "assets/c24-yutang.webp",
+      "img": "content/cards/c24/assets/portrait.webp",
       "base": {
         "hp": 1740,
         "atk": 160,
@@ -677,16 +766,21 @@
           "desc": "全队获得150%攻击的护盾，自身嘲讽并提升20%防御1回合"
         }
       },
-      "desc": "雨街守伞人，撑开的伞面既能挡住骤雨，也能为伙伴隔开迎面而来的锋芒。"
+      "desc": "雨街守伞人，撑开的伞面既能挡住骤雨，也能为伙伴隔开迎面而来的锋芒。",
+      "battleImg": "content/cards/c24/assets/portrait-cut.webp",
+      "fxColor": "#4a7dff"
     },
     {
       "id": "c25",
+      "sources": [
+        "growth"
+      ],
       "name": "苏兰",
       "rarity": "SR",
       "elem": "plant",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c25-sulan.webp",
+      "img": "content/cards/c25/assets/portrait.webp",
       "base": {
         "hp": 1160,
         "atk": 215,
@@ -715,7 +809,9 @@
           "desc": "对单体造成240%攻击伤害，并使其防御降低35%，持续2回合"
         }
       },
-      "desc": "温室调香师，能从百种花香中辨出破绽，让幽微的香气渗入敌人的护甲。"
+      "desc": "温室调香师，能从百种花香中辨出破绽，让幽微的香气渗入敌人的护甲。",
+      "battleImg": "content/cards/c25/assets/portrait-cut.webp",
+      "fxColor": "#4fbf7f"
     },
     {
       "id": "c26",
@@ -724,7 +820,7 @@
       "elem": "water",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c26-lingxiao.webp",
+      "img": "content/cards/c26/assets/portrait.webp",
       "base": {
         "hp": 1160,
         "atk": 200,
@@ -754,16 +850,24 @@
           "desc": "治疗全队（70%攻击），全队攻击提升18%（2回合）"
         }
       },
-      "desc": "水榭舞者，步摇与绡带随歌声轻摆，用清亮铃音唤回同伴的斗志。"
+      "desc": "水榭舞者，步摇与绡带随歌声轻摆，用清亮铃音唤回同伴的斗志。",
+      "battleImg": "content/cards/c26/assets/portrait-cut.webp",
+      "fxColor": "#4a7dff"
     },
     {
       "id": "c04",
+      "sources": [
+        "summon",
+        "starter",
+        "voyage",
+        "growth"
+      ],
       "name": "龙音",
       "rarity": "SSR",
       "elem": "fire",
       "role": "sdps",
       "atkType": "melee",
-      "img": "assets/c04-longyin.webp",
+      "img": "content/cards/c04/assets/portrait.webp",
       "base": {
         "hp": 1500,
         "atk": 380,
@@ -791,16 +895,24 @@
           "desc": "对单体造成550%攻击伤害，无视目标20%防御"
         }
       },
-      "desc": "龙角的枪之主人，单体主C。"
+      "desc": "龙角的枪之主人，单体主C。",
+      "battleImg": "content/cards/c04/assets/portrait-cut.webp",
+      "fxColor": "#ff6e5e"
     },
     {
       "id": "c07",
+      "sources": [
+        "summon",
+        "starter",
+        "voyage",
+        "growth"
+      ],
       "name": "星墙",
       "rarity": "SSR",
       "elem": "star",
       "role": "tank",
       "atkType": "heavy",
-      "img": "assets/c07-xingqiang.webp",
+      "img": "content/cards/c07/assets/portrait.webp",
       "base": {
         "hp": 2100,
         "atk": 180,
@@ -830,7 +942,9 @@
           "desc": "全队获得180%攻击护盾，自身嘲讽并提升30%防御1回合"
         }
       },
-      "desc": "背负星座之盾的守护者。"
+      "desc": "背负星座之盾的守护者。",
+      "battleImg": "content/cards/c07/assets/portrait-cut.webp",
+      "fxColor": "#ffe27a"
     },
     {
       "id": "c09",
@@ -839,7 +953,7 @@
       "elem": "time",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c09-shiyu.webp",
+      "img": "content/cards/c09/assets/portrait.webp",
       "base": {
         "hp": 1300,
         "atk": 260,
@@ -868,16 +982,21 @@
           "desc": "使攻击最高的队友立即再次行动，并恢复其（100%攻击）生命"
         }
       },
-      "desc": "持有怀表的时之少女，让队友再动。"
+      "desc": "持有怀表的时之少女，让队友再动。",
+      "battleImg": "content/cards/c09/assets/portrait-cut.webp",
+      "fxColor": "#c9a2ff"
     },
     {
       "id": "c03",
+      "sources": [
+        "world"
+      ],
       "name": "寻宝女王",
       "rarity": "SSR",
       "elem": "water",
       "role": "support",
       "atkType": "ranged",
-      "img": "assets/c03-queen.webp",
+      "img": "content/cards/c03/assets/portrait.webp",
       "base": {
         "hp": 1350,
         "atk": 245,
@@ -907,16 +1026,21 @@
           "desc": "全队攻击提升20%（2回合），本次副本金币掉落+30%"
         }
       },
-      "desc": "探险家女王，上阵时材料掉落+15%。"
+      "desc": "探险家女王，上阵时材料掉落+15%。",
+      "battleImg": "content/cards/c03/assets/portrait-cut.webp",
+      "fxColor": "#6ec6ff"
     },
     {
       "id": "c15",
+      "sources": [
+        "world"
+      ],
       "name": "月璃",
       "rarity": "SSR",
       "elem": "dark",
       "role": "adps",
       "atkType": "magic",
-      "img": "assets/c15-yueli.webp",
+      "img": "content/cards/c15/assets/portrait.webp",
       "base": {
         "hp": 1340,
         "atk": 325,
@@ -945,7 +1069,9 @@
           "desc": "对全体造成260%攻击伤害，并使目标速度降低20%，持续2回合"
         }
       },
-      "desc": "渡月伞姬，在河灯亮起时踏过古桥。伞影中的月色，能让追逐者忘记脚步。"
+      "desc": "渡月伞姬，在河灯亮起时踏过古桥。伞影中的月色，能让追逐者忘记脚步。",
+      "battleImg": "content/cards/c15/assets/portrait-cut.webp",
+      "fxColor": "#8a93a8"
     },
     {
       "id": "c16",
@@ -954,7 +1080,7 @@
       "elem": "star",
       "role": "support",
       "atkType": "magic",
-      "img": "assets/c16-zhixing.webp",
+      "img": "content/cards/c16/assets/portrait.webp",
       "base": {
         "hp": 1380,
         "atk": 255,
@@ -984,16 +1110,21 @@
           "desc": "全队获得120%攻击的护盾，攻击提升25%（2回合）"
         }
       },
-      "desc": "星蝶偶师，在旧观星台修补木偶。她牵动细线，让失落的星光重新照向同伴。"
+      "desc": "星蝶偶师，在旧观星台修补木偶。她牵动细线，让失落的星光重新照向同伴。",
+      "battleImg": "content/cards/c16/assets/portrait-cut.webp",
+      "fxColor": "#9a6bff"
     },
     {
       "id": "c27",
+      "sources": [
+        "world"
+      ],
       "name": "雪翎",
       "rarity": "SSR",
       "elem": "star",
       "role": "sdps",
       "atkType": "ranged",
-      "img": "assets/c27-xueling.webp",
+      "img": "content/cards/c27/assets/portrait.webp",
       "base": {
         "hp": 1360,
         "atk": 350,
@@ -1021,16 +1152,23 @@
           "desc": "对单体造成480%攻击伤害，无视目标30%防御"
         }
       },
-      "desc": "立于雪岭高台的白羽弓手，将黎明收进弓弦，让穿云之箭直抵敌阵要害。"
+      "desc": "立于雪岭高台的白羽弓手，将黎明收进弓弦，让穿云之箭直抵敌阵要害。",
+      "battleImg": "content/cards/c27/assets/portrait-cut.webp",
+      "fxColor": "#9a6bff"
     },
     {
       "id": "c28",
+      "sources": [
+        "summon",
+        "starter",
+        "growth"
+      ],
       "name": "海璃",
       "rarity": "SSR",
       "elem": "water",
       "role": "heal",
       "atkType": "magic",
-      "img": "assets/c28-haili.webp",
+      "img": "content/cards/c28/assets/portrait.webp",
       "base": {
         "hp": 1550,
         "atk": 270,
@@ -1059,7 +1197,385 @@
           "desc": "治疗全队（220%攻击），并给予相当于60%攻击的护盾"
         }
       },
-      "desc": "聆听海潮的疗愈者，在夜色中吟唱归航的曲调，以温柔潮光守住全队的生命。"
+      "desc": "聆听海潮的疗愈者，在夜色中吟唱归航的曲调，以温柔潮光守住全队的生命。",
+      "battleImg": "content/cards/c28/assets/portrait-cut.webp",
+      "fxColor": "#4a7dff"
+    },
+    {
+      "id": "xs039",
+      "name": "解弦川",
+      "rarity": "SSR",
+      "statProfile": "atlas-initial",
+      "initialStars": 5,
+      "elem": "star",
+      "role": "support",
+      "atkType": "magic",
+      "fxColor": "#ddbf79",
+      "desc": "解弦川是悬天台修吊床的匠人，睡在平地上反倒总梦见自己下坠。他靠对调吊屋的位置替富客换窗景赚过第一桶金，下面的教书人从此教不了早起的孩子看日出，教师的哑童却仍常睡在他铺里。黎梭音要搭一台高空戏，图上落下的人从此得欠她一世。解弦川收了预支却不肯动工，图和欠据至今都留着。阮冬眠曾替他的运索队守住最后一个伤员的位置。",
+      "base": {
+        "hp": 736,
+        "atk": 46,
+        "def": 59,
+        "spd": 69,
+        "spAtk": 78,
+        "spDef": 87,
+        "cr": 5,
+        "cd": 150,
+        "ehr": 0,
+        "res": 0
+      },
+      "skills": {
+        "normal": {
+          "name": "解弦川·普攻",
+          "desc": "造成 100% 特攻 特殊伤害，获得 25 怒气。",
+          "mult": 1,
+          "target": "enemy",
+          "rageGain": 25
+        },
+        "skill": {
+          "name": "对榫换位",
+          "desc": "【共用费用】消耗1亮榫点，冷却3次行动；无点数时本技能不可用，自动模式按正常优先级改用必杀或普攻。出手前选择一种对榫，不能同时获得两组收益。\n【救援】交换生命比例最低与当前生命最高的两名不同友方格号，前者恢复150%特攻，并净化1个减益，优先硬控制、混乱、重伤；只有一名友方时只治疗净化。已锁定的攻击不改目标，捆绑者不能被交换但仍可接受治疗。\n【切开】对敌方当前攻击最高者造成160%特攻，植入1枚脉冲，倒计时为其接下来2次行动开始；每次在周期伤害后减1，归零时爆破。每人最多2枚、每名解弦川最多4枚，超限只造成切开伤害，不刷新旧脉冲。\n【自动选择】有友方被硬控／混乱，或生命比例不高于45%时救援，否则切开；并列均取最小格号。",
+          "mult": 1.6,
+          "target": "joinery",
+          "healMult": 1.5,
+          "cooldown": 3
+        },
+        "xs039-skill-2": {
+          "name": "空壳留震·三榫共鸣",
+          "desc": "【穿刺】消耗100怒气，对常规主目标所在列各造成210%特攻，无视25%特防；主目标已有捆绑或重压时只对其追加40%特攻。伤害与追加共同受一次技能无效阻挡。\n【展开领域】出手前可再支付2亮榫点，建立持续2个大回合的三榫弦场；从本次施放所在回合计时，在第2个回合结束时消失。同名领域只刷新，不叠加，不返还点数；无点数仍可仅使用穿刺。自动模式默认保留1点供衣角榫印，故只有3点时开启领域。\n【领域的代价】领域中解弦川的伤害减免降低10个百分点，最低为0；普通护盾仍有效。解弦川被异能压制或阵亡时领域立即结束；硬控制不删除领域，但会阻止他行动后的调度。领域不延长硬控制，不增加额外行动。",
+          "mult": 2.1,
+          "target": "column",
+          "ignoreSpDef": 0.25
+        }
+      },
+      "img": "content/cards/xs039/assets/portrait.webp",
+      "battleImg": "content/cards/xs039/assets/portrait-cut.webp",
+      "combatStatus": "configured",
+      "art": {
+        "status": "delivered",
+        "standard": "starfrost-art-v1",
+        "note": "用户交付解弦川原创卡面与全身战斗立绘，均为1024×1536；WebP转换保留原始Alpha。四张1254×1254特效图已登记并按可见主体适配；初始5星战斗机制与主动演出已接入。未宣称已完成统一脚底落点验收。",
+        "appearanceVersion": 2,
+        "palette": "灰绿与暖茶棕为主，乌黑银白发色、骨白和哑铜点缀",
+        "importedAt": "2026-11-28",
+        "deliverySource": "user-provided",
+        "assets": {
+          "portrait": {
+            "sourceFile": "gpt-image-2.6_消耗1积分_【主题配色】 灰绿与暖茶棕为主，乌黑银白发色、骨_1795854099098-y0gkpwh7cld_01.png",
+            "sourceSha256": "b83225070c1cc8038fbaa0c9a3cf597648c3c860e1c28401704a72d4ebe2c095",
+            "file": "portrait.webp",
+            "width": 1024,
+            "height": 1536,
+            "bytes": 405412,
+            "alpha": [
+              255,
+              255
+            ]
+          },
+          "battle": {
+            "sourceFile": "gpt-image-2.6_消耗1积分_【主题配色】 灰绿与暖茶棕为主，乌黑银白发色、骨_1795855001838-mdnpx8fcmj_01.png",
+            "sourceSha256": "c1812b52dffaccead8796ad90f07cec30cac26fb41d49336da872195e0011fe8",
+            "file": "portrait-cut.webp",
+            "width": 1024,
+            "height": 1536,
+            "bytes": 226380,
+            "alpha": [
+              0,
+              254
+            ]
+          }
+        }
+      },
+      "atlas": {
+        "id": "xs039",
+        "number": 39,
+        "name": "解弦川",
+        "title": "对榫匠",
+        "rarity": "SSR",
+        "role": "support",
+        "roleLabel": "支援",
+        "element": "star",
+        "elementLabel": "星",
+        "color": "#ddbf79",
+        "group": "旧火与潮路",
+        "faction": "悬天台吊床街",
+        "origin": "手艺（吊床匠）＋器物（三枚骨亮榫）",
+        "address": "钉址·悬天台吊床街（吊屋本身属驮址）",
+        "biography": "解弦川是悬天台修吊床的匠人，睡在平地上反倒总梦见自己下坠。他靠对调吊屋的位置替富客换窗景赚过第一桶金，下面的教书人从此教不了早起的孩子看日出，教师的哑童却仍常睡在他铺里。黎梭音要搭一台高空戏，图上落下的人从此得欠她一世。解弦川收了预支却不肯动工，图和欠据至今都留着。阮冬眠曾替他的运索队守住最后一个伤员的位置。",
+        "appearance": "解弦川是一位清隽利落的对榫少女，乌黑齐肩发在耳前留着一绺银白，半束发尾以短皮绳扎起，冷暖分明得像新木边的一线刨痕。她的灰金眼睛微微上挑，眉细而平，淡色唇边有一点专注时才显出的倔强。米白高领衬衣外穿灰绿皮坎肩，茶色腰封贴着三只骨白榫袋，深色裙裤与交叉绑腿收住轻巧身形。她把一枚光滑骨榫夹在修长指间，另一手握细绳尺，垂眼时银白发丝恰好拂过指背；手上动作毫不拖沓，抬眼却先看同伴是否站稳，锋利里藏着周全。",
+        "event": "工头卷走全队工资逃向吊桥，桥另一头正好裂开，哑童还睡在悬空的床里。解弦川只剩一榫，钉工头脚下能截下钱，钉床脚则要拿自己换孩子。他换了。孩子站到完整的走道，工头带着铁匣逃了，他摔到下层台阶。断层间临时只通一只信篮，他留在下层修路。信篮里既有孩子画的新吊床，也有整队匠人追问欠薪的信，他没拿前者去挡后者。",
+        "abilities": [
+          {
+            "name": "对榫换位",
+            "description": "他从腰里取一枚亮榫，把近处两处还托着东西的承重点对准钉下，两边绳影一晃，床上的人能与另一处的空筐互换，筐照样有分量。他不能指着远处一块空地送人过去，也不能换走被牢牢捆死的一方，承点已塌，更没有另一头可接。"
+          },
+          {
+            "name": "空壳留震",
+            "description": "亮榫还可以往硬壳里送。他指尖压下去，壳面先微微一颤，两次动作过去，真正的震响才在送入时的原处由内往外翻开。已留在壳里等回响的那一枚，不能同时拿去把吊床上的人换回来。"
+          },
+          {
+            "name": "三榫调弦",
+            "description": "他拨开亮榫之间的细弦，所顾始终至多三榫。每次拉紧只能择其一：让最早一道留震提前发作，或替同伴把卡在半道的动作理顺。他看似没有一根弦乱跳，其实心神全摊在各个受力端，此时有人来袭，他本人最难照应。"
+          },
+          {
+            "name": "衣角接坠",
+            "description": "有人可能坠下，他把最后一枚亮榫预先藏在那人的衣角。致命一坠到来前，衣角猛被提住，能替对方接走这一下，另一头却得有地方实实在在承力，他手头也得真有余榫。一处都没预留，人跌进谷底，再拍衣角也叫不活。"
+          }
+        ],
+        "related": "黎梭音、阮冬眠、哑童",
+        "skills": [
+          {
+            "id": "xs039-skill-1",
+            "name": "对榫换位",
+            "type": "小技能",
+            "target": "两名存活友方／当前攻击最高敌人",
+            "text": "【共用费用】消耗1亮榫点，冷却3次行动；无点数时本技能不可用，自动模式按正常优先级改用必杀或普攻。出手前选择一种对榫，不能同时获得两组收益。\n【救援】交换生命比例最低与当前生命最高的两名不同友方格号，前者恢复150%特攻，并净化1个减益，优先硬控制、混乱、重伤；只有一名友方时只治疗净化。已锁定的攻击不改目标，捆绑者不能被交换但仍可接受治疗。\n【切开】对敌方当前攻击最高者造成160%特攻，植入1枚脉冲，倒计时为其接下来2次行动开始；每次在周期伤害后减1，归零时爆破。每人最多2枚、每名解弦川最多4枚，超限只造成切开伤害，不刷新旧脉冲。\n【自动选择】有友方被硬控／混乱，或生命比例不高于45%时救援，否则切开；并列均取最小格号。",
+            "cooldown": 3,
+            "rage": 0,
+            "upgrade": "对榫护角：仅救援分支实际成功换位后，被救援者在下次本人行动前受到的第一段直接伤害降低5%。每大回合最多触发一次；治疗净化但未换位时不触发，不返还亮榫点。",
+            "visual": "一枚骨亮榫钉入承重点，两块绳影先交换座位，随后才是人影；选择留震时，榫光藏入壳内，第二次动作后才从内里绽开。",
+            "tags": [
+              "异能",
+              "器物"
+            ],
+            "narrativeAbility": "对榫换位",
+            "enhancementStatus": "proposal"
+          },
+          {
+            "id": "xs039-skill-2",
+            "name": "空壳留震·三榫共鸣",
+            "type": "必杀",
+            "target": "敌方一列／三榫弦场",
+            "text": "【穿刺】消耗100怒气，对常规主目标所在列各造成210%特攻，无视25%特防；主目标已有捆绑或重压时只对其追加40%特攻。伤害与追加共同受一次技能无效阻挡。\n【展开领域】出手前可再支付2亮榫点，建立持续2个大回合的三榫弦场；从本次施放所在回合计时，在第2个回合结束时消失。同名领域只刷新，不叠加，不返还点数；无点数仍可仅使用穿刺。自动模式默认保留1点供衣角榫印，故只有3点时开启领域。\n【领域的代价】领域中解弦川的伤害减免降低10个百分点，最低为0；普通护盾仍有效。解弦川被异能压制或阵亡时领域立即结束；硬控制不删除领域，但会阻止他行动后的调度。领域不延长硬控制，不增加额外行动。",
+            "cooldown": 0,
+            "rage": 100,
+            "upgrade": "",
+            "visual": "三枚骨亮榫各燃起一颗苍青星点，细弦穿过目标一列，沿壳内同时震开；额外付出榫点才会展开完整调弦场，持弦者自己的影子此时最薄。",
+            "tags": [
+              "异能",
+              "器物"
+            ],
+            "narrativeAbility": "空壳留震"
+          },
+          {
+            "id": "xs039-skill-3",
+            "name": "三榫调弦",
+            "type": "被动",
+            "target": "脉冲目标／双方小技能冷却",
+            "text": "【亮榫点】入场2点，上限3；本人完成普攻后恢复1点，每大回合最多1点。追击与跳过行动不补点；异能压制时不能生成或使用点数，已有点数保留。\n【延迟脉冲】倒计时归零或携带者阵亡时，原生脉冲对该格仍存活的原目标造成100%特攻，并向同排左右邻格各溅射30%特攻；使用植入时特攻快照。随后向一个没有脉冲的存活敌人植入衍生脉冲，优先生命比例最低者，最多1次裂变。衍生脉冲倒计时2次行动、伤害70%特攻、无溅射且不再裂变。全部受每名解弦川4枚上限约束，净化移除不爆破；阵亡者不重复承伤。解弦川被压制或阵亡后已有脉冲仍计时爆破，但不再裂变。\n【弦场调度】领域存在且解弦川未被硬控时，每次实际行动结束，为另一名小技能剩余冷却最长的友方减少1次冷却，同时令当前攻击最高敌人小技能冷却增加1次，范围0—5；无敌阻止敌方冷却增加，瞬时冷却变化不能被净化倒退。再推进最早植入的一枚脉冲1拍。每大回合整组只触发1次，推进引发的爆破也不能再次调度；多枚同拍按植入顺序处理。",
+            "cooldown": 0,
+            "rage": 0,
+            "upgrade": "",
+            "visual": "细弦标出每一枚留震还剩的节拍，最早植入的一点先亮；调弦只在允许的那一拍拨动一次，熄灭的榫光绝不会凭空补回。",
+            "tags": [
+              "异能",
+              "延时"
+            ],
+            "narrativeAbility": "三榫调弦"
+          },
+          {
+            "id": "xs039-skill-4",
+            "name": "衣角接坠",
+            "type": "被动",
+            "target": "自身与攻击最高的另一名友方",
+            "text": "【预存衣角榫印】入场给自己及攻击最高的另一名友方各1枚衣角榫印，记录当时生命与怒气；同一人全场只能获得一次，不可驱散。衣角榫印不是复活，目标已消耗过任何致命救助资格时不再生效。\n【救助费用】衣角榫印持有者遭致命伤时，若解弦川存活、未被异能压制且有1亮榫点，消耗1点与衣角榫印，阻止该次致命伤，把生命设为记录生命的50%（不超过其当前最大生命40%），怒气取当前与记录的较大值且不超过100。净化2个减益，优先硬控制和混乱，并减伤20%持续1次本人行动。该生命设定不受重伤影响；同一多段技能后续伤害继续结算。点数不足时正常阵亡。\n【术后回访】己方每累计新获得3个可净化减益，净化当前生命比例最低友方1个减益，每大回合至多1次；刷新旧状态、多层同时添加和被免疫的状态各不多计。解弦川被硬控或异能压制时不计数不触发；解弦川阵亡后未用衣角榫印立即消失。",
+            "cooldown": 0,
+            "rage": 0,
+            "upgrade": "",
+            "visual": "预藏衣角的亮榫在致命坠落前骤然绷紧，青色承力线把尚未断绝的人接回；已经落空的衣角安静垂下，不召回死者。",
+            "tags": [
+              "异能",
+              "致命保护"
+            ],
+            "narrativeAbility": "衣角接坠"
+          }
+        ],
+        "basic": {
+          "id": "xs039-basic",
+          "name": "解弦川·普攻",
+          "type": "普攻",
+          "target": "常规单体",
+          "text": "造成 100% 特攻 特殊伤害，获得 25 怒气。",
+          "cooldown": 0,
+          "rage": 0,
+          "upgrade": "",
+          "visual": "发动换位时最古怪的不是人腾空：绳下两块阴影先换了座，半眨眼以后，伸手的人才发觉掌中握到的不是床绳，而是对侧的栏杆。",
+          "tags": [
+            "意志"
+          ],
+          "narrativeAbility": "对榫换位"
+        },
+        "stats": {
+          "hp": 736,
+          "speed": 69,
+          "atk": 46,
+          "def": 59,
+          "spAtk": 78,
+          "spDef": 87
+        },
+        "statNote": "原独立图鉴卡：1级、初始5星、未突破六维，不含羁绊、装备和培养；此标尺与28张原星霜少女卡独立。",
+        "highStars": [
+          {
+            "star": 8,
+            "name": "衣角榫印接续",
+            "text": "第3回合开始以后，第一次本人行动开始时可消耗1亮榫点，把一枚尚未触发的衣角榫印转给从未持有衣角榫印、未用过救助资格的当前攻击最高友方，排除解弦川。默认保留原衣角榫印，玩家战前可选转移；旧持有者失去衣角榫印，新持有者按转移时生命与怒气记录，每场最多一次，不增殖衣角榫印。"
+          },
+          {
+            "star": 11,
+            "name": "对榫连锁",
+            "text": "一次衣角榫印成功救助后，下一次对榫换位可改为敌方交换：支付原技能1亮榫点，交换敌方最高攻击者与其同列另一存活本体，各减少10怒气；不同时治疗或植入脉冲，每场最多一次。目标有捆绑、被吸引或固定站位时不能交换；不可交换的首领仅削1格韧性，正常控制保护可阻挡。自动模式仍按基础救援／切开，不主动花这次机会。"
+          }
+        ],
+        "bonds": [
+          {
+            "targetId": "xs029",
+            "targetIds": [
+              "xs029"
+            ],
+            "name": "解弦川 × 贺紬",
+            "type": "战术共鸣",
+            "text": "沿用对应卡的收藏加成；曾经获取本卡与羁绊伙伴即永久激活；无需同时上阵，之后分解、下阵或阵亡均不失效。 此战术关系不自动等于本作中的血亲、恋情或同场经历。",
+            "bonus": "生命 +17%",
+            "percent": 17,
+            "stat": "hp"
+          },
+          {
+            "targetId": "xs141",
+            "targetIds": [
+              "xs141"
+            ],
+            "name": "解弦川 × 黎梭音",
+            "type": "战术共鸣",
+            "text": "沿用对应卡的收藏加成；曾经获取本卡与羁绊伙伴即永久激活；无需同时上阵，之后分解、下阵或阵亡均不失效。 此战术关系不自动等于本作中的血亲、恋情或同场经历。",
+            "bonus": "特攻 +14%",
+            "percent": 14,
+            "stat": "spatk"
+          },
+          {
+            "targetId": "xs042",
+            "targetIds": [
+              "xs042"
+            ],
+            "name": "解弦川 × 祁炊娘",
+            "type": "战术共鸣",
+            "text": "沿用对应卡的收藏加成；曾经获取本卡与羁绊伙伴即永久激活；无需同时上阵，之后分解、下阵或阵亡均不失效。 此战术关系不自动等于本作中的血亲、恋情或同场经历。",
+            "bonus": "特防 +14%",
+            "percent": 14,
+            "stat": "spdef"
+          },
+          {
+            "targetId": "xs138",
+            "targetIds": [
+              "xs138"
+            ],
+            "name": "解弦川 × 晏向隅",
+            "type": "战术共鸣",
+            "text": "沿用对应卡的收藏加成；曾经获取本卡与羁绊伙伴即永久激活；无需同时上阵，之后分解、下阵或阵亡均不失效。 此战术关系不自动等于本作中的血亲、恋情或同场经历。",
+            "bonus": "速度 +6%",
+            "percent": 6,
+            "stat": "speed"
+          },
+          {
+            "targetId": "xs142",
+            "targetIds": [
+              "xs142"
+            ],
+            "name": "解弦川 × 叶刻湾",
+            "type": "战术共鸣",
+            "text": "沿用对应卡的收藏加成；曾经获取本卡与羁绊伙伴即永久激活；无需同时上阵，之后分解、下阵或阵亡均不失效。 此战术关系不自动等于本作中的血亲、恋情或同场经历。",
+            "bonus": "防御 +11%",
+            "percent": 11,
+            "stat": "def"
+          }
+        ],
+        "storyLinks": [
+          {
+            "targetId": "xs133",
+            "name": "阮冬眠",
+            "type": "生平原句",
+            "text": "阮冬眠曾替他的运索队守住最后一个伤员的位置。"
+          },
+          {
+            "targetId": "xs141",
+            "name": "黎梭音",
+            "type": "生平原句",
+            "text": "黎梭音要搭一台高空戏，图上落下的人从此得欠她一世。"
+          }
+        ],
+        "acquisition": [
+          {
+            "name": "强者世界",
+            "text": "仅在强者世界轮换卡池中获得同卡碎片；集齐80枚后在图鉴主动合成。"
+          }
+        ],
+        "source": {
+          "originalId": "law",
+          "originalName": "特拉法尔加·罗",
+          "roster": "独立图鉴对应卡",
+          "storyFile": "02-旧火与潮路.md",
+          "storyAnchor": "039-解弦川对榫匠",
+          "image": "assets/characters/law.jpg",
+          "face": "assets/characters/law-face.jpg",
+          "statBasis": "atlas.design.initialStats",
+          "originalSkillNames": [
+            "手术空间·屠宰场",
+            "麻醉空间·穿刺波动",
+            "手术空间·脉冲与调度",
+            "不老手术·刻印救助"
+          ],
+          "originalSkillCount": 4,
+          "originalCounter": "沉默延误屠宰场与麻醉空间；净化脉冲时不引爆；逼罗花完手术点后再集火刻印目标。果实压制暂停点数与救助、关闭领域，击败罗会清掉未用刻印。多段后续伤害仍可击败刚获救者。"
+        },
+        "counter": "他不能指着远处一块空地送人过去，也不能换走被牢牢捆死的一方，承点已塌，更没有另一头可接。已留在壳里等回响的那一枚，不能同时拿去把吊床上的人换回来。",
+        "mechanic": {
+          "title": "承重弦场 · 对榫台上的整片战场",
+          "complexity": "专精",
+          "resource": "亮榫点：初始2／上限3；普攻补1。脉冲：每人最多2枚，每名解弦川最多4枚。",
+          "summary": "救援和进攻共用亮榫点；保留点数能保住衣角榫印，投入领域则抢走对手的技能窗口。",
+          "loop": [
+            "普攻补点，提前保留衣角榫印所需的1点。",
+            "对榫换位选择换位救援，或切开敌人埋下两拍脉冲。",
+            "穿壳弦场用2点开启三榫弦场，调度冷却、加速脉冲。",
+            "领域结束后回到普攻蓄点，保护与爆发不能持续全开。"
+          ],
+          "synergy": "屏障与钻石先替解弦川争取行动；捆绑／重压延缓敌方出手，让脉冲与穿壳弦场在同一窗口兑现。换位也能为乐斜明重新安排下一次对角。",
+          "counterplay": "沉默阻止开弦场；净化脉冲阻断传播；集中攻击解弦川或逼其提前花掉亮榫点，让衣角榫印失去救助费用。",
+          "highlights": [
+            "救援／切开双分支",
+            "可净化的延迟脉冲",
+            "冷却调度与有限衣角榫印"
+          ]
+        },
+        "limitations": [
+          {
+            "name": "对榫换位",
+            "text": "他不能指着远处一块空地送人过去，也不能换走被牢牢捆死的一方，承点已塌，更没有另一头可接。"
+          },
+          {
+            "name": "空壳留震",
+            "text": "已留在壳里等回响的那一枚，不能同时拿去把吊床上的人换回来。"
+          },
+          {
+            "name": "三榫调弦",
+            "text": "他看似没有一根弦乱跳，其实心神全摊在各个受力端，此时有人来袭，他本人最难照应。"
+          },
+          {
+            "name": "衣角接坠",
+            "text": "一处都没预留，人跌进谷底，再拍衣角也叫不活。"
+          }
+        ],
+        "designNote": "技能数值继承对应原卡；星霜演绎为施放表现。标为「融合优化」的条目是图鉴设计提案，尚未接入战斗执行。",
+        "gender": "女",
+        "visualAge": "青年少女",
+        "palette": "灰绿与暖茶棕为主，乌黑银白发色、骨白和哑铜点缀",
+        "implementationNote": "当前实装初始5星的普攻、对榫换位、三榫共鸣与两项被动；星霜演化和8／11星专属规则仍为设计预览。"
+      },
+      "combatProfile": "joinery",
+      "matBonus": 0,
+      "sources": [
+        "world"
+      ],
+      "dupGain": 80
     }
   ],
   "STAGES": [
@@ -1074,12 +1590,12 @@
       "enemyCount": 3,
       "starRound": 4,
       "tokenRange": [
-        10,
-        20
+        1,
+        1
       ],
       "gold": [
-        80,
-        150
+        28,
+        48
       ],
       "exp": 40,
       "shardR": 0.2,
@@ -1105,12 +1621,12 @@
       "enemyCount": 2,
       "starRound": 5,
       "tokenRange": [
-        12,
-        22
+        1,
+        1
       ],
       "gold": [
-        120,
-        200
+        42,
+        72
       ],
       "exp": 60,
       "shardR": 0.22,
@@ -1136,12 +1652,12 @@
       "enemyCount": 3,
       "starRound": 7,
       "tokenRange": [
-        15,
-        30
+        1,
+        2
       ],
       "gold": [
-        180,
-        320
+        70,
+        120
       ],
       "exp": 90,
       "shardR": 0.25,
@@ -1167,12 +1683,12 @@
       "enemyCount": 4,
       "starRound": 7,
       "tokenRange": [
-        10,
-        50
+        1,
+        3
       ],
       "gold": [
-        200,
-        500
+        84,
+        144
       ],
       "exp": 120,
       "shardR": 0.28,
@@ -1199,12 +1715,12 @@
       "hasBoss": true,
       "starRound": 10,
       "tokenRange": [
-        25,
-        50
+        2,
+        5
       ],
       "gold": [
-        400,
-        700
+        126,
+        216
       ],
       "exp": 180,
       "shardR": 0.3,
@@ -1231,12 +1747,12 @@
       "hasBoss": true,
       "starRound": 11,
       "tokenRange": [
-        30,
-        60
+        3,
+        6
       ],
       "gold": [
-        500,
-        900
+        154,
+        264
       ],
       "exp": 220,
       "shardR": 0.32,
@@ -1262,12 +1778,12 @@
       "enemyCount": 3,
       "starRound": 8,
       "tokenRange": [
-        30,
-        60
+        3,
+        5
       ],
       "gold": [
-        550,
-        950
+        140,
+        240
       ],
       "exp": 230,
       "shardR": 0.34,
@@ -1293,12 +1809,12 @@
       "enemyCount": 3,
       "starRound": 11,
       "tokenRange": [
-        32,
-        65
+        3,
+        6
       ],
       "gold": [
-        650,
-        1100
+        168,
+        288
       ],
       "exp": 260,
       "shardR": 0.34,
@@ -1325,12 +1841,12 @@
       "hasBoss": true,
       "starRound": 12,
       "tokenRange": [
-        35,
-        70
+        4,
+        7
       ],
       "gold": [
-        800,
-        1300
+        196,
+        336
       ],
       "exp": 300,
       "shardR": 0.35,
@@ -1356,12 +1872,12 @@
       "enemyCount": 3,
       "starRound": 11,
       "tokenRange": [
-        35,
-        70
+        4,
+        7
       ],
       "gold": [
-        850,
-        1400
+        196,
+        336
       ],
       "exp": 320,
       "shardR": 0.35,
@@ -1387,12 +1903,12 @@
       "enemyCount": 4,
       "starRound": 13,
       "tokenRange": [
-        38,
-        75
+        5,
+        8
       ],
       "gold": [
-        950,
-        1600
+        224,
+        384
       ],
       "exp": 350,
       "shardR": 0.36,
@@ -1419,12 +1935,12 @@
       "hasBoss": true,
       "starRound": 15,
       "tokenRange": [
-        40,
-        80
+        5,
+        10
       ],
       "gold": [
-        1200,
-        2000
+        252,
+        432
       ],
       "exp": 400,
       "shardR": 0.38,
@@ -1452,12 +1968,12 @@
       "exp": 280,
       "hasBoss": true,
       "tokenRange": [
-        20,
-        35
+        4,
+        7
       ],
       "gold": [
-        700,
-        1100
+        252,
+        384
       ],
       "mat": [
         9,
@@ -1496,12 +2012,12 @@
       "exp": 280,
       "hasBoss": true,
       "tokenRange": [
-        20,
-        35
+        4,
+        7
       ],
       "gold": [
-        700,
-        1100
+        252,
+        384
       ],
       "mat": [
         9,
@@ -1540,12 +2056,12 @@
       "exp": 280,
       "hasBoss": true,
       "tokenRange": [
-        20,
-        35
+        4,
+        7
       ],
       "gold": [
-        700,
-        1100
+        252,
+        384
       ],
       "mat": [
         9,
@@ -1584,12 +2100,12 @@
       "exp": 280,
       "hasBoss": true,
       "tokenRange": [
-        20,
-        35
+        4,
+        7
       ],
       "gold": [
-        700,
-        1100
+        252,
+        384
       ],
       "mat": [
         9,
@@ -1628,12 +2144,12 @@
       "exp": 280,
       "hasBoss": true,
       "tokenRange": [
-        20,
-        35
+        4,
+        7
       ],
       "gold": [
-        700,
-        1100
+        252,
+        384
       ],
       "mat": [
         9,
@@ -1672,12 +2188,12 @@
       "exp": 280,
       "hasBoss": true,
       "tokenRange": [
-        20,
-        35
+        4,
+        7
       ],
       "gold": [
-        700,
-        1100
+        252,
+        384
       ],
       "mat": [
         9,
@@ -1716,12 +2232,12 @@
       "exp": 650,
       "hasBoss": true,
       "tokenRange": [
-        35,
-        55
+        11,
+        15
       ],
       "gold": [
-        1400,
-        2200
+        672,
+        960
       ],
       "mat": [
         18,
@@ -1760,12 +2276,12 @@
       "exp": 650,
       "hasBoss": true,
       "tokenRange": [
-        35,
-        55
+        11,
+        15
       ],
       "gold": [
-        1400,
-        2200
+        672,
+        960
       ],
       "mat": [
         18,
@@ -1804,12 +2320,12 @@
       "exp": 650,
       "hasBoss": true,
       "tokenRange": [
-        35,
-        55
+        11,
+        15
       ],
       "gold": [
-        1400,
-        2200
+        672,
+        960
       ],
       "mat": [
         18,
@@ -1848,12 +2364,12 @@
       "exp": 650,
       "hasBoss": true,
       "tokenRange": [
-        35,
-        55
+        11,
+        15
       ],
       "gold": [
-        1400,
-        2200
+        672,
+        960
       ],
       "mat": [
         18,
@@ -1892,12 +2408,12 @@
       "exp": 650,
       "hasBoss": true,
       "tokenRange": [
-        35,
-        55
+        11,
+        15
       ],
       "gold": [
-        1400,
-        2200
+        672,
+        960
       ],
       "mat": [
         18,
@@ -1936,12 +2452,12 @@
       "exp": 650,
       "hasBoss": true,
       "tokenRange": [
-        35,
-        55
+        11,
+        15
       ],
       "gold": [
-        1400,
-        2200
+        672,
+        960
       ],
       "mat": [
         18,
@@ -1984,7 +2500,7 @@
     "SSR": {
       "name": "SSR",
       "color": "#d9a94a",
-      "shardToUnlock": 100,
+      "shardToUnlock": 80,
       "baseStar": 3
     }
   },
@@ -2038,47 +2554,55 @@
   "ENEMY_TPL": [
     {
       "name": "魔化狼",
-      "img": "assets/gen/enemy-wolf.webp",
+      "img": "content/enemies/wolf/assets/portrait.webp",
       "elem": "plant",
       "atkType": "melee",
       "hpM": 0.9,
       "atkM": 1,
       "defM": 0.8,
       "spd": 100,
-      "boss": false
+      "boss": false,
+      "id": "wolf",
+      "battleImg": "content/enemies/wolf/assets/portrait-cut.webp"
     },
     {
       "name": "石像卫兵",
-      "img": "assets/gen/enemy-golem.webp",
+      "img": "content/enemies/golem/assets/portrait.webp",
       "elem": "star",
       "atkType": "heavy",
       "hpM": 1.2,
       "atkM": 0.8,
       "defM": 1.3,
       "spd": 90,
-      "boss": false
+      "boss": false,
+      "id": "golem",
+      "battleImg": "content/enemies/golem/assets/portrait-cut.webp"
     },
     {
       "name": "暗影法师",
-      "img": "assets/gen/enemy-mage.webp",
+      "img": "content/enemies/mage/assets/portrait.webp",
       "elem": "dark",
       "atkType": "magic",
       "hpM": 0.8,
       "atkM": 1.2,
       "defM": 0.7,
       "spd": 105,
-      "boss": false
+      "boss": false,
+      "id": "mage",
+      "battleImg": "content/enemies/mage/assets/portrait-cut.webp"
     },
     {
       "name": "深渊主宰",
-      "img": "assets/gen/enemy-boss.webp",
+      "img": "content/bosses/abyss-lord/assets/portrait.webp",
       "elem": "time",
       "atkType": "magic",
       "hpM": 3.2,
       "atkM": 1.5,
       "defM": 1.5,
       "spd": 110,
-      "boss": true
+      "boss": true,
+      "id": "abyss-lord",
+      "battleImg": "content/bosses/abyss-lord/assets/portrait-cut.webp"
     }
   ],
   "MAT_BY_RARITY": {
@@ -2091,6 +2615,68 @@
     "SR": 30,
     "SSR": 50
   },
-  "TOKEN_BUDGET": 100,
-  "STAMINA_REGEN_MIN": 5
+  "STAMINA_REGEN_MIN": 5,
+  "ACTIVITY_PAYOUTS": {
+    "caravan_gold": 1200,
+    "boss_gold": 500,
+    "dual_gold": 1500,
+    "expedition_gold": [
+      40,
+      60
+    ],
+    "expedition_gold_step": 15,
+    "expedition_tokens": [
+      8,
+      12
+    ],
+    "expedition_token_step": 2,
+    "festival_album": {
+      "3": {
+        "forge_ore": 10,
+        "iv_solvent": 2
+      },
+      "7": {
+        "gem_ticket": 2,
+        "chip_ticket": 2,
+        "limited_ticket": 1
+      },
+      "11": {
+        "astral_treatise": 2,
+        "break_seal": 3,
+        "limited_ticket": 2
+      }
+    }
+  },
+  "REPEAT_REWARDS": {
+    "s": {
+      "gold_per_stamina": [
+        14,
+        24
+      ],
+      "token_per_100_stamina": [
+        32,
+        56
+      ]
+    },
+    "r": {
+      "gold_per_stamina": [
+        21,
+        32
+      ],
+      "token_per_100_stamina": [
+        38,
+        61
+      ]
+    },
+    "n": {
+      "gold_per_stamina": [
+        28,
+        40
+      ],
+      "token_per_100_stamina": [
+        48,
+        66
+      ]
+    }
+  }
 }

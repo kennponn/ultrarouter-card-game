@@ -50,6 +50,14 @@ func decodeGachaIntent(c *gin.Context, body any, allowed []string) bool {
 func writeGachaError(c *gin.Context, err error) {
 	status, code, message := http.StatusInternalServerError, "GACHA_INTERNAL_ERROR", "游戏服务暂时不可用，请稍后重试"
 	switch {
+	case errors.Is(err, model.ErrGachaWorldClosed):
+		status, code, message = http.StatusConflict, "GACHA_WORLD_CLOSED", "强者世界本期已闭幕或已换期，请刷新；周末只开放领奖"
+	case errors.Is(err, model.ErrGachaWorldTickets):
+		status, code, message = http.StatusConflict, "GACHA_WORLD_TICKETS", "限定券不足；常驻招募券、金币和代币都不能用于强者世界"
+	case errors.Is(err, model.ErrGachaWorldReward):
+		status, code, message = http.StatusConflict, "GACHA_WORLD_REWARD", "积分、名次或领奖状态不符合条件，请刷新本期记录"
+	case errors.Is(err, model.ErrGachaCardSource):
+		status, code, message = http.StatusConflict, "GACHA_CARD_SOURCE", "此卡不在该途径的获取名单，请查看图鉴来源"
 	case errors.Is(err, model.ErrGachaLadder):
 		status, code, message = http.StatusConflict, "GACHA_LADDER_CHANGED", "排名或领取状态已变化，请刷新后重试"
 	case errors.Is(err, model.ErrGachaLadderLimit):
@@ -59,7 +67,7 @@ func writeGachaError(c *gin.Context, err error) {
 	case errors.Is(err, model.ErrGachaStage):
 		status, code, message = http.StatusBadRequest, "GACHA_STAGE_UNKNOWN", "关卡不存在"
 	case errors.Is(err, model.ErrGachaTeam):
-		status, code, message = http.StatusBadRequest, "GACHA_TEAM_INVALID", "请先上阵已拥有的少女，队伍最多四人且不能重复"
+		status, code, message = http.StatusBadRequest, "GACHA_TEAM_INVALID", "请先上阵已拥有的少女，队伍最多六人且不能重复"
 	case errors.Is(err, model.ErrGachaLocked):
 		status, code, message = http.StatusConflict, "GACHA_STAGE_LOCKED", "尚未满足关卡的前置通关或船长等级条件"
 	case errors.Is(err, model.ErrGachaVoyageLimit):
@@ -78,6 +86,10 @@ func writeGachaError(c *gin.Context, err error) {
 		status, code, message = http.StatusConflict, "GACHA_EXPERIENCE_REQUIRED", "等级需要真实经验，金币不能直升；请完成经验训练或挑战副本"
 	case errors.Is(err, model.ErrGachaCaptainClaim):
 		status, code, message = http.StatusConflict, "GACHA_CAPTAIN_CLAIM", "这份奖励不在可领取状态，请同步船长日志查看今日进度和补给时段"
+	case errors.Is(err, model.ErrGachaArtifactFree):
+		status, code, message = http.StatusConflict, "GACHA_ARTIFACT_FREE", "今日免费次数已用或已换日，请同步召唤池；本次没有扣券或代币"
+	case errors.Is(err, model.ErrGachaArtifactFreeFirst):
+		status, code, message = http.StatusConflict, "GACHA_ARTIFACT_FREE_FIRST", "本池今日首抽为免费单抽，请先领取。本次未抽取，也未扣除券或代币"
 	case errors.Is(err, model.ErrGachaMailUnavailable):
 		status, code, message = http.StatusConflict, "GACHA_MAIL_UNAVAILABLE", "附件已领取或邮件已更新，请同步邮箱"
 	case errors.Is(err, model.ErrGachaMailboxFull):
@@ -99,17 +111,15 @@ func writeGachaError(c *gin.Context, err error) {
 	case errors.Is(err, model.ErrGachaCultivationLocked):
 		status, code, message = http.StatusConflict, "GACHA_CULTIVATION_LOCKED", "尚未满足培养条件、已达上限或铭刻未改变，本次不消耗材料"
 	case errors.Is(err, model.ErrGachaDualTeam):
-		status, code, message = http.StatusConflict, "GACHA_DUAL_TEAM_REQUIRED", "请保存八名不同角色的两支队伍；双队试炼要求每名角色至少40级3星"
+		status, code, message = http.StatusConflict, "GACHA_DUAL_TEAM_REQUIRED", "请保存两支角色不重复的队伍，每队4至6人；双队试炼要求每名角色至少40级3星"
 	case errors.Is(err, model.ErrGachaProgressionAdmin):
 		status, code, message = http.StatusForbidden, "GACHA_PROGRESSION_ADMIN", "只有管理员可以修改成长配置"
 	case errors.Is(err, model.ErrGachaConfigVersion):
 		status, code, message = http.StatusConflict, "GACHA_CONFIG_VERSION", "配置版本已更新，请同步成长页面后重新提交新版本"
 	case errors.Is(err, model.ErrGachaShopLimit):
-		status, code, message = http.StatusConflict, "GACHA_SHOP_LIMIT", "今日商店20次兑换已用完，明天北京时间零点刷新"
-	case errors.Is(err, model.ErrGachaWalletFunds):
-		status, code, message = http.StatusConflict, "GACHA_WALLET_FUNDS", "站点可用余额不足，请减少兑换数量"
-	case errors.Is(err, model.ErrGachaExchangeUnavailable):
-		status, code, message = http.StatusConflict, "GACHA_EXCHANGE_UNAVAILABLE", "余额兑换暂不可用，请稍后重试"
+		status, code, message = http.StatusConflict, "GACHA_SHOP_LIMIT", "个人库存已售罄，或货架已更新／无需刷新；北京时间9、14、21点补满"
+	case errors.Is(err, model.ErrGachaArtifactFree), errors.Is(err, model.ErrGachaArtifactFreeFirst):
+		status, code, message = http.StatusConflict, "GACHA_DRAW_PAYMENT", "请同步召唤池：每日先免费单抽一次，之后使用本池券或代币"
 	case errors.Is(err, model.ErrGachaCapacity):
 		status, code, message = http.StatusConflict, "GACHA_CAPACITY", "资源或灵印背包达到上限，请先使用或分解"
 	case errors.Is(err, model.ErrGachaSigil):
@@ -276,6 +286,19 @@ func GetGachaLadder(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
+}
+
+func GetGachaWorld(c *gin.Context) {
+	userID, ok := gachaSessionUser(c)
+	if !ok {
+		return
+	}
+	view, err := model.GetGachaWorld(userID, time.Now())
+	if err != nil {
+		writeGachaError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": view})
 }
 
 func GetGachaLadderReplay(c *gin.Context) {

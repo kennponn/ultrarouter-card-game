@@ -1,0 +1,45 @@
+{
+  "id": "c16",
+  "name": "织星",
+  "rarity": "SSR",
+  "elem": "star",
+  "role": "support",
+  "atkType": "magic",
+  "img": "content/cards/c16/assets/portrait.webp",
+  "base": {
+    "hp": 1380,
+    "atk": 255,
+    "def": 102,
+    "spd": 113,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 30
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "蝶线",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "天幕织梦",
+      "mult": 0,
+      "target": "team",
+      "shieldMult": 1.2,
+      "teamAtkUp": 25,
+      "buffTurns": 2,
+      "desc": "全队获得120%攻击的护盾，攻击提升25%（2回合）"
+    }
+  },
+  "desc": "星蝶偶师，在旧观星台修补木偶。她牵动细线，让失落的星光重新照向同伴。",
+  "battleImg": "content/cards/c16/assets/portrait-cut.webp",
+  "fxColor": "#9a6bff",
+  "legacyImages": {
+    "assets/c16-zhixing.webp": "content/cards/c16/assets/portrait.webp",
+    "assets/c16-zhixing-cut.webp": "content/cards/c16/assets/portrait-cut.webp"
+  }
+}

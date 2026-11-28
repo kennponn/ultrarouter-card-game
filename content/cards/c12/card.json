@@ -1,0 +1,44 @@
+{
+  "id": "c12",
+  "sources": ["crew", "summon", "world", "voyage", "growth"],
+  "name": "苺",
+  "rarity": "R",
+  "elem": "plant",
+  "role": "heal",
+  "atkType": "ranged",
+  "img": "content/cards/c12/assets/portrait.webp",
+  "base": {
+    "hp": 880,
+    "atk": 128,
+    "def": 60,
+    "spd": 100,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 15
+  },
+  "matBonus": 0,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "草药投掷",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "生命花束",
+      "mult": 0,
+      "target": "ally",
+      "healMult": 2.6,
+      "desc": "治疗当前生命最低的队友（260%攻击）"
+    }
+  },
+  "desc": "庭院草药少女，单体急救。",
+  "battleImg": "content/cards/c12/assets/portrait-cut.webp",
+  "fxColor": "#8ff0b6",
+  "legacyImages": {
+    "assets/c12-mei.webp": "content/cards/c12/assets/portrait.webp",
+    "assets/c12-mei-cut.webp": "content/cards/c12/assets/portrait-cut.webp"
+  }
+}

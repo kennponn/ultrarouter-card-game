@@ -19,7 +19,7 @@ function workshop(context) {
   const dom = new JSDOM(read("index.html"), { runScripts: "outside-only" });
   context.after(() => dom.window.close());
   const state = { squad: ["c01"], girls: { c01: owned(5) }, mats: {}, sigils: {}, daily: {}, cleared: {}, stars: {} };
-  const scripts = ["config", "store", "data", "ui", "progression", "atelier", "training", "carry", "workshop", "battle"].map(name => read(`js/${name}.js`));
+  const scripts = ["config", "store", "data", "ui", "progression", "atelier", "training", "carry", "workshop", "battle", "codex-data", "codex"].map(name => read(`js/${name}.js`));
   dom.window.eval(scripts.join("\n;\n") + `
     function requireGame() { return Store.ready(); }
     window.workshop = { Store, finalStats, artifactBonuses, individualBonuses, growthStarMax, growthStarCost, growthStarStep, shardReserve,
@@ -38,11 +38,12 @@ function workshop(context) {
   return { state, view, document: dom.window.document };
 }
 
-test("catalog covers all 28 cards, retains v5 bonds and supports seven payable advanced stars", () => {
+test("catalog covers every released card, retains legacy bonds and supports seven payable advanced stars", () => {
   const ids = catalog.GIRLS.map(girl => girl.id).sort();
-  assert.equal(ids.length, 28);
+  const legacy = catalog.GIRLS.filter(girl=>!girl.atlas).map(girl=>girl.id).sort();
+  assert.equal(legacy.length, 28);
   assert.deepEqual(Object.keys(rules.weapons).sort(), ids);
-  assert.deepEqual(rules.bonds.flatMap(bond => bond.members).sort(), ids);
+  assert.deepEqual(rules.bonds.flatMap(bond => bond.members).sort(), legacy);
   assert.equal(new Set(Object.values(rules.weapons).map(weapon => weapon.name)).size, ids.length);
   for (const bond of rules.bonds) {
     assert.equal(bond.members.length, 2);
@@ -59,11 +60,12 @@ test("catalog covers all 28 cards, retains v5 bonds and supports seven payable a
     assert.ok((bond.advanced || rules.bond_advanced) > (bond.base || rules.bond_base));
   }
   assert.equal(edges.size, 56);
-  for (const { id, rarity } of catalog.GIRLS) assert.equal(rules.fellowships.filter(pair => pair.members.includes(id)).length, limits[rarity]);
+  for (const { id, rarity } of catalog.GIRLS.filter(girl => legacy.includes(girl.id))) assert.equal(rules.fellowships.filter(pair => pair.members.includes(id)).length, limits[rarity]);
   assert.deepEqual([2,3].map(size => rules.crews.filter(bond => bond.members.length === size).length), [2,36]);
   assert.equal(new Set(rules.crews.map(bond => [...bond.members].sort().join(":"))).size, rules.crews.length);
   for (const {members} of rules.crews) assert.ok(members.length === new Set(members).size && members.every(id => ids.includes(id)));
-  for (const { id, rarity } of catalog.GIRLS) assert.equal(rules.crews.filter(bond => bond.members.includes(id)).length, limits[rarity]);
+  for (const { id, rarity } of catalog.GIRLS.filter(girl => legacy.includes(girl.id))) assert.equal(rules.crews.filter(bond => bond.members.includes(id)).length, limits[rarity]);
+  for (const group of [rules.bonds, rules.fellowships, rules.crews]) assert.ok(group.every(bond => !bond.members.includes("xs039")), "unreleased xs039 partners must not activate gameplay bonuses");
   for (const role of new Set(catalog.GIRLS.map(girl => girl.role))) {
     assert.deepEqual(rules.milestones[role].map(step => step.star), [3, 6, 9, 12]);
     for (const step of rules.milestones[role]) assert.ok(step.name && Number.isSafeInteger(step.value) && step.value > 0);
@@ -151,8 +153,9 @@ test("fellowships add before the per-stat cap; all four role milestones describe
     assert.ok(node.textContent.includes(step.name) && node.textContent.includes(step.description));
   }
   view.openGirl("c28");
-  assert.equal(document.querySelectorAll("#modal-box [data-star-milestone]").length, 4, "even an unowned card previews its route");
-  assert.equal(document.querySelectorAll('#modal-box button[onclick="closeModal()"].gbtn').length, 1);
+  assert.equal(document.body.dataset.page, "page-codex", "an unowned card opens its atlas dossier");
+  assert.equal(document.querySelectorAll("#codex-detail [data-star-milestone]").length, 4, "even an unowned card previews its route in the codex");
+  assert.ok(document.querySelector("#modal-mask").classList.contains("hidden"));
 });
 
 test("the item guide uses seven independent quality tiers and covers actual equipment and draw pools", () => {
@@ -350,7 +353,7 @@ test("unlocking an undeployed partner immediately refreshes the squad collection
   state.girls.c04 = owned(4, 20);
   state.girls.c11 = { ...owned(0, 0), shards: catalog.RARITY.SR.shardToUnlock };
   view.renderSquad();
-  assert.ok(document.querySelector('#owned-list [data-id="c11"]').classList.contains("card-locked"));
+  assert.equal(document.querySelector('#owned-list [data-id="c11"]'), null, "enough shards still do not make an acquired hero");
   view.Store.mutate = async (action, fields) => {
     assert.equal(action, "shard_unlock");
     assert.deepEqual(plain(fields), { girl_id: "c11" });
@@ -551,13 +554,13 @@ test("individual values apply in full steps on the same stat layer as the equipp
   assert.deepEqual(plain(view.finalStats("c01", true)), plain(rolled));
 });
 
-test("the six-axis reroll locks only submit intentions and keep untrained, full lock and insufficient ore states distinct", async context => {
+test("the six-axis reroll prices locks in tokens and requires gold and solvent", async context => {
   const { view, state, document } = workshop(context), hero = state.girls.c01, calls = [];
   const roll = () => document.querySelector('[data-workshop-action="iv_roll"]');
   const attackLock = () => document.querySelector('[data-iv-lock="atk"]');
   let receipt = null;
   view.Store.mutate = async (action, fields) => { calls.push([action, plain(fields)]); return receipt; };
-  state.mats.forge_ore = 2;
+  state.mats.iv_solvent = 1; state.gold = rules.individual.gold; state.token = 0;
   view.openWorkshop("c01", "potential");
   view.selectPotentialMode("individual");
   assert.equal(document.querySelectorAll("[data-iv-lock]:disabled").length, 6);
@@ -576,15 +579,15 @@ test("the six-axis reroll locks only submit intentions and keep untrained, full 
   await view.workshopIVAction("iv_lock", "atk");
   await view.workshopIVAction("iv_lock", "unknown");
   assert.equal(hero.iv_locks, 2);
-  state.mats.forge_ore = 3;
+  state.token = rules.individual.lock_tokens[1];
   receipt = { drops: ["洗练已确认"] };
   view.selectPotentialMode("individual");
   await view.workshopIVAction("iv_roll");
   assert.ok(attackLock(), "the receipt must not send the player back to the node page");
   assert.deepEqual(hero.iv_values, [5, 31, 10, 0, 2, 8]);
-  assert.equal(state.mats.forge_ore, 3);
+  assert.equal(state.mats.iv_solvent, 1);
   hero.iv_locks = 63;
-  state.mats.forge_ore = 100;
+  state.token = 1000;
   view.selectPotentialMode("individual");
   assert.equal(roll().disabled, true);
   await view.workshopIVAction("iv_roll");
@@ -689,6 +692,8 @@ test("separate ticket pools expose odds, enforce budgets and show only the retur
   const { state, view, document } = workshop(context), calls = [];
   document.body.dataset.page = "page-gacha";
   state.mats = { gem_ticket: 1, chip_ticket: 10, forge_ore: 8 };
+  state.daily = {date:"2026-11-28",artifact_free:{gem_ticket:true,chip_ticket:true}};
+  view.Store.serverNow = () => Date.parse("2026-11-28T10:00:00Z");
   view.Store.mutate = async (action, fields) => { calls.push([action, plain(fields)]); return { drops: ["回执 <b>已收录</b>"] }; };
   view.selectDrawPool("gems");
   assert.equal(document.querySelectorAll(".ws-artifact-grid > div").length, 5);
@@ -704,11 +709,36 @@ test("separate ticket pools expose odds, enforce budgets and show only the retur
   assert.equal(document.querySelector(".ws-draw-receipt li"), null);
   await view.drawArtifacts(10);
   await view.convertArtifactTicket();
-  assert.deepEqual(calls, [["draw_gems", { count: 1 }], ["draw_chips", { count: 10 }], ["convert_tickets", { item_id: "chip_ticket" }]]);
+  assert.deepEqual(calls, [["draw_gems", { count: 1, choice:"ticket" }], ["draw_chips", { count: 10, choice:"ticket" }], ["convert_tickets", { item_id: "chip_ticket" }]]);
   assert.deepEqual(state.mats, { gem_ticket: 1, chip_ticket: 10, forge_ore: 8 });
   view.renderBag();
   assert.equal(document.querySelectorAll("[data-bag-tab]").length, 6);
   view.selectWorkshopBag("materials", "tickets");
   assert.match(document.getElementById("bag-body").textContent, /宝石召唤券/);
   assert.match(document.getElementById("bag-body").textContent, /芯片召唤券/);
+});
+
+test("gem and chip daily gifts are independent; paid draws use only the chosen currency", async context => {
+  const {state,view,document} = workshop(context), calls = [];
+  state.daily = {date:"2026-11-28"}; state.token = 8; state.mats = {gem_ticket:1};
+  view.Store.serverNow = () => Date.parse("2026-11-28T15:59:50Z");
+  view.Store.mutate = async (action,fields) => { calls.push([action,plain(fields)]); return {drops:["本次收取 1 件"]}; };
+  document.body.dataset.page = "page-gacha";
+  view.selectDrawPool("gems");
+  assert.equal(document.querySelector('[data-artifact-payment="free"]').disabled,false);
+  assert.equal(document.querySelector('[data-artifact-draw="1"]').disabled,true);
+  assert.equal(document.querySelector('[data-artifact-token="1"]').disabled,true);
+  await view.drawArtifacts(1); await view.drawArtifacts(10); await view.drawArtifacts(1,"token"); await view.drawArtifacts(10,"token"); await view.drawArtifacts(10,"free"); await view.drawArtifacts(1,"free");
+  assert.deepEqual(calls,[["draw_gems",{count:1,choice:"free",item_id:"2026-11-28"}]]);
+  assert.equal(state.daily.artifact_free,undefined);
+  state.daily.artifact_free={gem_ticket:true}; view.renderGacha();
+  assert.equal(document.querySelector('[data-artifact-payment="free"]').disabled,true);
+  assert.equal(document.querySelector('[data-artifact-token="10"]').disabled,true);
+  await view.drawArtifacts(1,"free"); await view.drawArtifacts(10,"token"); await view.drawArtifacts(1,"token"); await view.drawArtifacts(1);
+  assert.deepEqual(calls.slice(1),[["draw_gems",{count:1,choice:"token"}],["draw_gems",{count:1,choice:"ticket"}]]);
+  view.selectDrawPool("chips"); await view.drawArtifacts(1,"token"); await view.drawArtifacts(1,"free");
+  assert.deepEqual(calls.at(-1),["draw_chips",{count:1,choice:"free",item_id:"2026-11-28"}]);
+  view.Store.serverNow = () => Date.parse("2026-11-28T16:00:00Z"); view.renderGacha();
+  assert.match(document.querySelector('[data-artifact-payment="free"]').textContent,/同步/);
+  await view.drawArtifacts(1,"free"); await view.drawArtifacts(1,"token"); assert.equal(calls.length,4);
 });

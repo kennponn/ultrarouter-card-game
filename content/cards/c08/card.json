@@ -1,0 +1,45 @@
+{
+  "id": "c08",
+  "sources": ["crew", "summon", "world", "voyage", "growth"],
+  "name": "小椛",
+  "rarity": "R",
+  "elem": "plant",
+  "role": "tank",
+  "atkType": "melee",
+  "img": "content/cards/c08/assets/portrait.webp",
+  "base": {
+    "hp": 1450,
+    "atk": 105,
+    "def": 105,
+    "spd": 92,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 20
+  },
+  "matBonus": 0,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "盾击",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "樱花铁壁",
+      "mult": 0,
+      "target": "self",
+      "shieldMult": 2.2,
+      "taunt": true,
+      "desc": "获得相当于220%攻击的护盾并嘲讽全体敌人1回合"
+    }
+  },
+  "desc": "举着樱花木盾的少女，队伍前排。",
+  "battleImg": "content/cards/c08/assets/portrait-cut.webp",
+  "fxColor": "#ffb0c8",
+  "legacyImages": {
+    "assets/c08-xiaohua.webp": "content/cards/c08/assets/portrait.webp",
+    "assets/c08-xiaohua-cut.webp": "content/cards/c08/assets/portrait-cut.webp"
+  }
+}

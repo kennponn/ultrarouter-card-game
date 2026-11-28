@@ -126,7 +126,7 @@ func TestDispatchRelicsRequireSpecificArchiveAndFreezeOnlyLeader(t *testing.T) {
 func TestDispatchContractUsesSignedBattleNotCurrentLineupOrOldRuns(t *testing.T) {
 	state, now := dispatchTestState(t)
 	id := "c01"
-	stage := &GachaStage{ID: "test"}
+	stage := gachaStage("s1")
 	old := GachaRunSnapshot{Squad: []string{id}}
 	issueGachaDispatch(state, stage, &old)
 	sign := dispatchTestIntent("contract_sign", state.Daily.Date, "courier", 0)

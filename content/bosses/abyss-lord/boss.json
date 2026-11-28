@@ -1,0 +1,18 @@
+{
+  "name": "深渊主宰",
+  "img": "content/bosses/abyss-lord/assets/portrait.webp",
+  "elem": "time",
+  "atkType": "magic",
+  "hpM": 3.2,
+  "atkM": 1.5,
+  "defM": 1.5,
+  "spd": 110,
+  "boss": true,
+  "id": "abyss-lord",
+  "battleImg": "content/bosses/abyss-lord/assets/portrait-cut.webp",
+  "legacyImages": {
+    "assets/gen/enemy-boss.webp": "content/bosses/abyss-lord/assets/portrait.webp",
+    "assets/gen/enemy-boss-cut.webp": "content/bosses/abyss-lord/assets/portrait-cut.webp",
+    "assets/enemy-boss-cut.webp": "content/bosses/abyss-lord/assets/legacy-cut.webp"
+  }
+}

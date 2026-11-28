@@ -93,12 +93,6 @@ func runGachaCarryMatrix(t *testing.T, now time.Time) {
 			out, err := model.FinishGachaRun(user.Id, record.ID, attempt.abandon, now)
 			require.NoError(t, err)
 			saved := out.Save
-			if attempt.rules == 9 {
-				assert.Equal(t, before["route_badge"], out.Save.Mats["route_badge"])
-				letter := requireGachaTestMail(t, out.Save, "battle:"+record.ID)
-				assert.Equal(t, attempt.amount, letter.Resources["route_badge"])
-				saved = claimGachaTestMail(t, user.Id, letter, now)
-			}
 			assert.Equal(t, before["route_badge"]+attempt.amount, saved.Mats["route_badge"])
 			if attempt.amount == 0 {
 				assert.Equal(t, before["training_ink"], out.Save.Mats["training_ink"])

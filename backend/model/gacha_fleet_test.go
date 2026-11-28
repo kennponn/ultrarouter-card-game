@@ -109,16 +109,13 @@ func testGachaFleetDatabase(t *testing.T, now time.Time) {
 	_, err = model.ApplyGachaAction(observer.Id, claim, now)
 	require.ErrorIs(t, err, model.ErrGachaGuildLimit)
 	awarded := apply(member.Id, claim)
-	assert.Equal(t, first.Save.Gold, awarded.Save.Gold)
-	assert.Equal(t, first.Save.Mats["forge_ore"], awarded.Save.Mats["forge_ore"])
-	require.NotNil(t, awarded.Save.Mailbox)
-	message := slices.IndexFunc(awarded.Save.Mailbox.Messages, func(message *model.GachaMailMessage) bool {
-		return !message.Claimed && message.Resources["forge_ore"] == 2 && message.Resources["gold"] == 100
-	})
-	require.NotEqual(t, -1, message)
-	delivered := apply(member.Id, item("mail_claim", awarded.Save.Mailbox.Messages[message].ID))
-	assert.Equal(t, first.Save.Gold+100, delivered.Save.Gold)
-	assert.Equal(t, first.Save.Mats["forge_ore"]+2, delivered.Save.Mats["forge_ore"])
+	assert.Equal(t, first.Save.Gold+100, awarded.Save.Gold)
+	assert.Equal(t, first.Save.Mats["forge_ore"]+2, awarded.Save.Mats["forge_ore"])
+	if awarded.Save.Mailbox != nil {
+		assert.False(t, slices.ContainsFunc(awarded.Save.Mailbox.Messages, func(message *model.GachaMailMessage) bool {
+			return message.ID == "action:"+claim.RequestID
+		}), "active claims must not create a second mailbox grant")
+	}
 	assert.True(t, awarded.Guild.Harbor.Beacons[0].Claimed)
 	assert.Equal(t, awarded.Revision, apply(member.Id, claim).Revision)
 	claim.RequestID = uuid.NewString()
@@ -152,6 +149,9 @@ func testGachaFleetDatabase(t *testing.T, now time.Time) {
 		}
 		state.Arena.Wins, state.Arena.Played = 4+index, 6+index
 		state.Stars["s1"], state.Stars["v2h1"], state.Stars["v3n1"], state.Stars["v4s5"] = 3, 2, 1, 3
+		for _, id := range []string{"s1", "v2h1", "v3n1", "v4s5"} {
+			state.Cleared[id] = true
+		}
 		state.Stars["res_manifest"], state.Stars["rift_fire"], state.Stars["not_a_stage"] = 3, 3, 3
 		seedGachaState(t, id, state)
 		gachaState(t, id, now)
@@ -161,7 +161,7 @@ func testGachaFleetDatabase(t *testing.T, now time.Time) {
 	require.GreaterOrEqual(t, index, 0)
 	require.Less(t, index+1, len(collection.Entries))
 	assert.Equal(t, displays[1], collection.Entries[index+1].Name)
-	assert.Equal(t, 28, collection.CatalogSize)
+	assert.Equal(t, 29, collection.CatalogSize)
 	assert.Equal(t, 27, collection.MyValue)
 	assert.EqualValues(t, index+1, collection.MyRank)
 	assert.Zero(t, board(leader.Id, "power", 0, now).MyRank)
@@ -240,7 +240,13 @@ func testGachaFleetDatabase(t *testing.T, now time.Time) {
 		for range 50 {
 			user := gachaUser(t)
 			ids = append(ids, user.Id)
-			ahead = append(ahead, model.GachaPlayer{UserID: user.Id, State: "{}", Revision: 1, FleetIndexed: true, FleetEdition: owner.FleetEdition,
+			guildState, err := common.Marshal(model.GachaGameState{Guild: &model.GachaGuildState{
+				Code: fmt.Sprintf("%08X", user.Id), Name: fmt.Sprintf("灯塔%04X", user.Id), LeaderID: user.Id,
+				Members: []model.GachaGuildMember{{UserID: user.Id, Role: "leader"}},
+				Week:    owner.FleetWeek, BossHP: 24000, BossMaxHP: 24000, RaidVersion: 1, Listed: true,
+			}})
+			require.NoError(t, err)
+			ahead = append(ahead, model.GachaPlayer{UserID: user.Id, State: model.GachaDocument(guildState), Revision: 1, FleetIndexed: true, FleetEdition: owner.FleetEdition,
 				FleetLeader: user.Id, FleetMembers: 1, FleetName: fmt.Sprintf("灯塔%04X", user.Id), FleetWeek: owner.FleetWeek, FleetScore: owner.FleetScore + 1})
 		}
 		require.NoError(t, model.DB.CreateInBatches(&ahead, 20).Error)
@@ -257,4 +263,62 @@ func testGachaFleetDatabase(t *testing.T, now time.Time) {
 		assert.Empty(t, unranked.MyName)
 		assert.Zero(t, unranked.MyLevel)
 	})
+	t.Run("guild_kick_updates_roster_and_membership_atomically", func(t *testing.T) { testGachaGuildKickDatabase(t, now) })
+}
+
+func testGachaGuildKickDatabase(t *testing.T, now time.Time) {
+	// Deliberately create the target before the leader and the deputy afterward
+	// so the transaction must lock all three rows in a non-role-based order.
+	target, leader, deputy, peer, elder, other := gachaUser(t), gachaUser(t), gachaUser(t), gachaUser(t), gachaUser(t), gachaUser(t)
+	intent := func(action string, targetID int, item string) model.GachaActionIntent {
+		request := model.GachaActionIntent{RequestID: uuid.NewString(), Action: action}
+		if targetID > 0 {
+			request.OpponentID = &targetID
+		}
+		if item != "" {
+			request.ItemID = &item
+		}
+		return request
+	}
+	apply := func(id int, request model.GachaActionIntent) *model.GachaActionResult {
+		t.Helper()
+		result, err := model.ApplyGachaAction(id, request, now)
+		require.NoError(t, err)
+		return result
+	}
+	code := apply(leader.Id, intent("guild_create", 0, "移员测试港")).Guild.Code
+	otherCode := apply(other.Id, intent("guild_create", 0, "另一测试港")).Guild.Code
+	for _, id := range []int{target.Id, deputy.Id, peer.Id, elder.Id} {
+		apply(id, intent("guild_join", 0, code))
+	}
+	apply(leader.Id, intent("guild_role", deputy.Id, "deputy"))
+	apply(leader.Id, intent("guild_role", peer.Id, "deputy"))
+	apply(leader.Id, intent("guild_role", elder.Id, "elder"))
+	for _, blocked := range [][2]int{{deputy.Id, leader.Id}, {deputy.Id, peer.Id}, {elder.Id, target.Id}, {leader.Id, leader.Id}} {
+		_, err := model.ApplyGachaAction(blocked[0], intent("guild_kick", blocked[1], ""), now)
+		require.ErrorIs(t, err, model.ErrGachaGuild)
+	}
+	saved := gachaState(t, target.Id, now)
+	saved.GuildProgress.Coins, saved.GuildProgress.Claims, saved.GuildProgress.Attempts = 515, 31, 2
+	saved.GuildProgress.Bought["ink"] = 3
+	saved.GuildProgress.Participation[code] = 31
+	seedGachaState(t, target.Id, saved)
+	kick := intent("guild_kick", target.Id, "")
+	result := apply(deputy.Id, kick)
+	assert.False(t, slices.ContainsFunc(result.Guild.Members, func(member model.GachaGuildMember) bool { return member.UserID == target.Id }))
+	after := gachaState(t, target.Id, now)
+	assert.Nil(t, after.Guild)
+	assert.Equal(t, saved.GuildProgress, after.GuildProgress)
+	apply(target.Id, intent("guild_join", 0, code))
+	apply(deputy.Id, kick)
+	assert.Equal(t, code, gachaState(t, target.Id, now).Guild.Code, "replaying an old successful kick cannot kick a rejoined player again")
+	apply(target.Id, intent("guild_leave", 0, ""))
+	apply(target.Id, intent("guild_join", 0, otherCode))
+	_, err := model.ApplyGachaAction(deputy.Id, intent("guild_kick", target.Id, ""), now)
+	require.ErrorIs(t, err, model.ErrGachaGuild)
+	assert.Equal(t, otherCode, gachaState(t, target.Id, now).Guild.Code, "a stale request cannot clear another guild's membership")
+	apply(deputy.Id, intent("guild_kick", elder.Id, ""))
+	assert.Nil(t, gachaState(t, elder.Id, now).Guild)
+	apply(leader.Id, intent("guild_kick", deputy.Id, ""))
+	assert.Nil(t, gachaState(t, deputy.Id, now).Guild)
 }

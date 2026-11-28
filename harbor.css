@@ -102,6 +102,44 @@
 .captain-meal p, .captain-duty p { margin: 3px 0; }
 .captain-duty { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #b8c9c7; }
 .captain-duty small, .captain-meal small, .captain-xp small { color: #4c5f67; }
+.captain-chest-vault { margin:20px 0 8px; padding:20px; color:#e8edf4; border:1px solid #c3a56a; border-radius:16px; background:radial-gradient(ellipse at 50% 0,#344b67 0,transparent 65%),#14243a; box-shadow:0 8px 24px #14243a20; }
+.captain-chest-vault .mode-card-head { align-items:center; margin-bottom:10px; }
+.captain-chest-vault .social-kicker { color:#b8c9db; }
+.captain-chest-vault h3 { color:#ffe2a3; margin:4px 0; }
+.captain-vault-total { flex-shrink:0; color:#d2bb8e; font-size:12px; text-align:center; }
+.captain-vault-total b { display:block; color:#ffe2a3; font-size:30px; line-height:1.1; }
+.captain-points-meter { display:block; width:100%; height:8px; margin:18px 0 12px; accent-color:#e4b962; border:0; border-radius:8px; overflow:hidden; background:#091526; }
+.captain-points-meter::-webkit-progress-bar { background:#091526; }
+.captain-points-meter::-webkit-progress-value { background:linear-gradient(90deg,#a88143,#ffe0a0); border-radius:8px; }
+.captain-points-meter::-moz-progress-bar { background:#e4b962; }
+.captain-vault-note { color:#b8c9db; font-size:12px; margin:14px 0 0; }
+.captain-orders-note { font-size:12px; color:#576c73; }
+.captain-duties .captain-duty { gap:14px; margin:9px 0; padding:15px; background:#ffffffac; border:1px solid #b8c9c7; border-radius:12px; }
+.captain-duty[data-duty-state=ready] { border-color:#ad8846; background:#fff9e9; box-shadow:inset 3px 0 #c59b4e; }
+.captain-duty[data-duty-state=claimed] { background:#e6eeeb; }
+.captain-duty-icon { display:grid; place-items:center; flex-shrink:0; width:42px; height:46px; color:#f0cd8d; background:#233c51; border:1px solid #77929b; border-radius:10px; font-size:24px; }
+.captain-duty[data-duty-state=claimed] .captain-duty-icon { color:#66807a; background:#d6e0db; border-color:#b5c6c1; }
+.captain-duty-copy { flex:1; min-width:0; }
+.captain-duty-copy h4 { display:flex; align-items:center; flex-wrap:wrap; gap:8px; color:#213e4b; }
+.captain-duty-copy h4 small { font-size:12px; padding:2px 7px; border-radius:12px; background:#e4ecea; font-variant-numeric:tabular-nums; }
+.captain-duty-copy p { font-size:13px; color:#4b6067; line-height:1.55; }
+.captain-duty-rewards { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:6px; }
+.captain-duty-rewards b { font-size:12px; font-weight:650; color:#805516; }
+.captain-duty-copy progress { display:block; width:100%; max-width:240px; height:4px; margin-top:8px; accent-color:#548b80; }
+.captain-duty > .gbtn { flex-shrink:0; min-width:104px; margin:0; }
+@media (max-width:700px) {
+  .captain-chest-vault { padding:13px 10px; margin-top:16px; border-radius:12px; }
+  .captain-chest-vault h3 { font-size:16px; }
+  .captain-vault-total { font-size:10px; }
+  .captain-vault-total b { font-size:25px; }
+  .captain-orders-note { display:none; }
+  .captain-duties .captain-duty { gap:9px; padding:12px 10px; display:grid; grid-template-columns:30px minmax(0,1fr) auto; }
+  .captain-duty-icon { width:30px; height:36px; font-size:20px; align-self:start; }
+  .captain-duty-copy { grid-column:2/4; }
+  .captain-duty > .gbtn { grid-column:3; min-width:100px; min-height:38px; }
+  .captain-duty-copy progress { max-width:none; }
+  .captain-duty-copy p { font-size:12px; }
+}
 .harbor-page { padding-bottom: 100px; }
 @media (max-width: 700px) {
   #page-home #home-hero { height: 124px; }

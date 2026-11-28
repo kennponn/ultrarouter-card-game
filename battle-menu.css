@@ -1,0 +1,96 @@
+/* Battle controls live inside the scene. Legacy report hooks stay nonvisual. */
+#page-battle #battle-hud,
+#page-battle #battle-transport,
+#page-battle #battle-log,
+#battle-turn-track > [hidden],
+#battle-menu[hidden] { display: none !important; }
+
+.battle-scene-controls {
+  position: absolute;
+  z-index: 62;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: calc(var(--battle-track-height, 46px) + 10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.battle-scene-controls button {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(252, 230, 188, .45);
+  border-radius: 50%;
+  background: rgba(18, 22, 30, .7);
+  box-shadow: 0 3px 14px #0005, inset 0 0 0 2px #ffffff08;
+  color: #fff1cc;
+  font: 700 16px/1 system-ui, sans-serif;
+  cursor: pointer;
+  backdrop-filter: blur(9px);
+}
+.battle-scene-controls button:hover { background: rgba(57, 49, 36, .9); }
+.battle-scene-controls button:disabled { opacity: .45; cursor: default; }
+.battle-scene-controls svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 3.3; stroke-linecap: round; }
+.battle-scene-controls button:focus-visible,
+.battle-menu-actions button:focus-visible { outline: 3px solid #ffe5a6; outline-offset: 4px; }
+
+#battle-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 10, 19, .73);
+  backdrop-filter: blur(7px);
+  color: #ffefd2;
+}
+.battle-menu-card {
+  box-sizing: border-box;
+  width: min(100%, 340px);
+  padding: 30px 24px 26px;
+  text-align: center;
+  border: 1px solid #d9b77980;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #242b36f5, #101620f5);
+  box-shadow: 0 22px 65px #0007, inset 0 0 0 4px #e9c78b08;
+}
+.battle-menu-mark { color: #dbb772; font: 500 28px/1 Georgia, serif; }
+#battle-menu .battle-menu-card h2 { display: block; margin: 14px 0 10px; padding: 0; color: #ffefd2; text-align: center; font-size: 23px; letter-spacing: .12em; border: 0; background: none; text-shadow: none; }
+#battle-menu .battle-menu-card h2::before, #battle-menu .battle-menu-card h2::after { display: none; }
+.battle-menu-card p { min-height: 42px; margin: 0 0 20px; color: #c8c8cc; font-size: 13px; line-height: 1.7; }
+.battle-menu-card p.is-error { color: #ffb4a4; }
+.battle-menu-actions { display: grid; gap: 12px; }
+.battle-menu-actions button {
+  min-height: 44px;
+  border: 1px solid #cba96b;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #e9cc8c, #c99b56);
+  color: #292215;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.battle-menu-actions #battle-menu-exit { background: #ffffff05; color: #e0d4bf; border-color: #baa78360; }
+.battle-menu-actions button:disabled { opacity: .5; cursor: wait; }
+#battle-scene.battle-menu-paused *,
+#battle-scene.battle-menu-paused *::before,
+#battle-scene.battle-menu-paused *::after { animation-play-state: paused !important; }
+
+@media (max-width: 700px) {
+  .battle-scene-controls { gap: 8px; }
+  .battle-scene-controls button { width: 38px; height: 38px; font-size: 14px; }
+  .battle-menu-card { padding: 24px 20px; }
+}
+@media (max-height: 420px) and (orientation: landscape) {
+  .battle-scene-controls { bottom: calc(var(--battle-track-height, 46px) + 8px); }
+  .battle-scene-controls button { width: 34px; height: 34px; }
+  .battle-menu-card { padding: 17px 24px; }
+  .battle-menu-mark { display: none; }
+  #battle-menu .battle-menu-card h2 { margin-top: 0; font-size: 20px; }
+  .battle-menu-card p { min-height: 0; margin-bottom: 14px; }
+}

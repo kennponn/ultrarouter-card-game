@@ -49,6 +49,7 @@ type GachaMirrorScene struct {
 	Pool     []string `json:"pool"`
 }
 type GachaDispatchRules struct {
+	SweepReports bool                      `json:"sweep_reports"`
 	Relics       []GachaSealedRelic        `json:"relics"`
 	Symbols      map[string]string         `json:"symbols"`
 	ClockTries   int                       `json:"clock_tries"`
@@ -462,63 +463,118 @@ func applyGachaDispatch(state *GachaGameState, intent GachaActionIntent, result 
 }
 
 func issueGachaDispatch(state *GachaGameState, stage *GachaStage, snapshot *GachaRunSnapshot) {
-	if state.Daily.Dispatch == nil || snapshot.Mode != "" || len(snapshot.Squad) == 0 {
+	if state.Daily.Dispatch == nil || stage == nil {
 		return
 	}
 	signed := state.Daily.Dispatch.Contract
-	if signed == nil || signed.Claimed || signed.Leader != snapshot.Squad[0] || signed.Progress >= dispatchClause(signed.ID).Target {
+	if signed == nil || signed.Claimed || signed.Progress >= dispatchClause(signed.ID).Target {
 		return
 	}
+	snapshot.ContractDay = state.Daily.Date
+	snapshot.ContractID = signed.ID
+}
+
+func dispatchEntryBlock(signed *GachaSignedClause, stage *GachaStage, snapshot *GachaRunSnapshot) string {
+	if snapshot.Mode != "" {
+		return "特殊玩法不是委托航线"
+	}
+	if len(snapshot.Squad) == 0 || snapshot.Squad[0] != signed.Leader {
+		return "签约角色不在出战队伍第一位"
+	}
+	point := gachaVoyage.Stages[stage.ID]
+	campaign := point != nil && (point.Kind == "story" || point.Kind == "hard" || point.Kind == "nightmare") && stage.RelicTier == 0
 	switch signed.ID {
 	case "courier":
-		if stage.RelicTier != 0 || len(snapshot.Squad) > 2 {
-			return
+		if len(snapshot.Squad) > 2 {
+			return "静默护送最多两人出战"
+		}
+		if !campaign {
+			return "须挑战主线，资源本和裂隙不计"
 		}
 	case "breach":
-		if stage.RelicTier == 0 {
-			return
+		if stage.RelicTier <= 0 {
+			return "须挑战元素裂隙"
 		}
 	case "choir":
+		if !campaign {
+			return "须挑战主线，资源本和裂隙不计"
+		}
 		elements := map[string]bool{}
 		for _, id := range snapshot.Squad {
 			if girl := gachaGirl(id); girl != nil {
 				elements[girl.Elem] = true
 			}
 		}
-		if stage.RelicTier != 0 || len(elements) < 3 {
-			return
+		if len(elements) < 3 {
+			return "出战队伍不足三种元素"
+		}
+		if slices.Contains(signed.Stages, stage.ID) {
+			return "本主线关卡已计入，须换一个关卡"
 		}
 	default:
-		return
+		return "未知委托"
 	}
-	snapshot.ContractDay = state.Daily.Date
-	snapshot.ContractID = signed.ID
+	return ""
 }
+
 func settleGachaDispatch(state *GachaGameState, stage *GachaStage, snapshot *GachaRunSnapshot, report *GachaBattleReport, result *GachaFinishResult) {
-	if !result.Win || snapshot.Mode != "" || state.Daily.Dispatch == nil || snapshot.ContractDay != state.Daily.Date {
+	if state.Daily.Dispatch == nil || snapshot.ContractDay != state.Daily.Date || snapshot.ContractID == "" {
 		return
 	}
 	signed := state.Daily.Dispatch.Contract
 	if signed == nil || signed.ID != snapshot.ContractID || signed.Claimed || signed.Progress >= dispatchClause(signed.ID).Target {
 		return
 	}
-	switch signed.ID {
-	case "courier":
-		if report.TotalN < 1 || report.TotalN != report.AliveN {
-			return
+	reason := dispatchEntryBlock(signed, stage, snapshot)
+	if reason == "" {
+		switch {
+		case !result.Win:
+			reason = "本场未取胜或已退出"
+		case signed.ID == "courier" && (report.TotalN != len(snapshot.Squad) || report.AliveN != report.TotalN):
+			reason = "须让开局的全体队员存活至胜利"
+		case signed.ID == "breach" && (report.Rounds < 1 || report.Rounds > stage.StarRound):
+			reason = "未在本关速通回合内取胜"
 		}
-	case "breach":
-		if report.Rounds > stage.StarRound {
-			return
-		}
-	case "choir":
-		if slices.Contains(signed.Stages, stage.ID) {
-			return
-		}
+	}
+	if reason != "" {
+		result.Drops = append(result.Drops, "委托未计入："+reason)
+		return
+	}
+	if signed.ID == "choir" {
 		signed.Stages = append(signed.Stages, stage.ID)
 	}
 	signed.Progress++
 	result.Drops = append(result.Drops, fmt.Sprintf("%s · 委托 %d/%d", dispatchClause(signed.ID).Name, signed.Progress, dispatchClause(signed.ID).Target))
+}
+
+func verifyGachaDispatchSweep(state *GachaGameState, point *GachaVoyagePoint, count int) ([]string, error) {
+	if !gachaDispatch.SweepReports {
+		return nil, nil
+	}
+	snapshot := GachaRunSnapshot{Squad: slices.Clone(state.Squad)}
+	issueGachaDispatch(state, &point.GachaStage, &snapshot)
+	if snapshot.ContractID == "" {
+		return nil, nil
+	}
+	signed := state.Daily.Dispatch.Contract
+	if reason := dispatchEntryBlock(signed, &point.GachaStage, &snapshot); reason != "" {
+		return []string{"委托未计入：" + reason}, nil
+	}
+	var notices []string
+	for range count {
+		report, err := SimulateGachaCombat(state, point.GachaStage)
+		if err != nil {
+			return nil, err
+		}
+		finish := GachaFinishResult{Win: report.Win}
+		progress := signed.Progress
+		settleGachaDispatch(state, &point.GachaStage, &snapshot, report, &finish)
+		notices = append(notices, finish.Drops...)
+		if signed.Progress == dispatchClause(signed.ID).Target || signed.ID == "choir" && signed.Progress > progress {
+			break
+		}
+	}
+	return notices, nil
 }
 func applyGachaSealedRelic(state *GachaGameState, units []*gachaCombatUnit) {
 	if state.Dispatch == nil || len(units) == 0 {

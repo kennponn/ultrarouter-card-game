@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "tiers": [
+    {"name":"启航","hp":100,"atk":100,"def":100},
+    {"name":"整备","hp":108,"atk":106,"def":103},
+    {"name":"试锋","hp":122,"atk":116,"def":110},
+    {"name":"会战","hp":142,"atk":132,"def":121},
+    {"name":"攻坚","hp":168,"atk":152,"def":136},
+    {"name":"破阵","hp":202,"atk":179,"def":156},
+    {"name":"深航","hp":245,"atk":212,"def":178},
+    {"name":"危境","hp":298,"atk":252,"def":206},
+    {"name":"险关","hp":365,"atk":300,"def":239},
+    {"name":"绝境","hp":445,"atk":356,"def":282},
+    {"name":"决胜","hp":535,"atk":420,"def":330}
+  ],
+  "stages": {
+    "s1":0,"s5":1,"s2":1,"s4":2,"s3":2,"s6":3,"s7":4,"s8":4,"s9":5,"s10":6,"s11":6,"s12":7,
+    "v1s1":1,"v1s2":1,"v1s3":1,"v1s4":2,"v1s5":2,"v1h1":3,"v1h2":3,"v1h3":4,"v1n1":4,"v1n2":5,
+    "v2s1":3,"v2s2":3,"v2s3":3,"v2s4":4,"v2s5":4,"v2h1":4,"v2h2":5,"v2h3":5,"v2n1":5,"v2n2":6,
+    "v3s1":5,"v3s2":5,"v3s3":5,"v3s4":6,"v3s5":6,"v3h1":6,"v3h2":6,"v3h3":7,"v3n1":7,"v3n2":8,
+    "v4s1":7,"v4s2":7,"v4s3":7,"v4s4":8,"v4s5":8,"v4h1":8,"v4h2":8,"v4h3":9,"v4n1":9,"v4n2":10,
+    "r1":1,"r2":1,"r3":2,"r4":2,"r5":3,"r6":3,"n1":2,"n2":2,"n3":3,"n4":3,"n5":4,"n6":4,
+    "res_manifest":0,"res_forge":1,"res_ink":2,"res_caravan":3,"res_mine":7,"res_salvage":7,
+    "training:1":0,"training:2":2,"training:3":4,"awakening:1":2,"awakening:2":4,"awakening:3":6,
+    "dual_trial:1":5,"dual_trial:2":7,"expedition:1":0,"expedition:2":1,"expedition:3":1,"expedition:4":2,"expedition:5":3,
+    "expedition:6":4,"expedition:7":4,"expedition:8":5,"expedition:9":6,"expedition:10":7,"weekly_boss":9
+  },
+  "encounters": {
+    "s3":{"element":"fire","mechanic":"fury"},"s6":{"element":"water","mechanic":"barrier"},
+    "s7":{"element":"water","mechanic":"venom"},"s8":{"element":"plant","mechanic":"regrowth"},"s9":{"element":"star","mechanic":"reflection"},
+    "s10":{"element":"fire","mechanic":"fury"},"s11":{"element":"water","mechanic":"barrier"},"s12":{"element":"time","mechanic":"silence"},
+    "training:2":{"level":22,"element":"plant","mechanic":"regrowth"},"training:3":{"level":42,"element":"fire","mechanic":"fury"},
+    "expedition:4":{"element":"plant","mechanic":"regrowth"},"expedition:7":{"element":"water","mechanic":"barrier"},
+    "expedition:8":{"element":"dark","mechanic":"venom"},"expedition:9":{"element":"time","mechanic":"silence"},"expedition:10":{"element":"fire","mechanic":"fury"}
+  }
+}

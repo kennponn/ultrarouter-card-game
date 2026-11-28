@@ -1,0 +1,45 @@
+{
+  "id": "c25",
+  "sources": ["growth"],
+  "name": "苏兰",
+  "rarity": "SR",
+  "elem": "plant",
+  "role": "support",
+  "atkType": "magic",
+  "img": "content/cards/c25/assets/portrait.webp",
+  "base": {
+    "hp": 1160,
+    "atk": 215,
+    "def": 85,
+    "spd": 108,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 30,
+    "res": 20
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "兰香轻雾",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "蚀甲幽香",
+      "mult": 2.4,
+      "target": "enemy",
+      "defBreak": 35,
+      "defBreakTurns": 2,
+      "desc": "对单体造成240%攻击伤害，并使其防御降低35%，持续2回合"
+    }
+  },
+  "desc": "温室调香师，能从百种花香中辨出破绽，让幽微的香气渗入敌人的护甲。",
+  "battleImg": "content/cards/c25/assets/portrait-cut.webp",
+  "fxColor": "#4fbf7f",
+  "legacyImages": {
+    "assets/c25-sulan.webp": "content/cards/c25/assets/portrait.webp",
+    "assets/c25-sulan-cut.webp": "content/cards/c25/assets/portrait-cut.webp"
+  }
+}

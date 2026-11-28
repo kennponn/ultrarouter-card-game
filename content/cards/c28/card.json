@@ -1,0 +1,45 @@
+{
+  "id": "c28",
+  "sources": ["summon", "starter", "growth"],
+  "name": "海璃",
+  "rarity": "SSR",
+  "elem": "water",
+  "role": "heal",
+  "atkType": "magic",
+  "img": "content/cards/c28/assets/portrait.webp",
+  "base": {
+    "hp": 1550,
+    "atk": 270,
+    "def": 108,
+    "spd": 103,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 35
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "潮珠微光",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "沧海安魂",
+      "mult": 0,
+      "target": "team",
+      "healMult": 2.2,
+      "shieldMult": 0.6,
+      "desc": "治疗全队（220%攻击），并给予相当于60%攻击的护盾"
+    }
+  },
+  "desc": "聆听海潮的疗愈者，在夜色中吟唱归航的曲调，以温柔潮光守住全队的生命。",
+  "battleImg": "content/cards/c28/assets/portrait-cut.webp",
+  "fxColor": "#4a7dff",
+  "legacyImages": {
+    "assets/c28-haili.webp": "content/cards/c28/assets/portrait.webp",
+    "assets/c28-haili-cut.webp": "content/cards/c28/assets/portrait-cut.webp"
+  }
+}

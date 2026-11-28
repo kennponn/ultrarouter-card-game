@@ -1,0 +1,45 @@
+{
+  "id": "c26",
+  "name": "铃绡",
+  "rarity": "SR",
+  "elem": "water",
+  "role": "support",
+  "atkType": "magic",
+  "img": "content/cards/c26/assets/portrait.webp",
+  "base": {
+    "hp": 1160,
+    "atk": 200,
+    "def": 82,
+    "spd": 114,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 20
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "绡带回旋",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "流铃踏歌",
+      "mult": 0,
+      "target": "team",
+      "healMult": 0.7,
+      "teamAtkUp": 18,
+      "buffTurns": 2,
+      "desc": "治疗全队（70%攻击），全队攻击提升18%（2回合）"
+    }
+  },
+  "desc": "水榭舞者，步摇与绡带随歌声轻摆，用清亮铃音唤回同伴的斗志。",
+  "battleImg": "content/cards/c26/assets/portrait-cut.webp",
+  "fxColor": "#4a7dff",
+  "legacyImages": {
+    "assets/c26-lingxiao.webp": "content/cards/c26/assets/portrait.webp",
+    "assets/c26-lingxiao-cut.webp": "content/cards/c26/assets/portrait-cut.webp"
+  }
+}

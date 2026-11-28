@@ -1,0 +1,187 @@
+package model_test
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/model"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+)
+
+type reviewAccount struct {
+	ID     int             `json:"id"`
+	Save   json.RawMessage `json:"save"`
+	Quota  int             `json:"quota"`
+	RunID  string          `json:"run_id,omitempty"`
+	MailID string          `json:"mail_id"`
+}
+type reviewCorpus struct {
+	At       int64           `json:"at"`
+	Accounts []reviewAccount `json:"accounts"`
+}
+
+func reviewOpenUpgrade(t *testing.T, engine string) {
+	t.Helper()
+	switch engine {
+	case "sqlite":
+		t.Setenv("SQL_DSN", "local")
+		common.SQLitePath = "/out/upgrade.sqlite?_pragma=busy_timeout(30000)&_pragma=journal_mode(WAL)&_txlock=immediate"
+	case "mysql":
+		t.Setenv("SQL_DSN", "root@unix(/var/run/mysqld/mysqld.sock)/gacha_upgrade_test?parseTime=true")
+	case "postgres":
+		t.Setenv("SQL_DSN", "host=/var/run/postgresql user=root dbname=gacha_upgrade_test sslmode=disable")
+	}
+	common.IsMasterNode = true
+	common.RedisEnabled = false
+	require.NoError(t, model.InitDB())
+	model.LOG_DB = model.DB
+	t.Cleanup(func() { db, err := model.DB.DB(); require.NoError(t, err); require.NoError(t, db.Close()) })
+}
+func reviewAccountAssets(state *model.GachaGameState) map[string]any {
+	data, err := json.Marshal(state)
+	if err != nil {
+		panic(err)
+	}
+	var fields map[string]any
+	if err = json.Unmarshal(data, &fields); err != nil {
+		panic(err)
+	}
+	out := map[string]any{}
+	for _, key := range []string{"squad", "girls", "gold", "stamina", "token", "multi", "mats", "gem_inventory", "chip_inventory", "sigils", "carry_inventory", "cleared", "stars", "mailbox"} {
+		if _, exists := fields[key]; !exists {
+			panic("asset comparison field absent from serialized save: " + key)
+		}
+		out[key] = fields[key]
+	}
+	return out
+}
+
+func TestReviewProduceLegacy(t *testing.T) {
+	if os.Getenv("REVIEW_PHASE") != "baseline" {
+		t.Skip("legacy producer is run only on the immutable upstream source")
+	}
+	for _, engine := range []string{"sqlite", "mysql", "postgres"} {
+		t.Run(engine, func(t *testing.T) {
+			reviewOpenUpgrade(t, engine)
+			now := time.Date(2026, time.November, 27, 10, 0, 0, 0, time.UTC)
+			corpus := reviewCorpus{At: now.UnixMilli()}
+			for i := 0; i < 96; i++ {
+				user := gachaUser(t)
+				state := gachaState(t, user.Id, now)
+				strongGachaState(state)
+				state.Gold = 10000 + i*13
+				state.Token = 200 + i
+				state.Stamina = 120
+				state.Mats["training_ink"] = 200 + i
+				state.GemInventory["ruby"] = 1 + i%7
+				state.CarryInventory["keepsake_lens"] = 1 + i%5
+				sigil := gachaTestSigil("astral", 1+i%3)
+				state.Sigils[sigil.ID] = sigil
+				state.Girls[state.Squad[0]].Sigil = sigil.ID
+				state.Girls["c01"] = &model.GachaOwnedGirl{Star: 3, Level: 40}
+				state.Girls["c06"] = &model.GachaOwnedGirl{Star: 3, Level: 40}
+				state.Cleared["s1"] = true
+				state.Stars["s1"] = 1 + i%3
+				seedGachaState(t, user.Id, state)
+				gift := "STARFROST2026"
+				_, err := model.ApplyGachaAction(user.Id, model.GachaActionIntent{Action: "redeem_code", ItemID: &gift, RequestID: uuid.NewString()}, now)
+				require.NoError(t, err)
+				if i%4 == 0 {
+					name := fmt.Sprintf("迁移样本%02d", i)
+					_, err = model.ApplyGachaAction(user.Id, model.GachaActionIntent{Action: "guild_create", ItemID: &name, RequestID: uuid.NewString()}, now)
+					require.NoError(t, err)
+					state = gachaState(t, user.Id, now)
+					state.Guild.BossHP = 1 + i*227
+					state.Guild.TotalDamage = state.Guild.BossMaxHP - state.Guild.BossHP
+					state.Guild.MyDamage = state.Guild.TotalDamage
+					seedGachaState(t, user.Id, state)
+				}
+				record := reviewAccount{ID: user.Id, Quota: user.Quota, MailID: "gift:welcome-2026"}
+				if i%8 == 0 {
+					run, err := model.StartGachaRun(user.Id, "s1", uuid.NewString(), now)
+					require.NoError(t, err)
+					record.RunID = run.ID
+				}
+				state = gachaState(t, user.Id, now)
+				record.Save, err = json.Marshal(state)
+				require.NoError(t, err)
+				corpus.Accounts = append(corpus.Accounts, record)
+			}
+			data, err := json.MarshalIndent(corpus, "", "  ")
+			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(filepath.Join("/out", engine+"-legacy-corpus.json"), data, 0600))
+			t.Logf("produced 96 real upstream accounts, 24 partially damaged guilds, 12 unsettled battles, 96 gift attachments: %s", engine)
+		})
+	}
+}
+
+func TestReviewUpgradeLegacy(t *testing.T) {
+	if os.Getenv("REVIEW_PHASE") != "candidate" {
+		t.Skip("upgrade consumer is run only on candidate source")
+	}
+	for _, engine := range []string{"sqlite", "mysql", "postgres"} {
+		t.Run(engine, func(t *testing.T) {
+			reviewOpenUpgrade(t, engine)
+			bytes, err := os.ReadFile(filepath.Join("/out", engine+"-legacy-corpus.json"))
+			require.NoError(t, err)
+			var corpus reviewCorpus
+			require.NoError(t, json.Unmarshal(bytes, &corpus))
+			require.Len(t, corpus.Accounts, 96)
+			now := time.UnixMilli(corpus.At).Add(time.Second)
+			for _, record := range corpus.Accounts {
+				t.Run(fmt.Sprintf("account_%d", record.ID), func(t *testing.T) {
+					var old model.GachaGameState
+					require.NoError(t, json.Unmarshal(record.Save, &old))
+					state := gachaState(t, record.ID, now)
+					require.Equal(t, reviewAccountAssets(&old), reviewAccountAssets(state), "upgrade preserves each owned asset, squad order, mail, and earned star")
+					again := gachaState(t, record.ID, now)
+					require.Equal(t, reviewAccountAssets(state), reviewAccountAssets(again), "normalization is idempotent")
+					var user model.User
+					require.NoError(t, model.DB.First(&user, record.ID).Error)
+					require.Equal(t, record.Quota, user.Quota)
+					if old.Guild != nil {
+						require.NotNil(t, state.Guild)
+						require.Equal(t, int((int64(old.Guild.BossHP)*1300000+23999)/24000), state.Guild.BossHP)
+						require.Equal(t, old.Guild.MyDamage, state.Guild.MyDamage)
+					}
+					if record.RunID != "" {
+						before := state.Gold
+						result, err := model.FinishGachaRun(record.ID, record.RunID, true, now.Add(time.Second))
+						require.NoError(t, err)
+						require.False(t, result.Win)
+						replay, err := model.FinishGachaRun(record.ID, record.RunID, true, now.Add(2*time.Second))
+						require.NoError(t, err)
+						require.Equal(t, result, replay)
+						require.Equal(t, before, gachaState(t, record.ID, now.Add(2*time.Second)).Gold)
+					}
+					state = gachaState(t, record.ID, now.Add(3*time.Second))
+					before := state.Gold
+					claim := model.GachaActionIntent{Action: "mail_claim", ItemID: &record.MailID, RequestID: uuid.NewString()}
+					paid, err := model.ApplyGachaAction(record.ID, claim, now.Add(3*time.Second))
+					require.NoError(t, err)
+					require.Equal(t, before+300, paid.Save.Gold)
+					replay, err := model.ApplyGachaAction(record.ID, claim, now.Add(4*time.Second))
+					require.NoError(t, err)
+					require.Equal(t, paid, replay)
+					claim.RequestID = uuid.NewString()
+					_, err = model.ApplyGachaAction(record.ID, claim, now.Add(4*time.Second))
+					require.ErrorIs(t, err, model.ErrGachaMailUnavailable)
+					code := "STARFROST2026"
+					_, err = model.ApplyGachaAction(record.ID, model.GachaActionIntent{Action: "redeem_code", ItemID: &code, RequestID: uuid.NewString()}, now.Add(4*time.Second))
+					require.ErrorIs(t, err, model.ErrGachaRedeemCode)
+					squad := append(append([]string{}, old.Squad...), "c01", "c06")
+					require.Len(t, squad, 6)
+					out, err := model.ApplyGachaAction(record.ID, model.GachaActionIntent{Action: "squad", Squad: &squad, RequestID: uuid.NewString()}, now.Add(5*time.Second))
+					require.NoError(t, err)
+					require.Equal(t, squad, out.Save.Squad)
+				})
+			}
+			t.Logf("upgraded 96 accounts; preserved inventory/wallet/stars/mail; 24 proportional guild upgrades; 12 old run replays; 96 one-time old gift claims; 96 six-slot formations: %s", engine)
+		})
+	}
+}

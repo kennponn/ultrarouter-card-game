@@ -23,9 +23,11 @@ type GachaCarrySet struct {
 }
 
 type GachaCarryRules struct {
-	Items map[string]GachaCarryItem `json:"items"`
-	Sets  map[string]GachaCarrySet  `json:"sets"`
-	Drops map[string]int            `json:"drops"`
+	Items   map[string]GachaCarryItem `json:"items"`
+	Sets    map[string]GachaCarrySet  `json:"sets"`
+	Drops   map[string]int            `json:"drops"`
+	LevelXP []int                     `json:"level_xp"`
+	Stones  map[string]int            `json:"stones"`
 }
 
 //go:embed gacha_carry.json
@@ -41,8 +43,9 @@ var gachaCarry = func() GachaCarryRules {
 
 func validGachaCarryState(state *GachaGameState) bool {
 	worn := map[string]int{}
+	maximum := gachaCarry.LevelXP[len(gachaCarry.LevelXP)-1]
 	for _, own := range state.Girls {
-		if own == nil {
+		if own == nil || own.CarryXP < 0 || own.CarryXP > maximum || own.Carry == "" && own.CarryXP != 0 {
 			return false
 		}
 		if own.Carry != "" {
@@ -57,7 +60,47 @@ func validGachaCarryState(state *GachaGameState) bool {
 			return false
 		}
 	}
+	for id, copies := range state.CarryStoredXP {
+		if _, known := gachaCarry.Items[id]; !known {
+			return false
+		}
+		remaining := state.CarryInventory[id]
+		for xp, count := range copies {
+			if xp <= 0 || xp > maximum || count < 1 || count > remaining {
+				return false
+			}
+			remaining -= count
+		}
+	}
 	return true
+}
+
+func gachaCarryLevel(xp int) int {
+	level := 1
+	for index, threshold := range gachaCarry.LevelXP {
+		if xp < threshold {
+			break
+		}
+		level = index + 1
+	}
+	return level
+}
+
+func grantGachaCarry(state *GachaGameState, id string, amount int) error {
+	owned := state.CarryInventory[id]
+	for _, girl := range state.Girls {
+		if girl != nil && girl.Carry == id {
+			owned++
+		}
+	}
+	if _, ok := gachaCarry.Items[id]; !ok || amount < 1 || owned > gachaMaxResource-amount {
+		return ErrGachaCapacity
+	}
+	if state.CarryInventory == nil {
+		state.CarryInventory = map[string]int{}
+	}
+	state.CarryInventory[id] += amount
+	return nil
 }
 
 func validateGachaCarryIntent(intent GachaActionIntent) error {
@@ -65,6 +108,11 @@ func validateGachaCarryIntent(intent GachaActionIntent) error {
 		return ErrGachaIntent
 	}
 	switch intent.Action {
+	case "carry_enhance":
+		if intent.GirlID == nil || gachaGirl(*intent.GirlID) == nil || intent.ItemID == nil || gachaCarry.Stones[*intent.ItemID] <= 0 {
+			return ErrGachaIntent
+		}
+		return nil
 	case "carry_craft":
 		if intent.GirlID != nil || intent.ItemID == nil {
 			return ErrGachaIntent
@@ -91,33 +139,37 @@ func applyGachaCarryAction(state *GachaGameState, intent GachaActionIntent, resu
 	if intent.Action == "carry_craft" {
 		id := *intent.ItemID
 		item := gachaCarry.Items[id]
-		owned := state.CarryInventory[id]
-		if owned >= gachaMaxResource {
-			return ErrGachaCapacity
-		}
-		for _, girl := range state.Girls {
-			if girl.Carry == id {
-				owned++
-				if owned >= gachaMaxResource {
-					return ErrGachaCapacity
-				}
-			}
-		}
 		for mat, cost := range item.Recipe {
 			if state.Mats[mat] < cost {
 				return ErrGachaFunds
 			}
 		}
+		if err := grantGachaCarry(state, id, 1); err != nil {
+			return err
+		}
 		for mat, cost := range item.Recipe {
 			state.Mats[mat] -= cost
 		}
-		state.CarryInventory[id]++
 		result.Drops = append(result.Drops, gachaItems.Items[id].Name+" x1")
 		return nil
 	}
 	own := state.Girls[*intent.GirlID]
 	if !gachaCardOwned(own) {
 		return ErrGachaIntent
+	}
+	if intent.Action == "carry_enhance" {
+		stone := *intent.ItemID
+		maximum := gachaCarry.LevelXP[len(gachaCarry.LevelXP)-1]
+		if own.Carry == "" || own.CarryXP >= maximum {
+			return ErrGachaCultivationLocked
+		}
+		if state.Mats[stone] < 1 {
+			return ErrGachaFunds
+		}
+		state.Mats[stone]--
+		own.CarryXP = min(maximum, own.CarryXP+gachaCarry.Stones[stone])
+		result.Drops = append(result.Drops, fmt.Sprintf("%s · 等级 %d / 经验 %d", gachaItems.Items[own.Carry].Name, gachaCarryLevel(own.CarryXP), own.CarryXP))
+		return nil
 	}
 	next := ""
 	if intent.ItemID != nil {
@@ -134,9 +186,29 @@ func applyGachaCarryAction(state *GachaGameState, intent GachaActionIntent, resu
 			return ErrGachaCapacity
 		}
 		state.CarryInventory[own.Carry]++
+		if own.CarryXP > 0 {
+			if state.CarryStoredXP == nil {
+				state.CarryStoredXP = map[string]map[int]int{}
+			}
+			if state.CarryStoredXP[own.Carry] == nil {
+				state.CarryStoredXP[own.Carry] = map[int]int{}
+			}
+			state.CarryStoredXP[own.Carry][own.CarryXP]++
+		}
 		result.Drops = append(result.Drops, "已归还 · "+gachaItems.Items[own.Carry].Name)
 	}
+	own.CarryXP = 0
 	if next != "" {
+		copies := state.CarryStoredXP[next]
+		for xp := range copies {
+			own.CarryXP = max(own.CarryXP, xp)
+		}
+		if own.CarryXP > 0 {
+			copies[own.CarryXP]--
+			if copies[own.CarryXP] == 0 {
+				delete(copies, own.CarryXP)
+			}
+		}
 		state.CarryInventory[next]--
 		result.Drops = append(result.Drops, "已携带 · "+gachaItems.Items[next].Name)
 	}

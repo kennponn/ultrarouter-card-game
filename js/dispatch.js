@@ -57,11 +57,24 @@ function dispatchClockPick(id) {
   const draft = view.clockDraft ||= []; if (id === "undo") draft.pop(); else if (Object.hasOwn(rules.symbols,id) && !draft.includes(id)) draft.push(id); else return;
   paintWorkshop();
 }
+function dispatchLineupStatus(clauseID,leaderID,squad = SAVE.squad) {
+  if (!squad?.length || squad[0] !== leaderID) return {code:"leader",text:"请将签约角色放在编队第一位。"};
+  if (clauseID === "courier" && squad.length > 2) return {code:"size",text:"静默护送最多两人，请移出多余的队员。"};
+  if (clauseID === "choir" && new Set(squad.map(id => GIRLS.find(girl => girl.id === id)?.elem).filter(Boolean)).size < 3) return {code:"elements",text:"三色巡灯需要至少三种不同元素。"};
+  return {code:"ready",text:"当前编队符合出战条件；是否计数以本次服务器战报为准。"};
+}
+
 function dispatchContractPage(view,rules,contract) {
   const heroName = id => GIRLS.find(girl => girl.id === id)?.name || id;
-  return `${dispatchNote(`北京零点换约。只能选择其中一份，以${esc(heroName(view.id))}签约；只有签约后新开、且在当日结算的战斗才计入。`)}<div class="dp-clauses">${rules.contracts.map((clause,index) => {
+  const sweeps = rules.sweep_reports === true ? "可扫荡的主线由服务器逐场核验，不凭历史三星加次数。" : "当前服务器未提供扫荡委托战报，请手动出战。";
+  return `${dispatchNote(`北京零点换约。签约不会更改编队；只有签约后新开、当日结算的合格战报才计数。${sweeps}`)}<div class="dp-clauses">${rules.contracts.map((clause,index) => {
     const mine = clause.id === contract?.id, ready = mine && contract.progress >= clause.target && !contract.claimed;
-    return `<article class="${mine ? "is-current" : ""}"><small>契约 0${index+1}</small><h4>${esc(clause.name)}</h4><p>${esc(clause.rule)}</p><strong>${dispatchPay(clause.reward)}</strong>${mine ? `<p>领队 ${esc(heroName(contract.leader))} · ${contract.progress}/${clause.target}</p>${dispatchButton("dispatch_contract_claim",contract.claimed ? "已领取" : "交付战报领奖",ready)}` : dispatchButton("contract_sign",contract ? "与已签条款互斥" : `以${esc(heroName(view.id))}签下`,!contract,clause.id)}</article>`;
+    let guidance = "";
+    if (mine && !ready && !contract.claimed) {
+      const status = dispatchLineupStatus(clause.id,contract.leader), rift = clause.id === "breach";
+      guidance = `<p data-dispatch-lineup="${status.code}">实际出战：${esc((SAVE.squad || []).map(heroName).join("、") || "未编队")}。${esc(status.text)}</p><div class="dp-choices"><button type="button" onclick="closeModal();nav('page-squad')">调整编队</button><button type="button" onclick="closeModal();openVoyage('${rift ? 'rifts' : 'story'}')">${rift ? "前往元素裂隙" : "前往主线"}</button></div>`;
+    }
+    return `<article class="${mine ? "is-current" : ""}"><small>契约 0${index+1}</small><h4>${esc(clause.name)}</h4><p>${esc(clause.rule)}</p><strong>${dispatchPay(clause.reward)}</strong>${mine ? `<p>签约领队 ${esc(heroName(contract.leader))} · ${contract.progress}/${clause.target}</p>${guidance}${dispatchButton("dispatch_contract_claim",contract.claimed ? "已领取" : "交付战报领奖",ready)}` : dispatchButton("contract_sign",contract ? "与已签条款互斥" : `以${esc(heroName(view.id))}签下`,!contract,clause.id)}</article>`;
   }).join("")}</div>`;
 }
 function dispatchRoutePage(rules,route) {

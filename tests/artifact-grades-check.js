@@ -10,7 +10,7 @@ const plain = value=>JSON.parse(JSON.stringify(value));
 function fixture() {
   const own={star:5,level:40,sockets:3,gems:["ruby~red!2.1","ruby@6","ruby~white"],chips:["edge_1~gold!2.1","edge_2~blue"]};
   const save={girls:{c01:own},squad:["c01"],mats:{gear_thread:6,gear_plate:6,forge_ore:10,gear_rivet:2,gem_ticket:1,chip_ticket:1},gem_inventory:{"ruby~red!2.1":1,"ruby~red":3,ruby:2},chip_inventory:{"edge_1~orange":2}};
-  const panel={innerHTML:""}, store={profile,sessionEpoch:1,ready:()=>true}, ctx=vm.createContext({Store:store,save,esc:String,document:{querySelectorAll:()=>[],getElementById:()=>panel}});
+  const panel={innerHTML:"",dataset:{}}, store={profile,sessionEpoch:1,ready:()=>true}, ctx=vm.createContext({Store:store,save,esc:String,document:{querySelectorAll:()=>[],getElementById:()=>panel}});
   const api=vm.runInContext(["data","atelier","workshop"].map(name=>read(`js/${name}.js`)).join("\n;\n")+`\n;SAVE=save;({artifactIdentity,artifactProgressKey,artifactGradeEffects,artifactPrices,artifactBonuses,equippedRefinement,refinementItem,workshopItems,workshopItemIcon,workshopSlotInfo,workshopSlotControls,workshopRefinementInfo,workshopSlotAction,workshopBagBody,atelierItemDetails,workshopDrawReceipt,renderArtifactPool,drawPoolState,setView(view){workshopView=view},setBag(tab){workshopBag.tab=tab}})`,ctx);
   ctx.growthHeroOptions=()=>"";
   return {api,store,own,save,panel};

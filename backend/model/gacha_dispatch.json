@@ -1,4 +1,5 @@
 {
+  "sweep_reports":true,
   "relics":[
     {"id":"bell","name":"倒鸣铃","quality":"purple","case":"silent_bell","ending":"revealed","cost":{"echo":3,"ember":1},"gain":"第一位开场怒气 +28","loss":"开场失去最大生命的 10%，不会致死","value":28,"price":10},
     {"id":"shroud","name":"不湿的雨衣","quality":"gold","case":"paper_rain","ending":"filed","cost":{"key":2,"echo":2},"gain":"第一位开场获得最大生命 18% 的护盾","loss":"每次普攻少回 10 怒","value":18,"price":10},

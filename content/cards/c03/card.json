@@ -1,0 +1,46 @@
+{
+  "id": "c03",
+  "sources": ["world"],
+  "name": "寻宝女王",
+  "rarity": "SSR",
+  "elem": "water",
+  "role": "support",
+  "atkType": "ranged",
+  "img": "content/cards/c03/assets/portrait.webp",
+  "base": {
+    "hp": 1350,
+    "atk": 245,
+    "def": 100,
+    "spd": 112,
+    "cr": 10,
+    "cd": 155,
+    "ehr": 0,
+    "res": 20
+  },
+  "matBonus": 0.15,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "提灯敲击",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "宝藏地图",
+      "mult": 0,
+      "target": "team",
+      "teamAtkUp": 20,
+      "buffTurns": 2,
+      "goldBonus": 0.3,
+      "desc": "全队攻击提升20%（2回合），本次副本金币掉落+30%"
+    }
+  },
+  "desc": "探险家女王，上阵时材料掉落+15%。",
+  "battleImg": "content/cards/c03/assets/portrait-cut.webp",
+  "fxColor": "#6ec6ff",
+  "legacyImages": {
+    "assets/c03-queen.webp": "content/cards/c03/assets/portrait.webp",
+    "assets/c03-queen-cut.webp": "content/cards/c03/assets/portrait-cut.webp"
+  }
+}

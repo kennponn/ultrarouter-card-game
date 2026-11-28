@@ -1,0 +1,18 @@
+{
+  "name": "暗影法师",
+  "img": "content/enemies/mage/assets/portrait.webp",
+  "elem": "dark",
+  "atkType": "magic",
+  "hpM": 0.8,
+  "atkM": 1.2,
+  "defM": 0.7,
+  "spd": 105,
+  "boss": false,
+  "id": "mage",
+  "battleImg": "content/enemies/mage/assets/portrait-cut.webp",
+  "legacyImages": {
+    "assets/gen/enemy-mage.webp": "content/enemies/mage/assets/portrait.webp",
+    "assets/gen/enemy-mage-cut.webp": "content/enemies/mage/assets/portrait-cut.webp",
+    "assets/enemy-mage-cut.webp": "content/enemies/mage/assets/portrait-cut.webp"
+  }
+}
