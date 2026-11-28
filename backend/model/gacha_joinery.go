@@ -531,37 +531,20 @@ func (b *gachaCombat) actJoinery(u *gachaCombatUnit, team, foes []*gachaCombatUn
 	return e
 }
 
-func joineryDebuffFlags(u *gachaCombatUnit) []bool {
-	j := u.Joinery
-	return []bool{u.StunT > 0, j.Confused > 0, j.HealBlock > 0, j.Bound > 0, j.Heavy > 0, u.DotT > 0, u.SlowT > 0, u.DefBreakT > 0, j.Suppressed > 0}
-}
-
-func (b *gachaCombat) joineryDebuffSnapshot() map[*gachaCombatUnit][]bool {
-	before := map[*gachaCombatUnit][]bool{}
-	if len(b.joiners) > 0 {
-		for _, u := range b.joineryUnits() {
-			before[u] = joineryDebuffFlags(u)
-		}
+// Count application events, before another hit can cleanse/kill the recipient.
+// Refreshing an existing status is not a new debuff. Queue playback until the
+// action is recorded, while applying the cleanse immediately for following hits.
+func (b *gachaCombat) joineryNewDebuff(target *gachaCombatUnit, wasActive bool) {
+	if wasActive || !target.Alive || target.Joinery == nil {
+		return
 	}
-	return before
-}
-
-func (b *gachaCombat) observeJoineryDebuffs(before map[*gachaCombatUnit][]bool) {
 	for _, owner := range b.joiners {
-		if !joineryActive(owner) || owner.StunT > 0 || owner.Joinery.Confused > 0 {
+		if owner.Side != target.Side || !joineryActive(owner) || owner.StunT > 0 || owner.Joinery.Confused > 0 {
 			continue
 		}
 		team, _ := b.joineryTeam(owner)
-		for _, u := range team {
-			if old, ok := before[u]; ok {
-				for i, active := range joineryDebuffFlags(u) {
-					if active && !old[i] {
-						owner.Joinery.DebuffMeter++
-					}
-				}
-			}
-		}
 		j := owner.Joinery
+		j.DebuffMeter++
 		if j.DebuffMeter >= 3 && j.CleanRound != b.rounds {
 			j.DebuffMeter -= 3
 			j.CleanRound = b.rounds
@@ -571,5 +554,4 @@ func (b *gachaCombat) observeJoineryDebuffs(before map[*gachaCombatUnit][]bool) 
 			}
 		}
 	}
-	b.flushJoinery()
 }

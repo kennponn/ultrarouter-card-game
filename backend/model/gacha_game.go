@@ -1635,7 +1635,7 @@ func FinishGachaRun(userID int, runID string, abandon bool, now time.Time) (*Gac
 		}
 		*result = GachaFinishResult{Win: report.Win && !abandon, Drops: []string{}, Rounds: report.Rounds, AliveN: report.AliveN, TotalN: report.TotalN, Fast: report.Rounds <= stage.StarRound}
 		settleGachaCaptainRun(state, stage, &snapshot, result)
-		if snapshot.RulesVersion >= gachaExperienceLootVersion && !directed {
+		if snapshot.RulesVersion >= gachaExperienceLootVersion {
 			settleGachaDispatch(state, stage, &snapshot, &report, result)
 		}
 		if result.Win && stage.Cost > 0 {

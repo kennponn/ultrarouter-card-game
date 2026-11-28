@@ -292,8 +292,6 @@ func settleGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint, snap
 	state.Cleared[point.ID] = true
 	state.Stars[point.ID] = max(report.Stars, state.Stars[point.ID])
 	settleGachaVigil(state, &point.GachaStage, snapshot, report, result)
-	if point.Kind != "resources" {
-		settleGachaDispatch(state, &point.GachaStage, snapshot, report, result)
-	}
+	// Dispatch is settled once by FinishGachaRun, including losses and abandonment.
 	return nil
 }

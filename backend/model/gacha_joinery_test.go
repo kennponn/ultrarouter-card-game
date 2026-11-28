@@ -370,25 +370,29 @@ func TestJoineryDebuffFollowUpCountsFreshKindsAndHonorsControl(t *testing.T) {
 	b, u := joineryBattle(t)
 	patient := b.allies[2]
 	patient.HP = 100
-	before := b.joineryDebuffSnapshot()
 	patient.StunT = 2
+	b.joineryNewDebuff(patient, false)
 	patient.SlowT = 2
 	patient.Slow = 20
+	b.joineryNewDebuff(patient, false)
 	patient.DotT = 2
 	patient.Dot = 10
-	b.observeJoineryDebuffs(before)
+	b.joineryNewDebuff(patient, false)
 	require.Zero(t, patient.StunT)
 	require.Equal(t, 1, u.Joinery.CleanRound)
-	before = b.joineryDebuffSnapshot()
 	patient.SlowT = 4
 	patient.DotT = 4
-	b.observeJoineryDebuffs(before)
+	b.joineryNewDebuff(patient, true)
 	require.Zero(t, u.Joinery.DebuffMeter)
 	u.StunT = 2
-	before = b.joineryDebuffSnapshot()
 	patient.DefBreakT = 2
-	b.observeJoineryDebuffs(before)
+	b.joineryNewDebuff(patient, false)
 	require.Zero(t, u.Joinery.DebuffMeter)
+	u.StunT = 0
+	patient.StunT = 1
+	b.joineryNewDebuff(patient, false)
+	patient.StunT = 0 // A later hit cleansing the status cannot erase its application.
+	require.Equal(t, 1, u.Joinery.DebuffMeter)
 }
 
 func TestJoinerySnapshotsAreImmutableAndBothPvPSidesWork(t *testing.T) {

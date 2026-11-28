@@ -584,5 +584,36 @@
         "height": 70
       }
     ]
+  },
+  "xs039_runtime_art": {
+    "source": "User-supplied completed battle-system card xs039",
+    "imported_on": "2026-11-28",
+    "method": "Unmodified copy of six runtime WebP files",
+    "files": [
+      {
+        "path": "content/cards/xs039/assets/portrait-cut.webp",
+        "sha256": "8e1e2397b87f898e6da74164b68b4bbb5b860f7aea36903a924299096c545aad"
+      },
+      {
+        "path": "content/cards/xs039/assets/portrait.webp",
+        "sha256": "903b75e35ec2c4b520808c3b6980372d7b770204d95061110e22e82512bd5edf"
+      },
+      {
+        "path": "content/cards/xs039/assets/fx/skill/cast.webp",
+        "sha256": "566c692ad5c5b2821a7fe3893873e4e5d5dbe9db9cb3c98dc03d84889147c9de"
+      },
+      {
+        "path": "content/cards/xs039/assets/fx/skill/impact.webp",
+        "sha256": "03f999cc43e071021d8fdbe31420e5c42d414091115f05fda6ff87d541747352"
+      },
+      {
+        "path": "content/cards/xs039/assets/fx/xs039-skill-2/cast.webp",
+        "sha256": "7100baaa3245b374ef6f7836de89eb94d7f63d0b2a7b848cf32f3bb588d269d4"
+      },
+      {
+        "path": "content/cards/xs039/assets/fx/xs039-skill-2/impact.webp",
+        "sha256": "998f867309869699ac260e67cc97da551c737ba02943b5d63549a027258e7fc0"
+      }
+    ]
   }
 }

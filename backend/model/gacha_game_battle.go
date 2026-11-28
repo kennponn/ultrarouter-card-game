@@ -705,13 +705,17 @@ func (b *gachaCombat) damageOptions(src, dst *gachaCombatUnit, mult float64, ign
 	}
 	if src.Alive && dst.Alive && src.dotChance > 0 && b.rng.Float64() < min(1, max(0, src.dotChance+float64(src.EHR-dst.Res)/200)) {
 		dot := min(int(math.Round(float64(dst.MaxHP)*src.dotPct)), int(math.Round(src.effectiveAttack()*src.dotCap)))
+		wasActive := dst.DotT > 0
 		dst.Dot, dst.DotT = max(dst.Dot, max(1, dot)), 2
+		b.joineryNewDebuff(dst, wasActive)
 	}
 	if src.activeSkill != nil {
 		skill := src.activeSkill
 		if src.Alive && dst.Alive && skill.DotPct > 0 && b.rng.Float64() < min(1, max(0, 1+float64(src.EHR-dst.Res)/200)) {
 			dot := min(int(math.Round(float64(dst.MaxHP)*skill.DotPct)), int(math.Round(src.effectiveAttack()*skill.DotCap)))
+			wasActive := dst.DotT > 0
 			dst.Dot, dst.DotT = max(dst.Dot, max(1, dot)), 2
+			b.joineryNewDebuff(dst, wasActive)
 		}
 		if dst.Alive && skill.RageDrain > 0 {
 			result.RageDelta = -min(dst.Rage, skill.RageDrain)
@@ -824,8 +828,7 @@ func gachaElementMultiplier(attacker, defender string) (float64, string) {
 
 func (b *gachaCombat) act(u *gachaCombatUnit) {
 	acted := false
-	before := b.joineryDebuffSnapshot()
-	defer func() { b.observeJoineryDebuffs(before); b.joineryAfterAction(u, acted) }()
+	defer func() { b.joineryAfterAction(u, acted) }()
 	cooldownBlocked := u.Joinery != nil && u.Joinery.Cooldown > 0
 	if cooldownBlocked {
 		u.Joinery.Cooldown--
@@ -907,7 +910,9 @@ func (b *gachaCombat) act(u *gachaCombatUnit) {
 				}
 				event.Targets = append(event.Targets, b.damage(u, f, skill.Mult, skill.IgnoreDefPct))
 				if f.Alive && skill.Slow > 0 {
+					wasActive := f.SlowT > 0
 					f.Slow, f.SlowT = skill.Slow, max(1, skill.SlowTurns)
+					b.joineryNewDebuff(f, wasActive)
 				}
 			}
 		case "team", "self":
@@ -964,10 +969,14 @@ func (b *gachaCombat) act(u *gachaCombatUnit) {
 			event.DurationMS += 150 * (len(event.Targets) - 1)
 			if target.Alive {
 				if skill.DefBreak > 0 {
+					wasActive := target.DefBreakT > 0
 					target.DefBreak, target.DefBreakT = skill.DefBreak, max(1, skill.DefBreakTurns)
+					b.joineryNewDebuff(target, wasActive)
 				}
 				if skill.StunChance > 0 && b.rng.Float64() < min(1, max(0, skill.StunChance+float64(u.EHR-target.Res)/200)) {
+					wasActive := target.StunT > 0
 					target.StunT = max(1, skill.StunTurns)
+					b.joineryNewDebuff(target, wasActive)
 				}
 			}
 		}
@@ -987,7 +996,9 @@ func (b *gachaCombat) act(u *gachaCombatUnit) {
 			case "venom":
 				if b.rng.Float64() < max(0.1, 0.8-float64(target.Res)/150) {
 					dot := min(int(math.Round(float64(target.MaxHP)*0.02)), int(math.Round(u.effectiveAttack()*0.75)))
+					wasActive := target.DotT > 0
 					target.Dot, target.DotT = max(target.Dot, max(1, dot)), 2
+					b.joineryNewDebuff(target, wasActive)
 				}
 			case "silence":
 				if b.rounds%2 == 0 {

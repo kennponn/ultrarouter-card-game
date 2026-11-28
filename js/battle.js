@@ -97,7 +97,9 @@ function unitHTML(u, idx) {
   </div>`;
 }
 function unitStatusMarkup(u) {
-  return `${u.dotT > 0 ? `<span class="poison-state" title="每次行动受到侵蚀，治疗与吸血减半">侵蚀 ${u.dotT}</span>` : ""}${u.stunT > 0 ? '<span>眩晕</span>' : ""}${u.shield > 0 ? '<span class="shield-state">护盾</span>' : ""}${u.reflectT > 0 ? `<span class="shield-state">盾反${u.reflectPct}%</span>` : ""}${u.atkUp > 0 ? `<span>攻+${u.atkUp}%</span>` : ""}${u.defUp > 0 ? `<span>防+${u.defUp}%</span>` : ""}${u.taunt > 0 ? '<span>嘲讽</span>' : ""}${u.defBreakT > 0 ? '<span>破甲</span>' : ""}${u.slowT > 0 ? '<span>减速</span>' : ""}${u.extra ? '<span>再动</span>' : ""}`;
+  const j = u.joinery;
+  const joinery = j ? `${u.girlId === "xs039" ? `<span>亮榫 ${j.peg || 0}/3</span>` : ""}${j.cooldown > 0 ? `<span>冷却 ${j.cooldown}</span>` : ""}${j.pulses?.length ? `<span class="poison-state" title="行动开始时推进，净化可移除">留震 ${j.pulses.length}</span>` : ""}${j.mark ? '<span class="shield-state">榫印</span>' : ""}${j.guard > 0 ? '<span class="shield-state">救助减伤</span>' : ""}${j.field_until > 0 ? '<span>弦场</span>' : ""}` : "";
+  return `${u.dotT > 0 ? `<span class="poison-state" title="每次行动受到侵蚀，治疗与吸血减半">侵蚀 ${u.dotT}</span>` : ""}${u.stunT > 0 ? '<span>眩晕</span>' : ""}${u.shield > 0 ? '<span class="shield-state">护盾</span>' : ""}${u.reflectT > 0 ? `<span class="shield-state">盾反${u.reflectPct}%</span>` : ""}${u.atkUp > 0 ? `<span>攻+${u.atkUp}%</span>` : ""}${u.defUp > 0 ? `<span>防+${u.defUp}%</span>` : ""}${u.taunt > 0 ? '<span>嘲讽</span>' : ""}${u.defBreakT > 0 ? '<span>破甲</span>' : ""}${u.slowT > 0 ? '<span>减速</span>' : ""}${u.extra ? '<span>再动</span>' : ""}${joinery}`;
 }
 function assignUids(list, side) { list.forEach((u, i) => u.uid = side + i); }
 function formationHTML(list, side) {
