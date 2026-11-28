@@ -8,7 +8,18 @@
 
 强者世界只轮换配置名单内的限定 SSR。从北京时间 **2026-11-30 周一 00:00** 起按「解弦川 → 寻宝女王 → 月璃 → 雪翎」循环。此前的排期保持原三人顺序；已经保存的赛季、往期宝箱和排名奖继续发原英雄。常驻召唤、入门选择与成长定向池不会混入解弦川。
 
-<!-- SCREENSHOTS -->
+![强者世界桌面：去掉星星和碎片行，姓名缩小移到右侧，说明避开脚部](https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-world.png)
+
+| 手机强者世界 | 真实战报必杀 |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/phone-world.png" alt="手机强者世界：姓名与立绘分开，下方说明留出间距" width="300"> | <img src="https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/phone-ultimate.png" alt="手机播放同一份真实服务端战报中的必杀" width="300"> |
+
+![活动规则中的显式轮换名单与下期预告](https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-rotation.png)
+
+![真实 Go 战报回放：空壳留震·三榫共鸣必杀切入与技能播报](https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-ultimate.png)
+
+其余图鉴合成、救援换位和横屏截图见[独立图床固定提交](https://github.com/1810551251/ultrarouter-card-game-screenshots/tree/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128)。11 张 PNG 均已从公开链接下载，核对文件格式与 SHA-256，未放入游戏图片库。
+
 
 ## 技能进入真实战斗
 

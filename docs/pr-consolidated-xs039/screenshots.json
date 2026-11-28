@@ -1,0 +1,73 @@
+{
+  "repository": "1810551251/ultrarouter-card-game-screenshots",
+  "commit": "b56d0463987450cbe81c457b009a02996a389b2e",
+  "scope": "Actual UI with synthetic account and fixed open week; combat replays unmodified Go reports",
+  "images": [
+    {
+      "file": "desktop-world.png",
+      "caption": "强者世界桌面：去掉星星和碎片行，姓名缩小移到右侧，说明避开脚部",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-world.png",
+      "sha256": "a396f1b047e926abfc20c458a58f25871d5b19ea413b3624f5c89ce1f98332df"
+    },
+    {
+      "file": "phone-world.png",
+      "caption": "手机强者世界：姓名与立绘分开，下方说明留出间距",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/phone-world.png",
+      "sha256": "f680437929cc020d7c569a35d03b570dbc24fc91d9f5a5df30fdf17cb279d697"
+    },
+    {
+      "file": "landscape-world.png",
+      "caption": "横屏强者世界布局",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/landscape-world.png",
+      "sha256": "3142736d49044e620fa1fc162e359d55b7779fb3b4cc02f4da4579a6078ebe11"
+    },
+    {
+      "file": "desktop-rotation.png",
+      "caption": "活动规则中的显式轮换名单与下期预告",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-rotation.png",
+      "sha256": "9da5965b90560e1fc18341817608af296fe2f3c9391f5daf71d68cb45341fe3b"
+    },
+    {
+      "file": "desktop-codex-skills.png",
+      "caption": "解弦川已进入人物图鉴，保留独立普攻与四项技能条目",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-codex-skills.png",
+      "sha256": "e80f4ef4353b46af14a6a5b21f988d31dd41878def415f5fb958d2e82c44f574"
+    },
+    {
+      "file": "desktop-synthesized.png",
+      "caption": "服务端确认合成后，图鉴显示已获得、初始5星",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-synthesized.png",
+      "sha256": "d34b30fa39eedf82747f3b6caf577c9c742f749f413bc255f1058d4bd2909205"
+    },
+    {
+      "file": "desktop-ultimate.png",
+      "caption": "真实 Go 战报回放：空壳留震·三榫共鸣必杀切入与技能播报",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-ultimate.png",
+      "sha256": "c5137aeb6a012509324746082baf0a09d156b39643e2909aace70c14b774f648"
+    },
+    {
+      "file": "phone-ultimate.png",
+      "caption": "手机播放同一份真实服务端战报中的必杀",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/phone-ultimate.png",
+      "sha256": "d479b1f92195ecb2e0d019aa6ef71688799988a2c339ff2ff6272d28b97b28c0"
+    },
+    {
+      "file": "desktop-rescue.png",
+      "caption": "隔离伤员入场场景：救援治疗并按服务器快照交换位置",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-rescue.png",
+      "sha256": "79ef9162760329052e362323a8d269116b8cc1cfedcd5cedd2cdc1f1b23d8eec"
+    },
+    {
+      "file": "phone-rescue.png",
+      "caption": "手机救援换位后，立绘、阵位与亮榫状态一致",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/phone-rescue.png",
+      "sha256": "f0980b4055f40a07d91b5edf1e2d23e5e270b6b30261f58bc650df6b4811a385"
+    },
+    {
+      "file": "desktop-battle-log.png",
+      "caption": "战报跳过后核对服务器最终血量、生死与阵位",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/b56d0463987450cbe81c457b009a02996a389b2e/consolidated-xs039-20261128/desktop-battle-log.png",
+      "sha256": "bc487b914fcaa8413edaeacaab875b677db8b1322c53341e45272306133a58c5"
+    }
+  ]
+}

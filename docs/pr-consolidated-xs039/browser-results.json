@@ -1,0 +1,168 @@
+{
+  "scope": "Actual project UI. Synthetic account. Combat replays unmodified Go-generated report; UI screenshots do not prove database correctness.",
+  "records": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "errors": [],
+      "httpErrors": [],
+      "actions": [
+        "world_pull",
+        "shard_unlock",
+        "squad"
+      ],
+      "checks": [
+        "29 cards; xs039 four skills and future-star disclaimer; 79/80 cannot synthesize",
+        "World presentation: no stars/shard row, smaller side caption, explanation at least 10 px below portrait",
+        "Acquisition button opens World; explicit rotation and next preview; draw then 80 shards synthesize at five stars",
+        "Account reload retains ownership and five-star state",
+        "Unmodified Go report replayed; new ultimate cut-in/announcement; pause freezes event progression; 2x/4x controls",
+        "Skip applies server final HP/alive/positions; ultimate present in battle log"
+      ],
+      "screenshots": [
+        {
+          "file": "desktop-codex-skills.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "broken": []
+        },
+        {
+          "file": "desktop-world.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "broken": []
+        },
+        {
+          "file": "desktop-rotation.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "broken": []
+        },
+        {
+          "file": "desktop-synthesized.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "broken": []
+        },
+        {
+          "file": "desktop-ultimate.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "broken": []
+        },
+        {
+          "file": "desktop-battle-log.png",
+          "width": 1440,
+          "documentWidth": 1440,
+          "broken": []
+        }
+      ]
+    },
+    {
+      "name": "phone",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "errors": [],
+      "httpErrors": [],
+      "actions": [
+        "world_pull",
+        "shard_unlock",
+        "squad"
+      ],
+      "checks": [
+        "29 cards; xs039 four skills and future-star disclaimer; 79/80 cannot synthesize",
+        "World presentation: no stars/shard row, smaller side caption, explanation at least 10 px below portrait",
+        "Acquisition button opens World; explicit rotation and next preview; draw then 80 shards synthesize at five stars",
+        "Account reload retains ownership and five-star state",
+        "Unmodified Go report replayed; new ultimate cut-in/announcement; pause freezes event progression; 2x/4x controls",
+        "Skip applies server final HP/alive/positions; ultimate present in battle log"
+      ],
+      "screenshots": [
+        {
+          "file": "phone-codex-skills.png",
+          "width": 390,
+          "documentWidth": 390,
+          "broken": []
+        },
+        {
+          "file": "phone-world.png",
+          "width": 390,
+          "documentWidth": 390,
+          "broken": []
+        },
+        {
+          "file": "phone-synthesized.png",
+          "width": 390,
+          "documentWidth": 390,
+          "broken": []
+        },
+        {
+          "file": "phone-ultimate.png",
+          "width": 390,
+          "documentWidth": 390,
+          "broken": []
+        },
+        {
+          "file": "phone-battle-log.png",
+          "width": 390,
+          "documentWidth": 390,
+          "broken": []
+        }
+      ]
+    },
+    {
+      "name": "landscape",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "errors": [],
+      "httpErrors": [],
+      "actions": [
+        "world_pull",
+        "shard_unlock",
+        "squad"
+      ],
+      "checks": [
+        "29 cards; xs039 four skills and future-star disclaimer; 79/80 cannot synthesize",
+        "World presentation: no stars/shard row, smaller side caption, explanation at least 10 px below portrait",
+        "Acquisition button opens World; explicit rotation and next preview; draw then 80 shards synthesize at five stars",
+        "Account reload retains ownership and five-star state",
+        "Unmodified Go report replayed; new ultimate cut-in/announcement; pause freezes event progression; 2x/4x controls",
+        "Skip applies server final HP/alive/positions; ultimate present in battle log"
+      ],
+      "screenshots": [
+        {
+          "file": "landscape-world.png",
+          "width": 844,
+          "documentWidth": 844,
+          "broken": []
+        },
+        {
+          "file": "landscape-synthesized.png",
+          "width": 844,
+          "documentWidth": 844,
+          "broken": []
+        },
+        {
+          "file": "landscape-ultimate.png",
+          "width": 844,
+          "documentWidth": 844,
+          "broken": []
+        },
+        {
+          "file": "landscape-battle-log.png",
+          "width": 844,
+          "documentWidth": 844,
+          "broken": []
+        }
+      ]
+    }
+  ],
+  "serverErrors": []
+}

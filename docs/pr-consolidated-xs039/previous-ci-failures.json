@@ -1,0 +1,38 @@
+[
+  {
+    "pr": 8,
+    "job_id": 140823138534,
+    "sha256": "9ebfcd67a253da2cfc67ceccb72be13f5976d5e93389a21f1d182bd9332893e3",
+    "failure_names": [
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGuildDailyResetAndCompletedLegacyBossAdvanceOnlyOnce"
+    ]
+  },
+  {
+    "pr": 9,
+    "job_id": 140877792899,
+    "sha256": "97b772b3ad8da32feb46cc6a0413cd82eb63d473b5fb4a762783407f12595d84",
+    "failure_names": [
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGuildDailyResetAndCompletedLegacyBossAdvanceOnlyOnce"
+    ]
+  }
+]

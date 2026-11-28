@@ -1,0 +1,87 @@
+[
+  {
+    "revision": "actual-combat",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "failures": [],
+    "skip_names": [],
+    "packages": {
+      "github.com/QuantumNous/new-api/model": "pass"
+    },
+    "gate_passed": true
+  },
+  {
+    "revision": "baseline",
+    "passed": 623,
+    "failed": 10,
+    "skipped": 0,
+    "failures": [
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix"
+    ],
+    "skip_names": [],
+    "packages": {
+      "github.com/QuantumNous/new-api/model": "fail",
+      "github.com/QuantumNous/new-api/controller": "pass"
+    },
+    "known_baseline_failures": [
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/mysql/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/postgres/picked_books_and_oaths_are_idempotent_server_spends",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/captain_supplies_are_idempotent_and_survive_profile_reload_and_spending",
+      "github.com/QuantumNous/new-api/model/TestGachaAuthorityDatabaseMatrix/sqlite/picked_books_and_oaths_are_idempotent_server_spends"
+    ],
+    "gate_passed": true
+  },
+  {
+    "revision": "baseline-upgrade",
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "failures": [],
+    "skip_names": [],
+    "packages": {
+      "github.com/QuantumNous/new-api/model": "pass"
+    },
+    "gate_passed": true
+  },
+  {
+    "revision": "candidate",
+    "passed": 837,
+    "failed": 0,
+    "skipped": 0,
+    "failures": [],
+    "skip_names": [],
+    "packages": {
+      "github.com/QuantumNous/new-api/model": "pass",
+      "github.com/QuantumNous/new-api/controller": "pass"
+    },
+    "gate_passed": true
+  },
+  {
+    "revision": "candidate-upgrade",
+    "passed": 292,
+    "failed": 0,
+    "skipped": 0,
+    "failures": [],
+    "skip_names": [],
+    "packages": {
+      "github.com/QuantumNous/new-api/model": "pass"
+    },
+    "gate_passed": true
+  }
+]
