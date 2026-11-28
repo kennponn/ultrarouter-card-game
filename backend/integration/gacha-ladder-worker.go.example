@@ -17,6 +17,9 @@ func RunGachaLadderWorker(ctx context.Context) {
 		if err := SettleGachaLadder(ctx, time.Now()); err != nil && ctx.Err() == nil {
 			common.SysError("ranked arena settlement failed: " + err.Error())
 		}
+		if err := SettleGachaWorld(ctx, time.Now()); err != nil && ctx.Err() == nil {
+			common.SysError("world summon settlement failed: " + err.Error())
+		}
 		select {
 		case <-ctx.Done():
 			return

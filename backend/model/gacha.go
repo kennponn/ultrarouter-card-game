@@ -140,6 +140,7 @@ type GachaDailyView struct {
 }
 
 type GachaProfile struct {
+	Market         *GachaMarketRules               `json:"market"`
 	CaptainRules   *GachaCaptainRules              `json:"captain_rules"`
 	Voyage         *GachaVoyageCatalog             `json:"voyage"`
 	Festival       *GachaFestivalRules             `json:"festival"`
@@ -295,6 +296,7 @@ func GetGachaProfile(userID int, now time.Time) (*GachaProfile, error) {
 		profile.Equipment = &gachaEquipment
 		profile.ArtifactGrades = &gachaArtifactGrades
 		profile.Carry = &gachaCarry
+		profile.Market = &gachaMarket
 		profile.Items = &gachaItems
 		profile.Voyage = &gachaVoyage
 		profile.Progression = GachaProgressionView{Rules: state.ProgressionRules, Branches: map[string][]GachaAwakeningBranch{},

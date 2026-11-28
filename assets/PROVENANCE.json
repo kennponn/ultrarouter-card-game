@@ -3,7 +3,7 @@
     {
       "id": "c01",
       "name": "灯里",
-      "path": "assets/c01-dengli.webp",
+      "path": "content/cards/c01/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -12,7 +12,7 @@
     {
       "id": "c02",
       "name": "小满",
-      "path": "assets/c02-xiaoman.webp",
+      "path": "content/cards/c02/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -21,7 +21,7 @@
     {
       "id": "c06",
       "name": "铃羽",
-      "path": "assets/c06-lingyu.webp",
+      "path": "content/cards/c06/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -30,7 +30,7 @@
     {
       "id": "c08",
       "name": "小椛",
-      "path": "assets/c08-xiaohua.webp",
+      "path": "content/cards/c08/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -39,7 +39,7 @@
     {
       "id": "c12",
       "name": "苺",
-      "path": "assets/c12-mei.webp",
+      "path": "content/cards/c12/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -48,7 +48,7 @@
     {
       "id": "c20",
       "name": "暖弦",
-      "path": "assets/c20-nuanxian.webp",
+      "path": "content/cards/c20/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -57,7 +57,7 @@
     {
       "id": "c21",
       "name": "柚芽",
-      "path": "assets/c21-youya.webp",
+      "path": "content/cards/c21/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -66,7 +66,7 @@
     {
       "id": "c22",
       "name": "榛果",
-      "path": "assets/c22-zhenguo.webp",
+      "path": "content/cards/c22/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -75,7 +75,7 @@
     {
       "id": "c11",
       "name": "剑华",
-      "path": "assets/c11-jianhua.webp",
+      "path": "content/cards/c11/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -84,7 +84,7 @@
     {
       "id": "c05",
       "name": "霜音",
-      "path": "assets/c05-shuangyin.webp",
+      "path": "content/cards/c05/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -93,7 +93,7 @@
     {
       "id": "c13",
       "name": "圣愈",
-      "path": "assets/c13-shengyu.webp",
+      "path": "content/cards/c13/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -102,7 +102,7 @@
     {
       "id": "c10",
       "name": "绯破",
-      "path": "assets/c10-feipo.webp",
+      "path": "content/cards/c10/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -111,7 +111,7 @@
     {
       "id": "c14",
       "name": "缚锁",
-      "path": "assets/c14-fusuo.webp",
+      "path": "content/cards/c14/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -120,7 +120,7 @@
     {
       "id": "c17",
       "name": "澄汐",
-      "path": "assets/c17-chengxi.webp",
+      "path": "content/cards/c17/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -129,7 +129,7 @@
     {
       "id": "c18",
       "name": "朱笺",
-      "path": "assets/c18-zhujian.webp",
+      "path": "content/cards/c18/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -138,7 +138,7 @@
     {
       "id": "c19",
       "name": "岚翎",
-      "path": "assets/c19-lanling.webp",
+      "path": "content/cards/c19/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -147,7 +147,7 @@
     {
       "id": "c23",
       "name": "夜萤",
-      "path": "assets/c23-yeying.webp",
+      "path": "content/cards/c23/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -156,7 +156,7 @@
     {
       "id": "c24",
       "name": "雨棠",
-      "path": "assets/c24-yutang.webp",
+      "path": "content/cards/c24/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -165,7 +165,7 @@
     {
       "id": "c25",
       "name": "苏兰",
-      "path": "assets/c25-sulan.webp",
+      "path": "content/cards/c25/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -174,7 +174,7 @@
     {
       "id": "c26",
       "name": "铃绡",
-      "path": "assets/c26-lingxiao.webp",
+      "path": "content/cards/c26/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -183,7 +183,7 @@
     {
       "id": "c04",
       "name": "龙音",
-      "path": "assets/c04-longyin.webp",
+      "path": "content/cards/c04/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -192,7 +192,7 @@
     {
       "id": "c07",
       "name": "星墙",
-      "path": "assets/c07-xingqiang.webp",
+      "path": "content/cards/c07/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -201,7 +201,7 @@
     {
       "id": "c09",
       "name": "时雨",
-      "path": "assets/c09-shiyu.webp",
+      "path": "content/cards/c09/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -210,7 +210,7 @@
     {
       "id": "c03",
       "name": "寻宝女王",
-      "path": "assets/c03-queen.webp",
+      "path": "content/cards/c03/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -219,7 +219,7 @@
     {
       "id": "c15",
       "name": "月璃",
-      "path": "assets/c15-yueli.webp",
+      "path": "content/cards/c15/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -228,7 +228,7 @@
     {
       "id": "c16",
       "name": "织星",
-      "path": "assets/c16-zhixing.webp",
+      "path": "content/cards/c16/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -237,7 +237,7 @@
     {
       "id": "c27",
       "name": "雪翎",
-      "path": "assets/c27-xueling.webp",
+      "path": "content/cards/c27/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -246,7 +246,7 @@
     {
       "id": "c28",
       "name": "海璃",
-      "path": "assets/c28-haili.webp",
+      "path": "content/cards/c28/assets/portrait.webp",
       "method": "AI generated",
       "source_confirmation": "Project maintainer, 2026-11-24",
       "generator": null,
@@ -254,5 +254,335 @@
     }
   ],
   "other_art": "Background and UI provenance has not been confirmed in this conversation.",
-  "metadata_check": "The 95 WebP files contain only loop and background metadata; no EXIF/XMP metadata was found."
+  "metadata_check": "The 95 WebP files contain only loop and background metadata; no EXIF/XMP metadata was found.",
+  "world_ui": {
+    "reference": "用户提供的旧手游项目",
+    "source_confirmation": "User requested reproduction of the supplied legacy game Strong World UI, 2026-11-28",
+    "source_apk_sha256": "e51505efd68927bf654977176134814c293d61fb9d030107b73c1b5fff0a98f1",
+    "scope": "Strong World activity backgrounds, title, controls, rank badges and reward chests; character artwork remains from this project",
+    "transformation": "PNG decoded from the original resource container and converted to lossless WebP without resizing; every decoded RGBA pixel verified identical",
+    "redistribution_license": "No independent public artwork license has been established by this extraction or the reproduction request",
+    "assets": [
+      {
+        "file": "assets/world/bar_red.webp",
+        "source_logical_path": "res/resources/common/icon/bar_red.png",
+        "source_sha256": "3c2035af6eeb72c434884fe7cef242e773fb556f4419e7fa24b2d31c7a754adc",
+        "sha256": "3aa9eeec35ea79273661b0cee6560df7d09b699a8128cb94d5781cd39a5a4ace",
+        "width": 22,
+        "height": 20
+      },
+      {
+        "file": "assets/world/bar_red_d.webp",
+        "source_logical_path": "res/resources/common/icon/bar_red_d.png",
+        "source_sha256": "dccff5def3a37fbc963e0e142a2feafc990d9edc58a2a876ad9e8cf0aec2ca01",
+        "sha256": "9843baeee904bdcd307a1efdfb006f33c22ce4fe43646bc98fa8fcb9af5c291e",
+        "width": 22,
+        "height": 20
+      },
+      {
+        "file": "assets/world/bg_1.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_1.png",
+        "source_sha256": "100e1249584278b38d1844f5b0e5dbd320c47038017c36f162b8b161ab8f70b2",
+        "sha256": "105357ebdf35f0d8057ad8b970f593a4fc7e71fc4b45f7907af59a70aadc7352",
+        "width": 126,
+        "height": 112
+      },
+      {
+        "file": "assets/world/bg_jf.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_jf.png",
+        "source_sha256": "30230f5f4e8382eb03ee35af266429dfb383c3a7be05357f5979056f87402868",
+        "sha256": "ed86d1df095c7e03a0cc3ba5a46184f6e892aeae07f468f5d245dc4b887510dc",
+        "width": 81,
+        "height": 81
+      },
+      {
+        "file": "assets/world/bg_list.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_list.png",
+        "source_sha256": "062cd797ce722d4e972c55c726e31f7cfae8217587815da32f46a3d20c58af5f",
+        "sha256": "58fd81913b6d67e3ab15019012595820a6d075ba1898d01f868920bcd8a1b1fc",
+        "width": 72,
+        "height": 70
+      },
+      {
+        "file": "assets/world/bg_list_bg.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_list_bg.png",
+        "source_sha256": "02a0394598c1bc04747018b331453a2c9be2664e56881a317816fda2effb5c12",
+        "sha256": "3f3a65881396e4eeb307a9fc4d090b7da8e96d27a564bc51cc646c23ac540774",
+        "width": 428,
+        "height": 99
+      },
+      {
+        "file": "assets/world/bg_next.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_next.png",
+        "source_sha256": "d9d732e80b5edac7381c3f19feac0c3513f5c041fd011cbac36264fe4a512092",
+        "sha256": "6baba9427918604bdb0858b23e8688deb451d341e204940900b635772caa35a8",
+        "width": 61,
+        "height": 61
+      },
+      {
+        "file": "assets/world/bg_picture.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_picture.png",
+        "source_sha256": "5ea33db4d48b1fc3b3d36aa5c60b819286531189c2590cd964da279640280c22",
+        "sha256": "dee831c0f95897c3e731469df98d03ec2aec4a7e381385221b217dde2dbd873f",
+        "width": 986,
+        "height": 515
+      },
+      {
+        "file": "assets/world/bg_tishi.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/bg_tishi.png",
+        "source_sha256": "ac6fef7abb046651ae23b7be30eac2e6a0afdd2239670ae2dd6e59de4d1164af",
+        "sha256": "5a69c74627f44c0ade402b1ddba0a82cf0b56d6cdf3e64998e99ddb2834a7359",
+        "width": 42,
+        "height": 42
+      },
+      {
+        "file": "assets/world/box_1.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/box_1.png",
+        "source_sha256": "947c5dc660836d24a79d1e6edf904b59515d6ebd1ca66a31815e7d284f99a310",
+        "sha256": "fe9b6c5d636f99a2e4f009751756b964f38b2c43ab41b6ba310dc21859df1bef",
+        "width": 62,
+        "height": 49
+      },
+      {
+        "file": "assets/world/box_1_open.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/box_1_open.png",
+        "source_sha256": "336fdc2b1a620aa831ed4b995bcfcd99f036db4d03f0e4b6ac67b06724183998",
+        "sha256": "0cef8d0583d8c54969dea12c8b4555d2a2d1e3b77615b82c351ca60a0ce8be39",
+        "width": 73,
+        "height": 52
+      },
+      {
+        "file": "assets/world/box_2.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/box_2.png",
+        "source_sha256": "b863365664114024baf90d76abbf4c091d3b1f246f7ad7f6bd596db869df5c69",
+        "sha256": "9a423396881d14581fffcb3a606226740ee29651a56f5a673f13f8f742cff122",
+        "width": 63,
+        "height": 49
+      },
+      {
+        "file": "assets/world/box_2_open.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/box_2_open.png",
+        "source_sha256": "023e30d48a21120897e3a16a7c285346b4c62839563454c1a4b7b0487611ba1e",
+        "sha256": "8f4401de919a21f8b3b611495a59414d94d10ac327b080d0e93163f428da54cc",
+        "width": 72,
+        "height": 54
+      },
+      {
+        "file": "assets/world/box_3.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/box_3.png",
+        "source_sha256": "c7e5f669cf14ac22be555cc67c46764d09b2740068c5bba8a7b0e999c27fddc0",
+        "sha256": "8767de3cc7328e94bbe8ed0d1377bca79659dcbf200c5285ebf69e3f10ce393f",
+        "width": 62,
+        "height": 49
+      },
+      {
+        "file": "assets/world/box_3_open.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/box_3_open.png",
+        "source_sha256": "78f78c8f3571f0648824ff3cdb99be4a30881f4663f12eb7cd69f47144eb0527",
+        "sha256": "81c127b5de45bbd62d1213f1307dbc878217d082e4e33094ad4b432741f2ddcd",
+        "width": 72,
+        "height": 55
+      },
+      {
+        "file": "assets/world/btn_1.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/btn_1.png",
+        "source_sha256": "995c40e8944b7ca02903a026a33a9b85ac3a4e24529cc00fe519c557af28dd0e",
+        "sha256": "456b881e1e8fdf1132fa81ea96143f15213275611d8a396d4a894ee3f46bdcee",
+        "width": 82,
+        "height": 76
+      },
+      {
+        "file": "assets/world/btn_2.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/btn_2.png",
+        "source_sha256": "1e4d1fa6b933cefe810ce21c44756d31d2ce90a9dbf55d41b355c9f926ec49b0",
+        "sha256": "e7960fafee5dd65240f0bc76d414ee31c827dc35dcc075f3fb9e67229f90adeb",
+        "width": 86,
+        "height": 80
+      },
+      {
+        "file": "assets/world/btn_c10c.webp",
+        "source_logical_path": "res/resources/city/drawcard/draw/btn_c10c.png",
+        "source_sha256": "c106fbcedb288de548c53cc697fa8c1ec976188eed01b2355c2e8f4d05955c91",
+        "sha256": "d51742c850c1722f4557875d2dc7d2d84c8911268f1c21219254947075727672",
+        "width": 493,
+        "height": 226
+      },
+      {
+        "file": "assets/world/btn_c1c.webp",
+        "source_logical_path": "res/resources/city/drawcard/draw/btn_c1c.png",
+        "source_sha256": "69abfbe967ec7341652593cf5ce3b455994c1d1af77560f9ee69db50b3d413c1",
+        "sha256": "d75a2516396e317fe633e163e3d7f17cc7b40504cbba8b1df828802321e32c1b",
+        "width": 493,
+        "height": 226
+      },
+      {
+        "file": "assets/world/btn_gift.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/btn_gift.png",
+        "source_sha256": "06357b54d35d9d9417a4f60dab063bd58d600a75f86c1ca394bc2af22feaa369",
+        "sha256": "b489ee172785eae3d556a95978ae848ec7914c619078e12c06bbfcde6b545fcf",
+        "width": 47,
+        "height": 52
+      },
+      {
+        "file": "assets/world/btn_gz.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/btn_gz.png",
+        "source_sha256": "4ca3984eb7deb8c9894d4ad5fee641d0d6b7c7d4bd60d7c325475be24cbdc470",
+        "sha256": "5d5dd97b643103c2341eee4c00867ecd874941bc524b92ebf100d984571f3558",
+        "width": 44,
+        "height": 25
+      },
+      {
+        "file": "assets/world/btn_gz_icon.webp",
+        "source_logical_path": "res/resources/city/adventure/endless_tower/btn_gz.png",
+        "source_sha256": "bb82559ed4a6fe8fce9b221c08ebdc22b1beab072a16823dbc63597b04b89b61",
+        "sha256": "f096702308979c82e605e2f5cf01737475d6e1138562e8591ba7b7a4fe206784",
+        "width": 84,
+        "height": 100
+      },
+      {
+        "file": "assets/world/btn_hd_close1.webp",
+        "source_logical_path": "res/resources/common/btn/btn_hd_close1.png",
+        "source_sha256": "e5a9c7958938833760d61cad6d3daedccae7018060a29d017bb325fe19f0de32",
+        "sha256": "d42765245b4a81324092b04e57d6c7361a68c3477626787076847e352167dd95",
+        "width": 90,
+        "height": 90
+      },
+      {
+        "file": "assets/world/btn_sx.webp",
+        "source_logical_path": "res/resources/city/adventure/dispatchtask/btn_sx.png",
+        "source_sha256": "05e717e43d93908afdd7e85e8d2c827bd39146fa0e090698359b4760b5b7341f",
+        "sha256": "b2ce0cb09823b53cfc47346d2a311cfeb6a1a30e9fb05bf28dc6f35b89e8256c",
+        "width": 142,
+        "height": 74
+      },
+      {
+        "file": "assets/world/btn_sz.webp",
+        "source_logical_path": "res/resources/common/btn/btn_sz.png",
+        "source_sha256": "814ecf00556543c01e34e1766f64d6fbccb9afbb98c8428cc68febf07f5a86e0",
+        "sha256": "797d12978bba0aa7215a94a05b4b8e35ef4e0b886c14cf9d1aa7b8a48bb2e9e0",
+        "width": 152,
+        "height": 152
+      },
+      {
+        "file": "assets/world/btn_tj.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/btn_tj.png",
+        "source_sha256": "1c082fee89d5485576e6856b791ce7542a8ea64065a69ef254e70a0763c73ea5",
+        "sha256": "666fc92640c883ef661d278de603f0201b486afe7cc417afae79342bc7ae8182",
+        "width": 44,
+        "height": 24
+      },
+      {
+        "file": "assets/world/icon_jp.webp",
+        "source_logical_path": "res/resources/city/rank/icon_jp.png",
+        "source_sha256": "dea75231292e19f1121fd6128b2875cd474c5e218d3af8b697be7edcf1999654",
+        "sha256": "556f5ef68a4699f470a37f80129c121567e64402b820baddda68c9c5d00c4826",
+        "width": 116,
+        "height": 127
+      },
+      {
+        "file": "assets/world/icon_rarity5.webp",
+        "source_logical_path": "res/resources/common/icon/icon_rarity5.png",
+        "source_sha256": "4dac2815e347c2f9af12d9e8ecf0b7922c4ec1d4c0eeda2bdd414f4c068e53a5",
+        "sha256": "8f747a7ae1819f9054448dfaeb535dee5ba2d14ce620113c883f73a7e22e1452",
+        "width": 101,
+        "height": 100
+      },
+      {
+        "file": "assets/world/icon_tj@.webp",
+        "source_logical_path": "res/resources/city/main/icon_tj@.png",
+        "source_sha256": "ea22017ca8d356e01261bc5e72baa35dccd2a2e190d8a02c8c6f49b61aed13ac",
+        "sha256": "dc91bf006936b74fbd7f1b43a0102810e9196b873280d09d386b31499b6ec34d",
+        "width": 158,
+        "height": 164
+      },
+      {
+        "file": "assets/world/icon_tp.webp",
+        "source_logical_path": "res/resources/city/rank/icon_tp.png",
+        "source_sha256": "cc3ea9b053cb20c39bcde1b8389cfe912aa2bb74c0826de83b5fbe774120daee",
+        "sha256": "f05e9aad21d9278a0cd903de5d3713783d8dce0392fa61707200473f925e64ed",
+        "width": 116,
+        "height": 127
+      },
+      {
+        "file": "assets/world/icon_yp.webp",
+        "source_logical_path": "res/resources/city/rank/icon_yp.png",
+        "source_sha256": "9326397682c16ff4afc500ecf7fef2a9f601ab1df255fdf0a1c5c3ae5a72b404",
+        "sha256": "d9a4f09c4350e0e53f960be3153df4c3bc691f36f6324d045ce5dcbc64d4060b",
+        "width": 116,
+        "height": 127
+      },
+      {
+        "file": "assets/world/rank_bg_1.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/rank_bg_1.png",
+        "source_sha256": "03cdf6b83711e454777611dad6f0cc29b726ba3a29bcfdbe4354ccd0a6485655",
+        "sha256": "bfbb32c01c02052f72b69146f1e03cba24819dd7e3ec535189455efc47b71619",
+        "width": 92,
+        "height": 106
+      },
+      {
+        "file": "assets/world/rank_bg_2.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/rank_bg_2.png",
+        "source_sha256": "d8dbbfda3f2770003e60f2eceeb6e56cdcc8dedf401ef01887c00a3684ca1874",
+        "sha256": "9657efe5a2b4585a8c67f19f846953d2a1bc99a9b6644f3be3290bd48b182fa8",
+        "width": 99,
+        "height": 106
+      },
+      {
+        "file": "assets/world/rank_bg_3.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/rank_bg_3.png",
+        "source_sha256": "fccc80b5e62616f0c44655749d2ad31986039c8f36f7cb9c983e5a7419888f86",
+        "sha256": "91503f1fd2d1af8883c1bc4bc17abc4f3b472f2fad0beed10529432ad429cf1a",
+        "width": 96,
+        "height": 106
+      },
+      {
+        "file": "assets/world/rank_bg_4.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/rank_bg_4.png",
+        "source_sha256": "7ff57e7d415a15e1c49c1761c99406be1d92b9d5ecd6b27a5ec226bf25ddf12d",
+        "sha256": "fe49ebc216b88ac128b14b6d7608f8b5ca34b976e4a07a807d5e5b96e8105b06",
+        "width": 94,
+        "height": 106
+      },
+      {
+        "file": "assets/world/score_bg_1.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/score_bg_1.png",
+        "source_sha256": "f4ec544f5316c9da85badaa810a626d58e7785c145da39c0e9c3323d5225c0a3",
+        "sha256": "800e5a0b5f95f7c6a7a7762d6b7872d57b3d170018abbd1122559e28ccaab79c",
+        "width": 42,
+        "height": 42
+      },
+      {
+        "file": "assets/world/score_bg_2.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/score_bg_2.png",
+        "source_sha256": "7f4dc56094823b65d30f98785f6843f23dd0ee28d79e58873456422193660bb2",
+        "sha256": "966f5a06cd7ba36df64aed244f55fdca54c3d4f32283286d59574c31fe0f490a",
+        "width": 42,
+        "height": 42
+      },
+      {
+        "file": "assets/world/score_bg_3.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/score_bg_3.png",
+        "source_sha256": "8e5504fa47afb2af4684dcaa45c821ac10add41e8086edd224555924ff6cd476",
+        "sha256": "365ff23ece25f9940766cb168f011dde81374883537422deed56143753714d38",
+        "width": 42,
+        "height": 42
+      },
+      {
+        "file": "assets/world/score_bg_4.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/score_bg_4.png",
+        "source_sha256": "64f55e8eefdcebe194d31e87c873560430058acd4c98850f201b5e0ffc23992a",
+        "sha256": "d78fd18b333bb27fd702355c6968ed76ad2b91a6a151646a7784f419a3d3edc4",
+        "width": 42,
+        "height": 42
+      },
+      {
+        "file": "assets/world/title_shenshou.webp",
+        "source_logical_path": "res/resources/activity/limit_sprite/title_shenshou.png",
+        "source_sha256": "f8f18ee57613ec73aba91992843d0e530c3d534ba7e18daf5fe79014e062a4b7",
+        "sha256": "d6a7dc1dca1de81fcd751082e87d0f6cb4954a9cf38958eeb3072bff8d44661e",
+        "width": 219,
+        "height": 70
+      }
+    ]
+  }
 }

@@ -1,6 +1,6 @@
 let captainBoundaryTimer = null;
 
-const captainDestinations = {voyage:["page-stage","去出航"],drill:["page-growth","去训练","#growth-contracts [data-growth-run]"],wish:["page-growth","去许愿","#growth-wish"],outfit:["page-growth","去培养","#growth-cultivation"]};
+const captainDestinations = {voyage:["page-stage","去出航"],drill:["page-growth","去训练","#growth-contracts [data-growth-run]"],wish:["page-growth","去许愿","#growth-wish"],outfit:["page-growth","去培养"],ladder:["page-arena","去挑战"],equipment:["page-growth","去强化"],skill:["page-growth","去学技能"],festival:["page-festival","去集章"]};
 const captainXPSource = "每实际消耗 1 点体力，获得 1 点船长经验。每日任务还可领取额外经验。";
 
 function captainGrowth() {
@@ -97,13 +97,125 @@ function captainJournal() {
 
 function captainSupplyState(journal, supply) {
   if (!journal.current) return "新日待同步";
-  if (journal.log.supplies[supply.id]) return "已寄送";
+  if (journal.log.supplies[supply.id]) return "已领取";
   if (journal.hour < supply.start) return "未开餐";
   return journal.hour < supply.end ? "领取体力" : "已收餐";
 }
 
 function captainTasksReady(journal) {
   return journal.current ? journal.rules.tasks.filter(task => !journal.log.claimed[task.id] && (journal.log.progress[task.id] || 0) >= task.target).length : 0;
+}
+
+function captainPoints(journal) {
+  return journal.rules.tasks.reduce((total,task) => total + ((journal.log.progress[task.id] || 0) >= task.target ? task.points || 0 : 0),0);
+}
+
+function captainChestReady(journal, chest) {
+  return journal.current && !journal.log.chests?.[chest.id] && captainPoints(journal) >= chest.points;
+}
+
+function captainTaskDestination(id, log) {
+  if (id === "equipment" && log.gear_review || id === "skill" && log.skill_review || id === "outfit" && (log.gear_review || log.skill_review)) return ["page-stage","去实战复盘"];
+  return captainDestinations[id];
+}
+
+function captainOwner() { return String(Store.authUserId || Store.profile?.user_id || ""); }
+
+function captainOwnedHeroes() {
+  const implemented = new Set(GIRLS.map(girl => girl.id));
+  return [...new Set([...(SAVE.squad || []),...implemented])].filter(id => implemented.has(id) && SAVE.girls[id]?.star > 0);
+}
+
+function captainWorkshopTarget(taskId) {
+  const heroes = captainOwnedHeroes(), gear = [], skills = [];
+  for (const id of heroes) {
+    if (typeof atelierGearQuote === "function") for (const slot of Store.profile?.equipment?.slots || []) {
+      const quote = atelierGearQuote(id,slot.id);
+      if (quote?.levelCost > 0) gear.push({id,tab:"weapon",slot:slot.id,ready:quote.canUpgrade});
+    }
+    if (typeof trainingSkillQuote === "function") for (const line of ["normal","rage","passive"]) {
+      const quote = trainingSkillQuote(id,line);
+      if (quote && quote.learned < quote.cap) skills.push({id,tab:"training",panel:"skills",line,ready:quote.count > 0});
+    }
+  }
+  if (taskId === "equipment") return gear.find(target => target.ready) || gear[0] || (heroes[0] && {id:heroes[0],tab:"weapon"});
+  if (taskId === "skill") return skills.find(target => target.ready) || skills[0] || (heroes[0] && {id:heroes[0],tab:"training",panel:"skills"});
+  if (typeof upgradeRules === "function" && typeof cardLevelLimit === "function" && upgradeRules()?.materials.some(item => SAVE.mats?.[item.id] > 0)) {
+    const id = heroes.find(id => SAVE.girls[id].level < cardLevelLimit());
+    if (id) return {id,tab:"upgrade"};
+  }
+  const ready = gear.find(target => target.ready) || skills.find(target => target.ready);
+  if (ready) return ready;
+  if (typeof trainingQuote === "function") for (const id of heroes) {
+    if (trainingQuote(id)?.canBreak) return {id,tab:"training",panel:"breakthrough"};
+    for (const stat of Store.profile?.training?.effort_stats || []) {
+      if (trainingQuote(id,stat.id)?.canTrain) return {id,tab:"training",panel:"effort",stat:stat.id};
+    }
+  }
+  return gear[0] || skills[0] || (heroes[0] && {id:heroes[0],tab:"overview"});
+}
+
+function captainFocus(selector) {
+  const target = document.querySelector(selector);
+  target?.scrollIntoView?.({block:"center"});
+  if (target?.matches("button, select, input")) target.focus({preventScroll:true});
+}
+
+function captainOpenVoyage() {
+  if (typeof openVoyage !== "function") { nav("page-stage"); return; }
+  const chapters = Store.profile?.voyage?.chapters;
+  if (chapters && typeof voyageStage === "function" && typeof voyageGate === "function" && typeof voyageSession === "function") {
+    // Use an open story battle even if the player last viewed a locked difficulty.
+    for (const [chapter,entry] of chapters.entries()) for (const id of entry.routes?.story || []) {
+      const point = voyageStage(id);
+      if (!point || point.cost <= 0 || voyageGate(point)) continue;
+      if (typeof voyageRemaining === "function" && voyageRemaining(point) === 0) continue;
+      Object.assign(voyageSession(),{chapter,mode:"story"});
+      openVoyage("story",id);
+      captainFocus("[data-voy-start]");
+      return;
+    }
+  }
+  openVoyage("story");
+}
+
+function captainNavigateTask(id, journal) {
+  if (!journal?.current || !journal.rules.tasks.some(task => task.id === id)) return;
+  const visit = captainTaskDestination(id,journal.log);
+  if (!visit) return;
+  if (visit[0] === "page-stage") { captainOpenVoyage(); return; }
+  if (["equipment","skill","outfit"].includes(id) && typeof openWorkshop === "function") {
+    const target = captainWorkshopTarget(id);
+    if (!target) { nav("page-codex"); return; }
+    if (typeof workshopRules === "function" && !workshopRules() || typeof workshopTabKeys === "function" && !workshopTabKeys().includes(target.tab)) {
+      nav("page-growth");
+      toast("角色工坊资料尚未同步，请同步资料后再试");
+      return;
+    }
+    openWorkshop(target.id,target.tab);
+    if (target.slot && typeof selectAtelierGear === "function") selectAtelierGear(target.slot);
+    if (target.panel && typeof selectTrainingPanel === "function") selectTrainingPanel(target.panel);
+    if (target.stat && typeof selectEffortStat === "function") selectEffortStat(target.stat);
+    if (target.line) captainFocus(`[data-skill-up="${target.line}"]`);
+    else if (target.tab === "weapon") captainFocus('[data-gear-action="gear_upgrade"]');
+    else if (target.tab === "upgrade") captainFocus("[data-upgrade-open]");
+    return;
+  }
+  if (id === "festival" && typeof openFestivalToday === "function") { openFestivalToday(); return; }
+  nav(visit[0]);
+  if (visit[2]) captainFocus(visit[2]);
+}
+
+function captainChests(journal) {
+  if (!journal.rules.chests?.length) return "";
+  const labels = {token:"代币",stamina_pack_30:"30体力礼包",limited_ticket:"限定券",gem_ticket:"宝石券",chip_ticket:"芯片券"};
+  const points = captainPoints(journal), maximum = Math.max(...journal.rules.chests.map(chest => chest.points));
+  return `<section class="captain-chest-vault" aria-labelledby="captain-chests"><header class="mode-card-head"><div><p class="social-kicker">今日航务 · 积分奖励</p><h3 id="captain-chests">任务积分宝箱 · ${points}/${maximum}</h3></div><span class="captain-vault-total"><b>${points}</b> 今日积分</span></header><progress class="captain-points-meter" aria-label="每日任务积分" value="${points}" max="${maximum}"></progress><div class="reward-chest-grid" tabindex="0" role="group" aria-label="每日积分宝箱">${journal.rules.chests.map((chest,index) => {
+    const taken = journal.log.chests?.[chest.id], ready = captainChestReady(journal,chest);
+    const rewards = Object.entries(chest.resources).map(([id,count]) => ({name:Store.profile?.items?.items?.[id]?.name || labels[id] || id,count}));
+    return rewardChestCard({title:`${chest.points} 积分宝箱`,threshold:`${chest.points} 积分`,tier:index+1,state:taken ? "claimed" : ready ? "ready" : "locked",rewards,
+      status:taken ? "已领取" : ready ? "领取宝箱" : journal.current ? `还差 ${Math.max(0,chest.points-points)} 积分` : "待同步",attributes:{"data-captain-chest":chest.id}});
+  }).join("")}</div><p class="captain-vault-note">完成任务即获得积分，无需先领单项奖励。每日北京时间 00:00 重置。</p></section>`;
 }
 
 function captainWatchBoundary(journal) {
@@ -129,7 +241,8 @@ function renderCaptainSummary() {
     else {
       const supply = journal.rules.supplies.find(slot => captainSupplyState(journal,slot) === "领取体力");
       const ready = captainTasksReady(journal), sent = journal.rules.tasks.filter(task => journal.log.claimed[task.id]).length;
-      summary.textContent = !journal.current ? "新航日已到 · 同步日志" : `${ready ? `${ready} 项任务待投递` : sent ? `${sent} 项任务奖励已寄送` : "今日任务已登记"} · ${supply ? `${supply.name}可领` : "查看三餐补给"}`;
+      const chests = journal.rules.chests?.filter(chest => captainChestReady(journal,chest)).length || 0;
+      summary.textContent = !journal.current ? "新航日已到 · 同步日志" : `${ready ? `${ready} 项任务可领取` : sent ? `${sent} 项任务奖励已领取` : "今日任务已登记"}${chests ? ` · ${chests} 个宝箱可领` : ""} · ${supply ? `${supply.name}可领` : "查看三餐补给"}`;
     }
   }
   captainWatchBoundary(journal);
@@ -143,19 +256,22 @@ function renderCaptain() {
   body.onclick = captainJournalClick;
   body.dataset.captainDay = journal?.day || "";
   body.dataset.captainEpoch = String(Store.sessionEpoch);
+  body.dataset.captainOwner = captainOwner();
   if (!journal) { body.innerHTML = `<p>当前服务器尚未提供今日任务和时段体力记录。</p>${syncButton}`; return; }
   const {captain,rules,log,day,current} = journal;
   const claimed = rules.tasks.filter(task => log.claimed[task.id]).length;
+  const completed = rules.tasks.filter(task => (log.progress[task.id] || 0) >= task.target).length;
   body.innerHTML = `<section class="captain-passport"><div><p class="social-kicker">航籍 · ${esc(day)}</p><h3>船长 Lv.${esc(captain.level)}</h3><p>伙伴等级上限 <b>Lv.${esc(captain.level)}</b></p></div><div class="captain-xp">${captainMeter(captainGrowth())}<small>${captainXPSource}</small></div></section>
-    <section class="captain-supplies" aria-labelledby="captain-galley"><header class="mode-card-head"><div><p class="social-kicker">北京时间 · 时段内寄至邮箱 · 满体力亦可收取</p><h3 id="captain-galley">航海厨房</h3></div>${syncButton}</header>
+    <section class="captain-supplies" aria-labelledby="captain-galley"><header class="mode-card-head"><div><p class="social-kicker">北京时间 · 时段内直接领取 · 满体力亦可收取</p><h3 id="captain-galley">航海厨房</h3></div>${syncButton}</header>
     ${!current ? '<p role="status">已进入新的航海日，同步后可查看今日航务。</p>' : ""}<div class="captain-meals">${rules.supplies.map(slot => {
-      const status = captainSupplyState(journal,slot), open = status === "领取体力", delivered = status === "已寄送";
-      return `<article class="captain-meal" data-supply-state="${open ? "ready" : "closed"}"><small>${String(slot.start).padStart(2,"0")}:00–${String(slot.end).padStart(2,"0")}:00</small><h4>${esc(slot.name)}</h4><p>体力 +${slot.stamina}</p><button type="button" class="gbtn gbtn-sm${open ? " gbtn-primary" : ""}" data-captain-supply="${esc(slot.id)}" ${delivered ? 'data-captain-mail title="前往邮箱"' : ""} ${open || delivered ? "" : "disabled"}><span>${status}</span></button></article>`;
-    }).join("")}</div></section>
-    <section class="captain-duties" aria-labelledby="captain-orders"><header class="mode-card-head"><div><p class="social-kicker">每日 00:00 换日 · 奖励自动寄送 ${claimed}/${rules.tasks.length}</p><h3 id="captain-orders">每日任务</h3></div></header>${rules.tasks.map(task => {
+      const status = captainSupplyState(journal,slot), open = status === "领取体力";
+      return `<article class="captain-meal" data-supply-state="${open ? "ready" : "closed"}"><small>${String(slot.start).padStart(2,"0")}:00–${String(slot.end).padStart(2,"0")}:00</small><h4>${esc(slot.name)}</h4><p>体力 +${slot.stamina}</p><button type="button" class="gbtn gbtn-sm${open ? " gbtn-primary" : ""}" data-captain-supply="${esc(slot.id)}" ${open ? "" : "disabled"}><span>${status}</span></button></article>`;
+    }).join("")}</div></section>${captainChests(journal)}
+    <section class="captain-duties" aria-labelledby="captain-orders"><header class="mode-card-head"><div><p class="social-kicker">已完成 ${completed}/${rules.tasks.length} · 已领奖 ${claimed}/${rules.tasks.length}</p><h3 id="captain-orders">每日任务</h3></div><span class="captain-orders-note">完成航务，领取今日补给</span></header>${rules.tasks.map(task => {
       const progress = log.progress[task.id] || 0, taken = log.claimed[task.id], ready = current && !taken && progress >= task.target;
-      const destination = !ready && !taken && current && captainDestinations[task.id];
-      return `<article class="captain-duty"><div><h4>${esc(task.name)} <small>${progress}/${task.target}</small></h4><p>${esc(task.goal)}</p><small>船长经验 +${task.xp} · 金币 +${task.gold}</small></div><button type="button" class="gbtn gbtn-sm${ready ? " gbtn-primary" : ""}" ${destination ? `data-captain-visit="${esc(task.id)}"` : `data-captain-task="${esc(task.id)}"`} ${taken ? 'data-captain-mail title="前往邮箱"' : ""} ${ready || destination || taken ? "" : "disabled"}><span>${taken ? "已寄送 · 邮箱" : ready ? "重新投递" : destination ? destination[1] : current ? "进行中" : "待同步"}</span></button></article>`;
+      const destination = !ready && !taken && current && captainTaskDestination(task.id, log);
+      const icons = {rollcall:"⚑",voyage:"⚓",drill:"⚔",wish:"✧",outfit:"✦",ladder:"♜",equipment:"⚒",skill:"✎",festival:"❖"};
+      return `<article class="captain-duty" data-captain-duty="${esc(task.id)}" data-duty-state="${taken ? "claimed" : ready ? "ready" : "active"}"><span class="captain-duty-icon" aria-hidden="true">${icons[task.id] || "✦"}</span><div class="captain-duty-copy"><h4>${esc(task.name)} <small>${progress}/${task.target}</small></h4><p>${esc(task.goal)}</p><div class="captain-duty-rewards"><small>船长经验 +${task.xp} · 金币 +${task.gold}</small>${task.points ? `<b>积分 +${task.points}</b>` : ""}</div><progress aria-label="${esc(task.name)}进度" value="${Math.min(progress,task.target)}" max="${task.target}"></progress></div><button type="button" class="gbtn gbtn-sm${ready ? " gbtn-primary" : ""}" ${destination ? `data-captain-visit="${esc(task.id)}"` : `data-captain-task="${esc(task.id)}"`} ${ready || destination ? "" : "disabled"}><span>${taken ? "已领取" : ready ? "领取奖励" : destination ? destination[1] : current ? "进行中" : "待同步"}</span></button></article>`;
     }).join("")}</section>`;
   captainWatchBoundary(journal);
 }
@@ -165,16 +281,13 @@ async function captainJournalClick(event) {
   if (!button || button.disabled || !Store.ready()) return;
   const epoch = Store.sessionEpoch, journal = captainJournal();
   const body = button.closest("#captain-body");
-  if (!body || body.dataset.captainEpoch !== String(epoch)) return;
-  if (button.hasAttribute("data-captain-mail")) return openHarborMail("inbox");
-  const visit = captainDestinations[button.dataset.captainVisit];
-  if (visit) {
-    nav(visit[0]);
-    if (visit[2]) {
-      const destination = document.querySelector(visit[2]);
-      destination?.scrollIntoView?.({block:"center"});
-      if (destination?.matches("button, select")) destination.focus({preventScroll:true});
-    }
+  const owner = captainOwner();
+  if (!body || body.dataset.captainEpoch !== String(epoch) || body.dataset.captainOwner !== owner) return;
+  if (button.hasAttribute("data-captain-visit")) {
+    if (!journal?.current || body.dataset.captainDay !== journal.day) { renderCaptain(); return; }
+    const id = button.dataset.captainVisit, task = journal.rules.tasks.find(task => task.id === id);
+    if (task && !journal.log.claimed[id] && (journal.log.progress[id] || 0) < task.target) captainNavigateTask(id,journal);
+    else renderCaptain();
     return;
   }
   let receipt = null;
@@ -184,17 +297,20 @@ async function captainJournalClick(event) {
     else if (journal?.current && body.dataset.captainDay === journal.day) {
       const taskID = button.dataset.captainTask, supplyID = button.dataset.captainSupply;
       const task = journal.rules.tasks.find(rule => rule.id === taskID), supply = journal.rules.supplies.find(rule => rule.id === supplyID);
-      if (task && !journal.log.claimed[taskID] && journal.log.progress[taskID] >= task.target) {
+      const chest = journal.rules.chests?.find(rule => rule.id === button.dataset.captainChest);
+      if (chest && captainChestReady(journal,chest)) {
+        receipt = await Store.mutate("captain_chest",{item_id:`${journal.day}:${chest.id}`});
+      } else if (task && !journal.log.claimed[taskID] && journal.log.progress[taskID] >= task.target) {
         receipt = await Store.mutate("captain_task",{item_id:`${journal.day}:${taskID}`});
       } else if (supply && captainSupplyState(journal,supply) === "领取体力") {
         receipt = await Store.mutate("captain_supply",{item_id:`${journal.day}:${supplyID}`});
       }
     }
   } finally {
-    if (epoch === Store.sessionEpoch && Store.ready()) {
+    if (epoch === Store.sessionEpoch && owner === captainOwner() && Store.ready()) {
       if (document.body.dataset.page === "page-captain") renderCaptain();
       renderTopbar();
-      if (receipt) toast((receipt.drops || []).join(" · ") || "补给已寄送，请前往邮箱领取");
+      if (receipt) toast((receipt.drops || []).join(" · ") || "奖励已到账");
     }
   }
 }

@@ -11,5 +11,7 @@
     "trail":{"name":"勘星手记","tiers":[{"count":2,"stat":"rage","value":6},{"count":3,"stat":"skill","value":8}]},
     "vow":{"name":"守望誓约","tiers":[{"count":2,"stat":"shield","value":4},{"count":3,"stat":"counter","value":18}]}
   },
-  "drops": {"campaign":1,"campaign_boss":2,"rift":3,"nightmare":4}
+  "drops": {"campaign":1,"campaign_boss":2,"rift":3,"nightmare":4},
+  "level_xp": [0,40,100,180,300,460,660,920,1240,1640],
+  "stones": {"carry_stone_green":20,"carry_stone_blue":60,"carry_stone_purple":160}
 }

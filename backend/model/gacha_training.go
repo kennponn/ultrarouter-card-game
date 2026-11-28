@@ -19,6 +19,8 @@ type GachaBreakGrade struct {
 }
 
 type GachaBreakCost struct {
+	GoldBase     int `json:"gold_base"`
+	GoldStep     int `json:"gold_step"`
 	InkBase      int `json:"ink_base"`
 	InkStep      int `json:"ink_step"`
 	SealInterval int `json:"seal_interval"`
@@ -42,23 +44,25 @@ type GachaEffortStat struct {
 }
 
 type GachaTrainingRules struct {
-	Experience    GachaExperienceRules      `json:"experience"`
-	EffortDaily   int                       `json:"effort_daily"`
-	EffortKnee    int                       `json:"effort_knee"`
-	SkillPool     GachaSkillPoolRules       `json:"skill_pool"`
-	Grades        []GachaBreakGrade         `json:"grades"`
-	BreakPercent  int                       `json:"break_percent"`
-	BreakCost     GachaBreakCost            `json:"break_cost"`
-	EffortStages  []GachaEffortStage        `json:"effort_stages"`
-	EffortStats   []GachaEffortStat         `json:"effort_stats"`
-	SkillDaily    int                       `json:"skill_daily"`
-	SkillLevels   []int                     `json:"skill_levels"`
-	SkillGold     []int                     `json:"skill_gold"`
-	NormalPercent int                       `json:"normal_percent"`
-	RagePercent   int                       `json:"rage_percent"`
-	CastRefund    int                       `json:"cast_refund"`
-	NormalRage    int                       `json:"normal_rage"`
-	Drops         map[string]map[string]int `json:"drops"`
+	Experience     GachaExperienceRules      `json:"experience"`
+	EffortDaily    int                       `json:"effort_daily"`
+	EffortGoldBase int                       `json:"effort_gold_base"`
+	EffortGoldStep int                       `json:"effort_gold_step"`
+	EffortKnee     int                       `json:"effort_knee"`
+	SkillPool      GachaSkillPoolRules       `json:"skill_pool"`
+	Grades         []GachaBreakGrade         `json:"grades"`
+	BreakPercent   int                       `json:"break_percent"`
+	BreakCost      GachaBreakCost            `json:"break_cost"`
+	EffortStages   []GachaEffortStage        `json:"effort_stages"`
+	EffortStats    []GachaEffortStat         `json:"effort_stats"`
+	SkillDaily     int                       `json:"skill_daily"`
+	SkillLevels    []int                     `json:"skill_levels"`
+	SkillGold      []int                     `json:"skill_gold"`
+	NormalPercent  int                       `json:"normal_percent"`
+	RagePercent    int                       `json:"rage_percent"`
+	CastRefund     int                       `json:"cast_refund"`
+	NormalRage     int                       `json:"normal_rage"`
+	Drops          map[string]map[string]int `json:"drops"`
 }
 
 type GachaSkillPoolRules struct {
@@ -93,6 +97,9 @@ var gachaTraining = func() GachaTrainingRules {
 	var rules GachaTrainingRules
 	if err := common.Unmarshal(gachaTrainingJSON, &rules); err != nil {
 		panic(err)
+	}
+	if rules.EffortGoldBase < 1 || rules.EffortGoldStep < 0 || rules.BreakCost.GoldBase < 1 || rules.BreakCost.GoldStep < 0 || rules.SkillPool.UpgradeGoldBase < 1 || rules.SkillPool.UpgradeGoldStep < 0 {
+		panic("invalid training gold prices")
 	}
 	return rules
 }()
@@ -223,6 +230,7 @@ func applyGachaSkillAction(state *GachaGameState, intent GachaActionIntent, resu
 	trained.Skills[line] = starting + count
 	pool.Points -= count
 	state.Gold -= cost
+	advanceGachaCaptainTaskBy(state, "skill", count)
 	name := map[string]string{"normal": "普攻", "rage": "怒气技", "passive": "回怒"}[line]
 	result.Drops = append(result.Drops, fmt.Sprintf("%s研修 %d → %d 级 · %d 技能点 · %d 金币", name, starting, starting+count, count, cost))
 	return nil
@@ -349,7 +357,7 @@ func applyGachaTrainingAction(state *GachaGameState, intent GachaActionIntent, r
 		trained = *own.Training
 	}
 	stage := gachaTraining.EffortStages[trained.Stage]
-	ink, seals := 0, 0
+	ink, seals, gold, stones := 0, 0, 0, 0
 	var receipt string
 	sessions := 0
 	switch intent.Action {
@@ -360,6 +368,7 @@ func applyGachaTrainingAction(state *GachaGameState, intent GachaActionIntent, r
 			completed += previous.MaxPlus + 1
 		}
 		cost := gachaTraining.BreakCost
+		gold = cost.GoldBase + cost.GoldStep*completed
 		ink = cost.InkBase + cost.InkStep*completed + completed*(completed+1)/2
 		seals = (completed + 1) / cost.SealInterval
 		var requiredLevel int
@@ -389,13 +398,17 @@ func applyGachaTrainingAction(state *GachaGameState, intent GachaActionIntent, r
 			return ErrGachaCultivationLocked
 		}
 		sessions = 1
+		perSession := gachaTraining.EffortGoldBase + gachaTraining.EffortGoldStep*trained.Stage
 		if intent.Action == "effort_train_max" {
-			sessions = min(gachaTraining.EffortDaily-used, (stage.Cap-trained.Effort[key]+stage.Gain-1)/stage.Gain, state.Mats["training_ink"]/stage.Ink)
+			sessions = min(gachaTraining.EffortDaily-used, (stage.Cap-trained.Effort[key]+stage.Gain-1)/stage.Gain, (state.Mats["training_ink"]+state.Mats["effort_stone"])/stage.Ink, state.Gold/perSession)
 			if sessions < 1 {
 				return ErrGachaFunds
 			}
 		}
 		ink = stage.Ink * sessions
+		stones = min(state.Mats["effort_stone"], ink)
+		ink -= stones
+		gold = perSession * sessions
 		trained.Effort = maps.Clone(trained.Effort)
 		if trained.Effort == nil {
 			trained.Effort = map[string]int{}
@@ -416,11 +429,22 @@ func applyGachaTrainingAction(state *GachaGameState, intent GachaActionIntent, r
 		seals = next.Seals
 		receipt = "努力值晋段：" + next.Name
 	}
-	if state.Mats["training_ink"] < ink || state.Mats["break_seal"] < seals {
+	if state.Mats["training_ink"] < ink || state.Mats["break_seal"] < seals || state.Gold < gold {
 		return ErrGachaFunds
+	}
+	if stones > 0 {
+		state.Mats["effort_stone"] -= stones
+		receipt += fmt.Sprintf(" · 努力培养石 −%d", stones)
+	}
+	if gold > 0 {
+		state.Gold -= gold
+		receipt += fmt.Sprintf(" · 金币 −%d", gold)
 	}
 	if ink > 0 {
 		state.Mats["training_ink"] -= ink
+		if sessions > 0 {
+			receipt += fmt.Sprintf(" · 研训墨 −%d", ink)
+		}
 	}
 	if seals > 0 {
 		state.Mats["break_seal"] -= seals

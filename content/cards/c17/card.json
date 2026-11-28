@@ -1,0 +1,45 @@
+{
+  "id": "c17",
+  "sources": ["voyage", "growth"],
+  "name": "澄汐",
+  "rarity": "SR",
+  "elem": "water",
+  "role": "heal",
+  "atkType": "magic",
+  "img": "content/cards/c17/assets/portrait.webp",
+  "base": {
+    "hp": 1200,
+    "atk": 205,
+    "def": 88,
+    "spd": 101,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 25
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "清波",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "归港潮声",
+      "mult": 0,
+      "target": "team",
+      "healMult": 1.2,
+      "shieldMult": 0.8,
+      "desc": "治疗全队（120%攻击），并给予相当于80%攻击的护盾"
+    }
+  },
+  "desc": "潮泉守望者，将港湾的潮声收进瓷碗，为远行归来的伙伴疗伤。",
+  "battleImg": "content/cards/c17/assets/portrait-cut.webp",
+  "fxColor": "#4a7dff",
+  "legacyImages": {
+    "assets/c17-chengxi.webp": "content/cards/c17/assets/portrait.webp",
+    "assets/c17-chengxi-cut.webp": "content/cards/c17/assets/portrait-cut.webp"
+  }
+}

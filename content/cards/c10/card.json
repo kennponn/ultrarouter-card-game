@@ -1,0 +1,44 @@
+{
+  "id": "c10",
+  "name": "绯破",
+  "rarity": "SR",
+  "elem": "dark",
+  "role": "sdps",
+  "atkType": "melee",
+  "img": "content/cards/c10/assets/portrait.webp",
+  "base": {
+    "hp": 1120,
+    "atk": 258,
+    "def": 82,
+    "spd": 110,
+    "cr": 10,
+    "cd": 155,
+    "ehr": 15,
+    "res": 12
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "居合",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "破甲太刀",
+      "mult": 3,
+      "target": "enemy",
+      "defBreak": 30,
+      "defBreakTurns": 3,
+      "desc": "对单体造成300%攻击伤害，并使其防御降低30%，持续3回合"
+    }
+  },
+  "desc": "雨夜刀客，破甲削减防御。",
+  "battleImg": "content/cards/c10/assets/portrait-cut.webp",
+  "fxColor": "#b06eff",
+  "legacyImages": {
+    "assets/c10-feipo.webp": "content/cards/c10/assets/portrait.webp",
+    "assets/c10-feipo-cut.webp": "content/cards/c10/assets/portrait-cut.webp"
+  }
+}

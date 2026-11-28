@@ -113,18 +113,19 @@ func buildGachaVoyage() GachaVoyageCatalog {
 	}
 	resources := []struct {
 		id, name, gate, elem, mechanic, description string
-		cost, level, waves, enemies                 int
+		level, waves, enemies                       int
 		prize                                       []GachaVoyagePrize
 	}{
-		{"res_manifest", "领航抄录所", "s1", "plant", "", "夺回漂流航志，为新伙伴备齐经验书。", 6, 12, 1, 2, []GachaVoyagePrize{{"field_notes", 2}, {"training_manual", 1}}},
-		{"res_forge", "浮船锻造厂", "s5", "fire", "fury", "趁炉心过热前击退守卫，拖回强化与升星工料。", 8, 22, 2, 2, []GachaVoyagePrize{{"gear_plate", 6}, {"gear_thread", 6}, {"gear_rivet", 3}}},
-		{"res_ink", "潮墨档案库", "s2", "water", "barrier", "破开水幕，取回训练卷宗与晋阶印章。", 9, 30, 1, 3, []GachaVoyagePrize{{"training_ink", 5}, {"break_seal", 1}}},
-		{"res_caravan", "星砂护商线", "s4", "time", "silence", "在静默潮带护送商队归港，回收钱箱与行旅凭证。", 10, 38, 2, 3, []GachaVoyagePrize{{"gold", 1200}, {"route_badge", 3}}},
-		{"res_mine", "深海星锻井", "s3", "dark", "venom", "深入侵蚀矿层，打捞洗练矿料与觉醒核心。", 12, 48, 2, 2, []GachaVoyagePrize{{"forge_ore", 7}, {"weapon_core", 1}}},
-		{"res_salvage", "棱镜打捞湾", "s6", "star", "reflection", "避开反射屏障，从沉船保险舱取出宝芯凭券。", 14, 60, 2, 3, []GachaVoyagePrize{{"gem_ticket", 1}, {"chip_ticket", 1}}},
+		{"res_manifest", "领航抄录所", "s1", "plant", "", "夺回漂流航志，为新伙伴备齐经验书。", 12, 1, 2, []GachaVoyagePrize{{"field_notes", 2}, {"training_manual", 1}}},
+		{"res_forge", "浮船锻造厂", "s5", "fire", "fury", "趁炉心过热前击退守卫，拖回强化与升星工料。", 22, 2, 2, []GachaVoyagePrize{{"gear_plate", 6}, {"gear_thread", 6}, {"gear_rivet", 3}}},
+		{"res_ink", "潮墨档案库", "s2", "water", "barrier", "破开水幕，取回训练卷宗与晋阶印章。", 30, 1, 3, []GachaVoyagePrize{{"training_ink", 5}, {"break_seal", 1}}},
+		{"res_caravan", "星砂护商线", "s4", "time", "silence", "在静默潮带护送商队归港，回收钱箱与行旅凭证。", 38, 2, 3, []GachaVoyagePrize{{"gold", gachaCatalog.ActivityPayouts.CaravanGold}, {"route_badge", 3}}},
+		{"res_mine", "深海星锻井", "s3", "dark", "venom", "深入侵蚀矿层，打捞洗练剂与觉醒核心。", 48, 2, 2, []GachaVoyagePrize{{"forge_ore", 7}, {"weapon_core", 1}, {"iv_solvent", 1}}},
+		{"res_salvage", "棱镜打捞湾", "s6", "star", "reflection", "避开反射屏障，从沉船保险舱取出宝芯凭券。", 60, 2, 3, []GachaVoyagePrize{{"gem_ticket", 1}, {"chip_ticket", 1}}},
 	}
 	for index, supply := range resources {
-		point := &GachaVoyagePoint{GachaStage: GachaStage{ID: supply.id, Name: supply.name, Img: gachaCatalog.Stages[index].Img, Cost: supply.cost, EnemyLv: supply.level, Waves: supply.waves, EnemyCount: supply.enemies, StarRound: 6 + supply.waves, Exp: supply.level * 3, EnemyElem: supply.elem, Mechanic: supply.mechanic, HasBoss: index >= 4}, Kind: "resources", Description: supply.description, Requires: []string{supply.gate}, DailyLimit: 3, Prize: supply.prize}
+		supply.prize = append(supply.prize, GachaVoyagePrize{"dungeon_coin", gachaMarket.DungeonCoins[index]})
+		point := &GachaVoyagePoint{GachaStage: GachaStage{ID: supply.id, Name: supply.name, Img: gachaCatalog.Stages[index].Img, Cost: gachaMarket.DungeonStamina[index], EnemyLv: supply.level, Waves: supply.waves, EnemyCount: supply.enemies, StarRound: 6 + supply.waves, Exp: supply.level * 3, EnemyElem: supply.elem, Mechanic: supply.mechanic, HasBoss: index >= 4}, Kind: "resources", Description: supply.description, Requires: []string{supply.gate}, DailyLimit: 3, Prize: supply.prize}
 		book.Stages[supply.id] = point
 		book.Resources = append(book.Resources, supply.id)
 	}
@@ -139,6 +140,9 @@ func checkGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint) error
 		return nil
 	}
 	if point.CaptainMin > 0 && gachaCaptainLevel(state) < point.CaptainMin {
+		return ErrGachaLocked
+	}
+	if point.UnlockStage != "" && !state.Cleared[point.UnlockStage] {
 		return ErrGachaLocked
 	}
 	for _, previous := range point.Requires {
@@ -156,6 +160,15 @@ func checkGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint) error
 }
 
 func migrateGachaVoyage(state *GachaGameState) {
+	// A star record is meaningful only after a confirmed clear. Never turn a
+	// stray star value into a clear or use it to unlock stages and chests.
+	for id, stars := range state.Stars {
+		if !state.Cleared[id] || stars <= 0 {
+			delete(state.Stars, id)
+		} else if stars > gachaMaxStars {
+			state.Stars[id] = gachaMaxStars
+		}
+	}
 	if state.VoyageEdition != 0 {
 		return
 	}
@@ -227,7 +240,9 @@ func claimGachaVoyageChest(state *GachaGameState, id string, result *GachaAction
 	}
 	stars := 0
 	for _, point := range route {
-		stars += min(gachaMaxStars, max(0, state.Stars[point]))
+		if state.Cleared[point] {
+			stars += min(gachaMaxStars, max(0, state.Stars[point]))
+		}
 	}
 	if state.VoyageClaims[id] || stars < chest.Stars {
 		return ErrGachaVoyageChest
@@ -261,6 +276,9 @@ func awardGachaVoyageMilestones(state *GachaGameState, point *GachaVoyagePoint, 
 }
 
 func settleGachaVoyagePoint(state *GachaGameState, point *GachaVoyagePoint, snapshot *GachaRunSnapshot, report *GachaBattleReport, result *GachaFinishResult) error {
+	if !result.Win || !report.Win {
+		return nil
+	}
 	drops, err := grantGachaVoyagePrize(state, point.Prize)
 	if err != nil {
 		return err

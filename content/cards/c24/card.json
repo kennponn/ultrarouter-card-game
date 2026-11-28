@@ -1,0 +1,45 @@
+{
+  "id": "c24",
+  "name": "雨棠",
+  "rarity": "SR",
+  "elem": "water",
+  "role": "tank",
+  "atkType": "melee",
+  "img": "content/cards/c24/assets/portrait.webp",
+  "base": {
+    "hp": 1740,
+    "atk": 160,
+    "def": 130,
+    "spd": 96,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 25
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "伞骨横击",
+      "mult": 0.9,
+      "target": "enemy",
+      "desc": "对单体造成90%攻击伤害"
+    },
+    "skill": {
+      "name": "听雨成垒",
+      "mult": 0,
+      "target": "team",
+      "shieldMult": 1.5,
+      "taunt": true,
+      "selfDefUp": 20,
+      "desc": "全队获得150%攻击的护盾，自身嘲讽并提升20%防御1回合"
+    }
+  },
+  "desc": "雨街守伞人，撑开的伞面既能挡住骤雨，也能为伙伴隔开迎面而来的锋芒。",
+  "battleImg": "content/cards/c24/assets/portrait-cut.webp",
+  "fxColor": "#4a7dff",
+  "legacyImages": {
+    "assets/c24-yutang.webp": "content/cards/c24/assets/portrait.webp",
+    "assets/c24-yutang-cut.webp": "content/cards/c24/assets/portrait-cut.webp"
+  }
+}

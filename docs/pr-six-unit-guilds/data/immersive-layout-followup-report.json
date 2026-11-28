@@ -1,0 +1,3428 @@
+{
+  "createdAt": "2026-11-27T11:23:21.570Z",
+  "note": "Isolated static fixtures. Body rectangle overlap is intentional and diagnostic; head and HP intersections are recorded for visual review.",
+  "selectedWidths": [
+    1850,
+    390
+  ],
+  "cases": [
+    {
+      "width": 1850,
+      "height": 740,
+      "kind": "six-v-six",
+      "screenshot": "immersive-six-1850x740.png",
+      "fixture": {
+        "count": 12,
+        "bossImage": null
+      },
+      "viewport": {
+        "width": 1850,
+        "height": 740
+      },
+      "portrait": false,
+      "groundRatio": 0.64,
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "w": 1850,
+        "h": 740,
+        "right": 1850,
+        "bottom": 740
+      },
+      "controls": {
+        "x": 12,
+        "y": 590,
+        "w": 42,
+        "h": 94,
+        "right": 54,
+        "bottom": 684
+      },
+      "track": {
+        "x": 185,
+        "y": 677,
+        "w": 1591,
+        "h": 54,
+        "right": 1776,
+        "bottom": 731
+      },
+      "trackImages": [
+        {
+          "path": "/gacha/content/cards/c08/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c09/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c04/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c07/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c01/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c06/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c12/assets/portrait.webp",
+          "loaded": true
+        }
+      ],
+      "legacy": [
+        {
+          "id": "battle-hud",
+          "visible": false
+        },
+        {
+          "id": "battle-transport",
+          "visible": false
+        },
+        {
+          "id": "battle-log",
+          "visible": false
+        }
+      ],
+      "all": [
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "parentSlot": 0,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 708.09375,
+            "y": 325.578125,
+            "w": 137.8125,
+            "h": 181.328125,
+            "right": 845.90625,
+            "bottom": 506.90625
+          },
+          "image": {
+            "x": 707.2808227539062,
+            "y": 326.1076354980469,
+            "w": 139.4383544921875,
+            "h": 178.83233642578125,
+            "right": 846.7191772460938,
+            "bottom": 504.9399719238281
+          },
+          "hp": {
+            "x": 745,
+            "y": 315.578125,
+            "w": 64,
+            "h": 5,
+            "right": 809,
+            "bottom": 320.578125
+          },
+          "head": {
+            "x": 746.3235620117188,
+            "y": 326.1076354980469,
+            "w": 61.3528759765625,
+            "h": 42.9197607421875,
+            "right": 807.6764379882812,
+            "bottom": 369.0273962402344
+          },
+          "footY": 506.90625,
+          "groundFraction": 0.6850084459459459,
+          "actorHeight": 181.328125,
+          "depthScaleCSS": "calc(.82 + (1 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "3",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c07/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 497,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 553.578125,
+            "y": 386.109375,
+            "w": 150.859375,
+            "h": 198.5,
+            "right": 704.4375,
+            "bottom": 584.609375
+          },
+          "image": {
+            "x": 555.1725463867188,
+            "y": 386.12249755859375,
+            "w": 147.6549072265625,
+            "h": 198.45318603515625,
+            "right": 702.8274536132812,
+            "bottom": 584.57568359375
+          },
+          "hp": {
+            "x": 597,
+            "y": 376.109375,
+            "w": 64,
+            "h": 5,
+            "right": 661,
+            "bottom": 381.109375
+          },
+          "head": {
+            "x": 596.5159204101562,
+            "y": 386.12249755859375,
+            "w": 64.9681591796875,
+            "h": 47.628764648437496,
+            "right": 661.4840795898438,
+            "bottom": 433.75126220703123
+          },
+          "footY": 584.609375,
+          "groundFraction": 0.790012668918919,
+          "actorHeight": 198.5,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "5",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c06/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 476,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "parentSlot": 2,
+          "boss": false,
+          "classes": "unit acting",
+          "box": {
+            "x": 399.046875,
+            "y": 446.640625,
+            "w": 163.90625,
+            "h": 215.671875,
+            "right": 562.953125,
+            "bottom": 662.3125
+          },
+          "image": {
+            "x": 412.7518310546875,
+            "y": 446.6578063964844,
+            "w": 136.496337890625,
+            "h": 215.62100219726562,
+            "right": 549.2481689453125,
+            "bottom": 662.27880859375
+          },
+          "hp": {
+            "x": 449,
+            "y": 436.640625,
+            "w": 64,
+            "h": 5,
+            "right": 513,
+            "bottom": 441.640625
+          },
+          "head": {
+            "x": 450.9708056640625,
+            "y": 446.6578063964844,
+            "w": 60.058388671875,
+            "h": 51.749040527343745,
+            "right": 511.02919433593746,
+            "bottom": 498.40684692382814
+          },
+          "footY": 662.3125,
+          "groundFraction": 0.8950168918918919,
+          "actorHeight": 215.671875,
+          "depthScaleCSS": "calc(.82 + (3 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "36",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c08/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 405,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "parentSlot": 3,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 414.140625,
+            "y": 312.4375,
+            "w": 133.734375,
+            "h": 175.96875,
+            "right": 547.875,
+            "bottom": 488.40625
+          },
+          "image": {
+            "x": 418.2439880371094,
+            "y": 312.74169921875,
+            "w": 125.52761840820312,
+            "h": 174.35211181640625,
+            "right": 543.7716064453125,
+            "bottom": 487.09381103515625
+          },
+          "hp": {
+            "x": 449,
+            "y": 302.4375,
+            "w": 64,
+            "h": 5,
+            "right": 513,
+            "bottom": 307.4375
+          },
+          "head": {
+            "x": 453.39172119140625,
+            "y": 312.74169921875,
+            "w": 55.23215209960937,
+            "h": 41.8445068359375,
+            "right": 508.6238732910156,
+            "bottom": 354.5862060546875
+          },
+          "footY": 488.40625,
+          "groundFraction": 0.660008445945946,
+          "actorHeight": 175.96875,
+          "depthScaleCSS": "calc(.82 + (1 - 1) * .08 + calc(1 - 1) * .025)",
+          "zIndex": "2",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c12/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 453,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "parentSlot": 4,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 259.609375,
+            "y": 372.984375,
+            "w": 146.78125,
+            "h": 193.125,
+            "right": 406.390625,
+            "bottom": 566.109375
+          },
+          "image": {
+            "x": 273.9134826660156,
+            "y": 373.226318359375,
+            "w": 118.15731811523438,
+            "h": 192.19549560546875,
+            "right": 392.07080078125,
+            "bottom": 565.4218139648438
+          },
+          "hp": {
+            "x": 301,
+            "y": 362.984375,
+            "w": 64,
+            "h": 5,
+            "right": 365,
+            "bottom": 367.984375
+          },
+          "head": {
+            "x": 306.9975317382813,
+            "y": 373.226318359375,
+            "w": 51.989219970703125,
+            "h": 46.1269189453125,
+            "right": 358.9867517089844,
+            "bottom": 419.35323730468747
+          },
+          "footY": 566.109375,
+          "groundFraction": 0.765012668918919,
+          "actorHeight": 193.125,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(1 - 1) * .025)",
+          "zIndex": "4",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c01/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 390,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "parentSlot": 5,
+          "boss": false,
+          "classes": "unit has-shield",
+          "box": {
+            "x": 105.09375,
+            "y": 433.515625,
+            "w": 159.828125,
+            "h": 210.296875,
+            "right": 264.921875,
+            "bottom": 643.8125
+          },
+          "image": {
+            "x": 108.00776672363281,
+            "y": 434.13519287109375,
+            "w": 153.9843292236328,
+            "h": 208.3648681640625,
+            "right": 261.9920959472656,
+            "bottom": 642.5000610351562
+          },
+          "hp": {
+            "x": 153,
+            "y": 423.515625,
+            "w": 64,
+            "h": 5,
+            "right": 217,
+            "bottom": 428.515625
+          },
+          "head": {
+            "x": 151.12337890625,
+            "y": 434.13519287109375,
+            "w": 67.75310485839844,
+            "h": 50.007568359375,
+            "right": 218.87648376464844,
+            "bottom": 484.14276123046875
+          },
+          "footY": 643.8125,
+          "groundFraction": 0.8700168918918919,
+          "actorHeight": 210.296875,
+          "depthScaleCSS": "calc(.82 + (3 - 1) * .08 + calc(1 - 1) * .025)",
+          "zIndex": "6",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c04/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 465,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e2",
+          "side": "enemy",
+          "slot": 0,
+          "parentSlot": 0,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 1004.09375,
+            "y": 325.578125,
+            "w": 137.8125,
+            "h": 181.328125,
+            "right": 1141.90625,
+            "bottom": 506.90625
+          },
+          "image": {
+            "x": 1012.5625,
+            "y": 323.6118469238281,
+            "w": 120.875,
+            "h": 181.328125,
+            "right": 1133.4375,
+            "bottom": 504.9399719238281
+          },
+          "hp": {
+            "x": 1041,
+            "y": 315.578125,
+            "w": 64,
+            "h": 5,
+            "right": 1105,
+            "bottom": 320.578125
+          },
+          "head": {
+            "x": 1046.4075,
+            "y": 323.6118469238281,
+            "w": 53.185,
+            "h": 43.51875,
+            "right": 1099.5925,
+            "bottom": 367.13059692382814
+          },
+          "footY": 506.90625,
+          "groundFraction": 0.6850084459459459,
+          "actorHeight": 181.328125,
+          "depthScaleCSS": "calc(.82 + (1 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "3",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c15/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 1024,
+            "height": 1536
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e4",
+          "side": "enemy",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 1145.578125,
+            "y": 386.109375,
+            "w": 150.859375,
+            "h": 198.5,
+            "right": 1296.4375,
+            "bottom": 584.609375
+          },
+          "image": {
+            "x": 1161.8125,
+            "y": 386.0756530761719,
+            "w": 118.390625,
+            "h": 198.50003051757812,
+            "right": 1280.203125,
+            "bottom": 584.57568359375
+          },
+          "hp": {
+            "x": 1189,
+            "y": 376.109375,
+            "w": 64,
+            "h": 5,
+            "right": 1253,
+            "bottom": 381.109375
+          },
+          "head": {
+            "x": 1194.961875,
+            "y": 386.0756530761719,
+            "w": 52.091875,
+            "h": 47.64000732421875,
+            "right": 1247.05375,
+            "bottom": 433.7156604003906
+          },
+          "footY": 584.609375,
+          "groundFraction": 0.790012668918919,
+          "actorHeight": 198.5,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "5",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c27/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 334,
+            "height": 560
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 2,
+          "parentSlot": 2,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 1287.046875,
+            "y": 446.640625,
+            "w": 163.90625,
+            "h": 215.671875,
+            "right": 1450.953125,
+            "bottom": 662.3125
+          },
+          "image": {
+            "x": 1295.203125,
+            "y": 446.6069030761719,
+            "w": 147.59375,
+            "h": 215.67190551757812,
+            "right": 1442.796875,
+            "bottom": 662.27880859375
+          },
+          "hp": {
+            "x": 1337,
+            "y": 436.640625,
+            "w": 64,
+            "h": 5,
+            "right": 1401,
+            "bottom": 441.640625
+          },
+          "head": {
+            "x": 1336.529375,
+            "y": 446.6069030761719,
+            "w": 64.94125,
+            "h": 51.76125732421875,
+            "right": 1401.4706250000002,
+            "bottom": 498.3681604003906
+          },
+          "footY": 662.3125,
+          "groundFraction": 0.8950168918918919,
+          "actorHeight": 215.671875,
+          "depthScaleCSS": "calc(.82 + (3 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c09/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 438,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e5",
+          "side": "enemy",
+          "slot": 3,
+          "parentSlot": 3,
+          "boss": false,
+          "classes": "unit enemy dead",
+          "box": {
+            "x": 1302.140625,
+            "y": 312.4375,
+            "w": 133.734375,
+            "h": 175.96875,
+            "right": 1435.875,
+            "bottom": 488.40625
+          },
+          "image": {
+            "x": 1309.3125,
+            "y": 312.4375,
+            "w": 119.40625,
+            "h": 175.96875,
+            "right": 1428.71875,
+            "bottom": 488.40625
+          },
+          "hp": {
+            "x": 1337,
+            "y": 302.4375,
+            "w": 64,
+            "h": 5,
+            "right": 1401,
+            "bottom": 307.4375
+          },
+          "head": {
+            "x": 1342.74625,
+            "y": 312.4375,
+            "w": 52.53875,
+            "h": 42.2325,
+            "right": 1395.2849999999999,
+            "bottom": 354.67
+          },
+          "footY": 488.40625,
+          "groundFraction": 0.660008445945946,
+          "actorHeight": 175.96875,
+          "depthScaleCSS": "calc(.82 + (1 - 1) * .08 + calc(2 - 2) * .025)",
+          "zIndex": "2",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c28/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 380,
+            "height": 560
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e3",
+          "side": "enemy",
+          "slot": 4,
+          "parentSlot": 4,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 1443.609375,
+            "y": 372.984375,
+            "w": 146.78125,
+            "h": 193.125,
+            "right": 1590.390625,
+            "bottom": 566.109375
+          },
+          "image": {
+            "x": 1452.625,
+            "y": 372.29681396484375,
+            "w": 128.75,
+            "h": 193.125,
+            "right": 1581.375,
+            "bottom": 565.4218139648438
+          },
+          "hp": {
+            "x": 1485,
+            "y": 362.984375,
+            "w": 64,
+            "h": 5,
+            "right": 1549,
+            "bottom": 367.984375
+          },
+          "head": {
+            "x": 1488.675,
+            "y": 372.29681396484375,
+            "w": 56.65,
+            "h": 46.35,
+            "right": 1545.325,
+            "bottom": 418.6468139648438
+          },
+          "footY": 566.109375,
+          "groundFraction": 0.765012668918919,
+          "actorHeight": 193.125,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(2 - 2) * .025)",
+          "zIndex": "4",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c16/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 1024,
+            "height": 1536
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e1",
+          "side": "enemy",
+          "slot": 5,
+          "parentSlot": 5,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 1585.09375,
+            "y": 433.515625,
+            "w": 159.828125,
+            "h": 210.296875,
+            "right": 1744.921875,
+            "bottom": 643.8125
+          },
+          "image": {
+            "x": 1590.921875,
+            "y": 432.20318603515625,
+            "w": 148.1875,
+            "h": 210.296875,
+            "right": 1739.109375,
+            "bottom": 642.5000610351562
+          },
+          "hp": {
+            "x": 1633,
+            "y": 423.515625,
+            "w": 64,
+            "h": 5,
+            "right": 1697,
+            "bottom": 428.515625
+          },
+          "head": {
+            "x": 1632.414375,
+            "y": 432.20318603515625,
+            "w": 65.2025,
+            "h": 50.47125,
+            "right": 1697.6168750000002,
+            "bottom": 482.67443603515625
+          },
+          "footY": 643.8125,
+          "groundFraction": 0.8700168918918919,
+          "actorHeight": 210.296875,
+          "depthScaleCSS": "calc(.82 + (3 - 1) * .08 + calc(2 - 2) * .025)",
+          "zIndex": "6",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c03/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 451,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        }
+      ],
+      "overlaps": [
+        {
+          "units": [
+            "a4",
+            "a0"
+          ],
+          "w": 9.375,
+          "h": 137.96875,
+          "area": 1293.45703125
+        },
+        {
+          "units": [
+            "a0",
+            "a5"
+          ],
+          "w": 133.734375,
+          "h": 41.765625,
+          "area": 5585.499755859375
+        },
+        {
+          "units": [
+            "a0",
+            "a3"
+          ],
+          "w": 7.34375,
+          "h": 119.46875,
+          "area": 877.3486328125
+        },
+        {
+          "units": [
+            "a3",
+            "a1"
+          ],
+          "w": 5.3125,
+          "h": 132.59375,
+          "area": 704.404296875
+        },
+        {
+          "units": [
+            "e4",
+            "e0"
+          ],
+          "w": 9.390625,
+          "h": 137.96875,
+          "area": 1295.61279296875
+        },
+        {
+          "units": [
+            "e0",
+            "e5"
+          ],
+          "w": 133.734375,
+          "h": 41.765625,
+          "area": 5585.499755859375
+        },
+        {
+          "units": [
+            "e0",
+            "e3"
+          ],
+          "w": 7.34375,
+          "h": 119.46875,
+          "area": 877.3486328125
+        },
+        {
+          "units": [
+            "e3",
+            "e1"
+          ],
+          "w": 5.296875,
+          "h": 132.59375,
+          "area": 702.33251953125
+        }
+      ],
+      "occlusions": [
+        {
+          "owner": "a0",
+          "other": "a5",
+          "region": "hp",
+          "w": 64,
+          "h": 5,
+          "area": 320,
+          "ownerZ": "36",
+          "otherZ": "2",
+          "topAtCenter": null
+        },
+        {
+          "owner": "a0",
+          "other": "a5",
+          "region": "head",
+          "w": 60.05838867187498,
+          "h": 40.436004638671875,
+          "area": 2428.521282927095,
+          "ownerZ": "36",
+          "otherZ": "2",
+          "topAtCenter": null
+        },
+        {
+          "owner": "e0",
+          "other": "e5",
+          "region": "hp",
+          "w": 64,
+          "h": 5,
+          "area": 320,
+          "ownerZ": "7",
+          "otherZ": "2",
+          "topAtCenter": null
+        },
+        {
+          "owner": "e0",
+          "other": "e5",
+          "region": "head",
+          "w": 64.94125000000008,
+          "h": 41.799346923828125,
+          "area": 2714.5018384170567,
+          "ownerZ": "7",
+          "otherZ": "2",
+          "topAtCenter": null
+        }
+      ],
+      "depthGroups": [
+        {
+          "footY": 488.40625,
+          "heights": [
+            175.96875,
+            175.96875
+          ],
+          "uids": [
+            "a5",
+            "e5"
+          ],
+          "meanHeight": 175.96875
+        },
+        {
+          "footY": 506.90625,
+          "heights": [
+            181.328125,
+            181.328125
+          ],
+          "uids": [
+            "a2",
+            "e2"
+          ],
+          "meanHeight": 181.328125
+        },
+        {
+          "footY": 566.109375,
+          "heights": [
+            193.125,
+            193.125
+          ],
+          "uids": [
+            "a3",
+            "e3"
+          ],
+          "meanHeight": 193.125
+        },
+        {
+          "footY": 584.609375,
+          "heights": [
+            198.5,
+            198.5
+          ],
+          "uids": [
+            "a4",
+            "e4"
+          ],
+          "meanHeight": 198.5
+        },
+        {
+          "footY": 643.8125,
+          "heights": [
+            210.296875,
+            210.296875
+          ],
+          "uids": [
+            "a1",
+            "e1"
+          ],
+          "meanHeight": 210.296875
+        },
+        {
+          "footY": 662.3125,
+          "heights": [
+            215.671875,
+            215.671875
+          ],
+          "uids": [
+            "a0",
+            "e0"
+          ],
+          "meanHeight": 215.671875
+        }
+      ],
+      "slotMapping": [
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "matches": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "matches": true
+        },
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "matches": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "matches": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "matches": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "matches": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 2,
+          "matches": true
+        },
+        {
+          "uid": "e1",
+          "side": "enemy",
+          "slot": 5,
+          "matches": true
+        },
+        {
+          "uid": "e2",
+          "side": "enemy",
+          "slot": 0,
+          "matches": true
+        },
+        {
+          "uid": "e3",
+          "side": "enemy",
+          "slot": 4,
+          "matches": true
+        },
+        {
+          "uid": "e4",
+          "side": "enemy",
+          "slot": 1,
+          "matches": true
+        },
+        {
+          "uid": "e5",
+          "side": "enemy",
+          "slot": 3,
+          "matches": true
+        }
+      ],
+      "background": "url(\"assets/d06-observatory.webp\")",
+      "checks": {
+        "sceneFillsViewport": true,
+        "noHorizontalOverflow": true,
+        "legacyUIHidden": true,
+        "controlsVisible": true,
+        "controlsInsideScene": true,
+        "controlsAtLowerLeft": true,
+        "trackVisible": true,
+        "trackInsideScene": true,
+        "trackInsideViewport": true,
+        "trackImagesLoaded": true,
+        "feetOnGround": true,
+        "depthScaleIncreases": true,
+        "allImagesLoaded": true,
+        "allArtInScene": true,
+        "allHPInScene": true,
+        "hpAtLeast3px": true,
+        "transparentUnitAndSlot": true,
+        "borderlessUnitAndSlot": true,
+        "originalSlotMapping": true,
+        "localToolsHidden": true
+      },
+      "menu": {
+        "screenshot": "immersive-menu-1850x740.png",
+        "opening": {
+          "visible": true,
+          "role": "dialog",
+          "modal": "true",
+          "paused": true,
+          "focus": "battle-menu-resume",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "right": 1850,
+            "bottom": 740
+          }
+        },
+        "frozen": {
+          "clock": 0.30000007152557373,
+          "before": 0,
+          "deadlineUnchanged": true
+        },
+        "closed": {
+          "hidden": true,
+          "menuPaused": false,
+          "oldPauseRestored": true,
+          "speedUnchanged": true,
+          "deadlineUnchanged": true,
+          "focus": "battle-menu-open"
+        },
+        "speedCycle": [
+          2,
+          4,
+          1
+        ],
+        "checks": {
+          "dialogOpens": true,
+          "dialogInsideViewport": true,
+          "focusInDialog": true,
+          "presentationClockFrozen": true,
+          "closesAndRestores": true,
+          "focusRestored": true,
+          "speedCycles124": true
+        }
+      }
+    },
+    {
+      "width": 1850,
+      "height": 740,
+      "kind": "boss",
+      "screenshot": "immersive-boss-1850x740.png",
+      "fixture": {
+        "count": 7,
+        "bossImage": "content/bosses/abyss-lord/assets/portrait-cut.webp"
+      },
+      "viewport": {
+        "width": 1850,
+        "height": 740
+      },
+      "portrait": false,
+      "groundRatio": 0.64,
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "w": 1850,
+        "h": 740,
+        "right": 1850,
+        "bottom": 740
+      },
+      "controls": {
+        "x": 12,
+        "y": 590,
+        "w": 42,
+        "h": 94,
+        "right": 54,
+        "bottom": 684
+      },
+      "track": {
+        "x": 185,
+        "y": 677,
+        "w": 1591,
+        "h": 54,
+        "right": 1776,
+        "bottom": 731
+      },
+      "trackImages": [
+        {
+          "path": "/gacha/content/cards/c08/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/bosses/abyss-lord/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c04/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c07/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c01/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c06/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c12/assets/portrait.webp",
+          "loaded": true
+        }
+      ],
+      "legacy": [
+        {
+          "id": "battle-hud",
+          "visible": false
+        },
+        {
+          "id": "battle-transport",
+          "visible": false
+        },
+        {
+          "id": "battle-log",
+          "visible": false
+        }
+      ],
+      "all": [
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "parentSlot": 0,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 708.09375,
+            "y": 325.578125,
+            "w": 137.8125,
+            "h": 181.328125,
+            "right": 845.90625,
+            "bottom": 506.90625
+          },
+          "image": {
+            "x": 707.2808227539062,
+            "y": 326.1076354980469,
+            "w": 139.4383544921875,
+            "h": 178.83230590820312,
+            "right": 846.7191772460938,
+            "bottom": 504.93994140625
+          },
+          "hp": {
+            "x": 745,
+            "y": 315.578125,
+            "w": 64,
+            "h": 5,
+            "right": 809,
+            "bottom": 320.578125
+          },
+          "head": {
+            "x": 746.3235620117188,
+            "y": 326.1076354980469,
+            "w": 61.3528759765625,
+            "h": 42.91975341796875,
+            "right": 807.6764379882812,
+            "bottom": 369.02738891601564
+          },
+          "footY": 506.90625,
+          "groundFraction": 0.6850084459459459,
+          "actorHeight": 181.328125,
+          "depthScaleCSS": "calc(.82 + (1 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "3",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c07/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 497,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 553.578125,
+            "y": 386.109375,
+            "w": 150.859375,
+            "h": 198.5,
+            "right": 704.4375,
+            "bottom": 584.609375
+          },
+          "image": {
+            "x": 555.1725463867188,
+            "y": 386.12249755859375,
+            "w": 147.6549072265625,
+            "h": 198.45318603515625,
+            "right": 702.8274536132812,
+            "bottom": 584.57568359375
+          },
+          "hp": {
+            "x": 597,
+            "y": 376.109375,
+            "w": 64,
+            "h": 5,
+            "right": 661,
+            "bottom": 381.109375
+          },
+          "head": {
+            "x": 596.5159204101562,
+            "y": 386.12249755859375,
+            "w": 64.9681591796875,
+            "h": 47.628764648437496,
+            "right": 661.4840795898438,
+            "bottom": 433.75126220703123
+          },
+          "footY": 584.609375,
+          "groundFraction": 0.790012668918919,
+          "actorHeight": 198.5,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "5",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c06/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 476,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "parentSlot": 2,
+          "boss": false,
+          "classes": "unit acting",
+          "box": {
+            "x": 399.046875,
+            "y": 446.640625,
+            "w": 163.90625,
+            "h": 215.671875,
+            "right": 562.953125,
+            "bottom": 662.3125
+          },
+          "image": {
+            "x": 412.7518310546875,
+            "y": 446.6578063964844,
+            "w": 136.496337890625,
+            "h": 215.62100219726562,
+            "right": 549.2481689453125,
+            "bottom": 662.27880859375
+          },
+          "hp": {
+            "x": 449,
+            "y": 436.640625,
+            "w": 64,
+            "h": 5,
+            "right": 513,
+            "bottom": 441.640625
+          },
+          "head": {
+            "x": 450.9708056640625,
+            "y": 446.6578063964844,
+            "w": 60.058388671875,
+            "h": 51.749040527343745,
+            "right": 511.02919433593746,
+            "bottom": 498.40684692382814
+          },
+          "footY": 662.3125,
+          "groundFraction": 0.8950168918918919,
+          "actorHeight": 215.671875,
+          "depthScaleCSS": "calc(.82 + (3 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "36",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c08/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 405,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "parentSlot": 3,
+          "boss": false,
+          "classes": "unit dead",
+          "box": {
+            "x": 414.140625,
+            "y": 312.4375,
+            "w": 133.734375,
+            "h": 175.96875,
+            "right": 547.875,
+            "bottom": 488.40625
+          },
+          "image": {
+            "x": 418.734375,
+            "y": 312.4375,
+            "w": 124.546875,
+            "h": 175.96875,
+            "right": 543.28125,
+            "bottom": 488.40625
+          },
+          "hp": {
+            "x": 449,
+            "y": 302.4375,
+            "w": 64,
+            "h": 5,
+            "right": 513,
+            "bottom": 307.4375
+          },
+          "head": {
+            "x": 453.6075,
+            "y": 312.4375,
+            "w": 54.800625000000004,
+            "h": 42.2325,
+            "right": 508.40812500000004,
+            "bottom": 354.67
+          },
+          "footY": 488.40625,
+          "groundFraction": 0.660008445945946,
+          "actorHeight": 175.96875,
+          "depthScaleCSS": "calc(.82 + (1 - 1) * .08 + calc(1 - 1) * .025)",
+          "zIndex": "2",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c12/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 453,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "parentSlot": 4,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 259.609375,
+            "y": 372.984375,
+            "w": 146.78125,
+            "h": 193.125,
+            "right": 406.390625,
+            "bottom": 566.109375
+          },
+          "image": {
+            "x": 273.9134826660156,
+            "y": 373.226318359375,
+            "w": 118.1573486328125,
+            "h": 192.1954345703125,
+            "right": 392.0708312988281,
+            "bottom": 565.4217529296875
+          },
+          "hp": {
+            "x": 301,
+            "y": 362.984375,
+            "w": 64,
+            "h": 5,
+            "right": 365,
+            "bottom": 367.984375
+          },
+          "head": {
+            "x": 306.99754028320314,
+            "y": 373.226318359375,
+            "w": 51.9892333984375,
+            "h": 46.126904296875,
+            "right": 358.9867736816406,
+            "bottom": 419.35322265625
+          },
+          "footY": 566.109375,
+          "groundFraction": 0.765012668918919,
+          "actorHeight": 193.125,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(1 - 1) * .025)",
+          "zIndex": "4",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c01/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 390,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "parentSlot": 5,
+          "boss": false,
+          "classes": "unit has-shield",
+          "box": {
+            "x": 105.09375,
+            "y": 433.515625,
+            "w": 159.828125,
+            "h": 210.296875,
+            "right": 264.921875,
+            "bottom": 643.8125
+          },
+          "image": {
+            "x": 108.00778198242188,
+            "y": 434.13519287109375,
+            "w": 153.98431396484375,
+            "h": 208.36492919921875,
+            "right": 261.9920959472656,
+            "bottom": 642.5001220703125
+          },
+          "hp": {
+            "x": 153,
+            "y": 423.515625,
+            "w": 64,
+            "h": 5,
+            "right": 217,
+            "bottom": 428.515625
+          },
+          "head": {
+            "x": 151.12338989257813,
+            "y": 434.13519287109375,
+            "w": 67.75309814453125,
+            "h": 50.0075830078125,
+            "right": 218.87648803710937,
+            "bottom": 484.14277587890626
+          },
+          "footY": 643.8125,
+          "groundFraction": 0.8700168918918919,
+          "actorHeight": 210.296875,
+          "depthScaleCSS": "calc(.82 + (3 - 1) * .08 + calc(1 - 1) * .025)",
+          "zIndex": "6",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c04/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 465,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": true,
+          "classes": "unit enemy boss has-shield",
+          "box": {
+            "x": 1189.1875,
+            "y": 199.8125,
+            "w": 359.625,
+            "h": 399.59375,
+            "right": 1548.8125,
+            "bottom": 599.40625
+          },
+          "image": {
+            "x": 1239.140625,
+            "y": 199.77877807617188,
+            "w": 259.734375,
+            "h": 399.5937805175781,
+            "right": 1498.875,
+            "bottom": 599.37255859375
+          },
+          "hp": {
+            "x": 1252.125,
+            "y": 189.8125,
+            "w": 233.75,
+            "h": 5,
+            "right": 1485.875,
+            "bottom": 194.8125
+          },
+          "head": {
+            "x": 1311.86625,
+            "y": 199.77877807617188,
+            "w": 114.283125,
+            "h": 95.90250732421875,
+            "right": 1426.149375,
+            "bottom": 295.6812854003906
+          },
+          "footY": 599.40625,
+          "groundFraction": 0.8100084459459459,
+          "actorHeight": 399.59375,
+          "depthScaleCSS": "calc(.82 + (2 - 1) * .08 + calc(2 - 1) * .025)",
+          "zIndex": "5",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/bosses/abyss-lord/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 468,
+            "height": 720
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        }
+      ],
+      "overlaps": [
+        {
+          "units": [
+            "a4",
+            "a0"
+          ],
+          "w": 9.375,
+          "h": 137.96875,
+          "area": 1293.45703125
+        },
+        {
+          "units": [
+            "a0",
+            "a5"
+          ],
+          "w": 133.734375,
+          "h": 41.765625,
+          "area": 5585.499755859375
+        },
+        {
+          "units": [
+            "a0",
+            "a3"
+          ],
+          "w": 7.34375,
+          "h": 119.46875,
+          "area": 877.3486328125
+        },
+        {
+          "units": [
+            "a3",
+            "a1"
+          ],
+          "w": 5.3125,
+          "h": 132.59375,
+          "area": 704.404296875
+        }
+      ],
+      "occlusions": [
+        {
+          "owner": "a0",
+          "other": "a5",
+          "region": "hp",
+          "w": 64,
+          "h": 5,
+          "area": 320,
+          "ownerZ": "36",
+          "otherZ": "2",
+          "topAtCenter": null
+        },
+        {
+          "owner": "a0",
+          "other": "a5",
+          "region": "head",
+          "w": 60.05838867187498,
+          "h": 41.748443603515625,
+          "area": 2507.3442523857943,
+          "ownerZ": "36",
+          "otherZ": "2",
+          "topAtCenter": null
+        }
+      ],
+      "depthGroups": [
+        {
+          "footY": 488.40625,
+          "heights": [
+            175.96875
+          ],
+          "uids": [
+            "a5"
+          ],
+          "meanHeight": 175.96875
+        },
+        {
+          "footY": 506.90625,
+          "heights": [
+            181.328125
+          ],
+          "uids": [
+            "a2"
+          ],
+          "meanHeight": 181.328125
+        },
+        {
+          "footY": 566.109375,
+          "heights": [
+            193.125
+          ],
+          "uids": [
+            "a3"
+          ],
+          "meanHeight": 193.125
+        },
+        {
+          "footY": 584.609375,
+          "heights": [
+            198.5
+          ],
+          "uids": [
+            "a4"
+          ],
+          "meanHeight": 198.5
+        },
+        {
+          "footY": 643.8125,
+          "heights": [
+            210.296875
+          ],
+          "uids": [
+            "a1"
+          ],
+          "meanHeight": 210.296875
+        },
+        {
+          "footY": 662.3125,
+          "heights": [
+            215.671875
+          ],
+          "uids": [
+            "a0"
+          ],
+          "meanHeight": 215.671875
+        }
+      ],
+      "slotMapping": [
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "matches": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "matches": true
+        },
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "matches": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "matches": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "matches": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "matches": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 1,
+          "matches": true
+        }
+      ],
+      "background": "url(\"assets/d06-observatory.webp\")",
+      "checks": {
+        "sceneFillsViewport": true,
+        "noHorizontalOverflow": true,
+        "legacyUIHidden": true,
+        "controlsVisible": true,
+        "controlsInsideScene": true,
+        "controlsAtLowerLeft": true,
+        "trackVisible": true,
+        "trackInsideScene": true,
+        "trackInsideViewport": true,
+        "trackImagesLoaded": true,
+        "feetOnGround": true,
+        "depthScaleIncreases": true,
+        "allImagesLoaded": true,
+        "allArtInScene": true,
+        "allHPInScene": true,
+        "hpAtLeast3px": true,
+        "transparentUnitAndSlot": true,
+        "borderlessUnitAndSlot": true,
+        "originalSlotMapping": true,
+        "localToolsHidden": true
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "kind": "six-v-six",
+      "screenshot": "immersive-six-390x844.png",
+      "fixture": {
+        "count": 12,
+        "bossImage": null
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "portrait": true,
+      "groundRatio": 0.32,
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844,
+        "right": 390,
+        "bottom": 844
+      },
+      "controls": {
+        "x": 12,
+        "y": 704,
+        "w": 38,
+        "h": 84,
+        "right": 50,
+        "bottom": 788
+      },
+      "track": {
+        "x": 64,
+        "y": 787,
+        "w": 316,
+        "h": 48,
+        "right": 380,
+        "bottom": 835
+      },
+      "trackImages": [
+        {
+          "path": "/gacha/content/cards/c08/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c09/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c04/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c07/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c01/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c06/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c12/assets/portrait.webp",
+          "loaded": true
+        }
+      ],
+      "legacy": [
+        {
+          "id": "battle-hud",
+          "visible": false
+        },
+        {
+          "id": "battle-transport",
+          "visible": false
+        },
+        {
+          "id": "battle-log",
+          "visible": false
+        }
+      ],
+      "all": [
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "parentSlot": 0,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 42.625,
+            "y": 460.28125,
+            "w": 86.359375,
+            "h": 113.640625,
+            "right": 128.984375,
+            "bottom": 573.921875
+          },
+          "image": {
+            "x": 42.10993957519531,
+            "y": 459.8746643066406,
+            "w": 87.38949584960938,
+            "h": 112.05917358398438,
+            "right": 129.4994354248047,
+            "bottom": 571.933837890625
+          },
+          "hp": {
+            "x": 57.734375,
+            "y": 450.28125,
+            "w": 56.125,
+            "h": 5,
+            "right": 113.859375,
+            "bottom": 455.28125
+          },
+          "head": {
+            "x": 66.57899841308594,
+            "y": 459.8746643066406,
+            "w": 38.451378173828125,
+            "h": 26.89420166015625,
+            "right": 105.03037658691406,
+            "bottom": 486.76886596679685
+          },
+          "footY": 573.921875,
+          "groundFraction": 0.680002221563981,
+          "actorHeight": 113.640625,
+          "depthScaleCSS": "calc(1 - calc(2 - 1) * .06)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c07/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 497,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 159.625,
+            "y": 460.28125,
+            "w": 86.359375,
+            "h": 113.640625,
+            "right": 245.984375,
+            "bottom": 573.921875
+          },
+          "image": {
+            "x": 160.54383850097656,
+            "y": 460.27880859375,
+            "w": 84.52169799804688,
+            "h": 113.631103515625,
+            "right": 245.06553649902344,
+            "bottom": 573.909912109375
+          },
+          "hp": {
+            "x": 174.734375,
+            "y": 450.28125,
+            "w": 56.125,
+            "h": 5,
+            "right": 230.859375,
+            "bottom": 455.28125
+          },
+          "head": {
+            "x": 184.2099139404297,
+            "y": 460.27880859375,
+            "w": 37.18954711914063,
+            "h": 27.27146484375,
+            "right": 221.3994610595703,
+            "bottom": 487.5502734375
+          },
+          "footY": 573.921875,
+          "groundFraction": 0.680002221563981,
+          "actorHeight": 113.640625,
+          "depthScaleCSS": "calc(1 - calc(2 - 1) * .06)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c06/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 476,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "parentSlot": 2,
+          "boss": false,
+          "classes": "unit acting",
+          "box": {
+            "x": 276.625,
+            "y": 460.28125,
+            "w": 86.359375,
+            "h": 113.640625,
+            "right": 362.984375,
+            "bottom": 573.921875
+          },
+          "image": {
+            "x": 283.8411560058594,
+            "y": 460.27880859375,
+            "w": 71.91140747070312,
+            "h": 113.631103515625,
+            "right": 355.7525634765625,
+            "bottom": 573.909912109375
+          },
+          "hp": {
+            "x": 291.734375,
+            "y": 450.28125,
+            "w": 56.125,
+            "h": 5,
+            "right": 347.859375,
+            "bottom": 455.28125
+          },
+          "head": {
+            "x": 303.9763500976562,
+            "y": 460.27880859375,
+            "w": 31.641019287109376,
+            "h": 27.27146484375,
+            "right": 335.6173693847656,
+            "bottom": 487.5502734375
+          },
+          "footY": 573.921875,
+          "groundFraction": 0.680002221563981,
+          "actorHeight": 113.640625,
+          "depthScaleCSS": "calc(1 - calc(2 - 1) * .06)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c08/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 405,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "parentSlot": 3,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 24.25,
+            "y": 621.84375,
+            "w": 91.875,
+            "h": 120.890625,
+            "right": 116.125,
+            "bottom": 742.734375
+          },
+          "image": {
+            "x": 27.10076904296875,
+            "y": 621.6607666015625,
+            "w": 86.1734619140625,
+            "h": 119.883544921875,
+            "right": 113.27423095703125,
+            "bottom": 741.5443115234375
+          },
+          "hp": {
+            "x": 40.328125,
+            "y": 611.84375,
+            "w": 59.71875,
+            "h": 5,
+            "right": 100.046875,
+            "bottom": 616.84375
+          },
+          "head": {
+            "x": 51.22933837890625,
+            "y": 621.6607666015625,
+            "w": 37.9163232421875,
+            "h": 28.772050781249998,
+            "right": 89.14566162109375,
+            "bottom": 650.4328173828125
+          },
+          "footY": 742.734375,
+          "groundFraction": 0.8800170319905213,
+          "actorHeight": 120.890625,
+          "depthScaleCSS": "calc(1 - calc(1 - 1) * .06)",
+          "zIndex": "8",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c12/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 453,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "parentSlot": 4,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 141.25,
+            "y": 621.84375,
+            "w": 91.875,
+            "h": 120.890625,
+            "right": 233.125,
+            "bottom": 742.734375
+          },
+          "image": {
+            "x": 150.18040466308594,
+            "y": 621.71923828125,
+            "w": 74.01419067382812,
+            "h": 120.2052001953125,
+            "right": 224.19459533691406,
+            "bottom": 741.9244384765625
+          },
+          "hp": {
+            "x": 157.328125,
+            "y": 611.84375,
+            "w": 59.71875,
+            "h": 5,
+            "right": 217.046875,
+            "bottom": 616.84375
+          },
+          "head": {
+            "x": 170.90437805175782,
+            "y": 621.71923828125,
+            "w": 32.56624389648437,
+            "h": 28.849248046874997,
+            "right": 203.47062194824218,
+            "bottom": 650.568486328125
+          },
+          "footY": 742.734375,
+          "groundFraction": 0.8800170319905213,
+          "actorHeight": 120.890625,
+          "depthScaleCSS": "calc(1 - calc(1 - 1) * .06)",
+          "zIndex": "8",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c01/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 390,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "parentSlot": 5,
+          "boss": false,
+          "classes": "unit has-shield",
+          "box": {
+            "x": 258.25,
+            "y": 621.84375,
+            "w": 91.875,
+            "h": 120.890625,
+            "right": 350.125,
+            "bottom": 742.734375
+          },
+          "image": {
+            "x": 259.9519958496094,
+            "y": 621.6607666015625,
+            "w": 88.45526123046875,
+            "h": 119.883544921875,
+            "right": 348.4072570800781,
+            "bottom": 741.5443115234375
+          },
+          "hp": {
+            "x": 274.328125,
+            "y": 611.84375,
+            "w": 59.71875,
+            "h": 5,
+            "right": 334.046875,
+            "bottom": 616.84375
+          },
+          "head": {
+            "x": 284.71946899414064,
+            "y": 621.6607666015625,
+            "w": 38.920314941406254,
+            "h": 28.772050781249998,
+            "right": 323.6397839355469,
+            "bottom": 650.4328173828125
+          },
+          "footY": 742.734375,
+          "groundFraction": 0.8800170319905213,
+          "actorHeight": 120.890625,
+          "depthScaleCSS": "calc(1 - calc(1 - 1) * .06)",
+          "zIndex": "8",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c04/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 465,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e2",
+          "side": "enemy",
+          "slot": 0,
+          "parentSlot": 0,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 46.296875,
+            "y": 326.484375,
+            "w": 79.015625,
+            "h": 103.96875,
+            "right": 125.3125,
+            "bottom": 430.453125
+          },
+          "image": {
+            "x": 51.15625,
+            "y": 324.496337890625,
+            "w": 69.3125,
+            "h": 103.96875,
+            "right": 120.46875,
+            "bottom": 428.465087890625
+          },
+          "hp": {
+            "x": 60.1171875,
+            "y": 316.484375,
+            "w": 51.359375,
+            "h": 5,
+            "right": 111.4765625,
+            "bottom": 321.484375
+          },
+          "head": {
+            "x": 70.56375,
+            "y": 324.496337890625,
+            "w": 30.4975,
+            "h": 24.9525,
+            "right": 101.06125,
+            "bottom": 349.448837890625
+          },
+          "footY": 430.453125,
+          "groundFraction": 0.5100155509478673,
+          "actorHeight": 103.96875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 1) * .1)",
+          "zIndex": "4",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c15/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 1024,
+            "height": 1536
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e4",
+          "side": "enemy",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 155.5,
+            "y": 326.484375,
+            "w": 79.015625,
+            "h": 103.96875,
+            "right": 234.515625,
+            "bottom": 430.453125
+          },
+          "image": {
+            "x": 164.015625,
+            "y": 326.472412109375,
+            "w": 62,
+            "h": 103.96875,
+            "right": 226.015625,
+            "bottom": 430.441162109375
+          },
+          "hp": {
+            "x": 169.3203125,
+            "y": 316.484375,
+            "w": 51.359375,
+            "h": 5,
+            "right": 220.6796875,
+            "bottom": 321.484375
+          },
+          "head": {
+            "x": 181.375625,
+            "y": 326.472412109375,
+            "w": 27.28,
+            "h": 24.9525,
+            "right": 208.65562500000001,
+            "bottom": 351.424912109375
+          },
+          "footY": 430.453125,
+          "groundFraction": 0.5100155509478673,
+          "actorHeight": 103.96875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 1) * .1)",
+          "zIndex": "4",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c27/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 334,
+            "height": 560
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 2,
+          "parentSlot": 2,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 264.6875,
+            "y": 326.484375,
+            "w": 79.015625,
+            "h": 103.96875,
+            "right": 343.703125,
+            "bottom": 430.453125
+          },
+          "image": {
+            "x": 268.625,
+            "y": 326.472412109375,
+            "w": 71.140625,
+            "h": 103.96875,
+            "right": 339.765625,
+            "bottom": 430.441162109375
+          },
+          "hp": {
+            "x": 278.5078125,
+            "y": 316.484375,
+            "w": 51.359375,
+            "h": 5,
+            "right": 329.8671875,
+            "bottom": 321.484375
+          },
+          "head": {
+            "x": 288.544375,
+            "y": 326.472412109375,
+            "w": 31.301875,
+            "h": 24.9525,
+            "right": 319.84625,
+            "bottom": 351.424912109375
+          },
+          "footY": 430.453125,
+          "groundFraction": 0.5100155509478673,
+          "actorHeight": 103.96875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 1) * .1)",
+          "zIndex": "4",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c09/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 438,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e5",
+          "side": "enemy",
+          "slot": 3,
+          "parentSlot": 3,
+          "boss": false,
+          "classes": "unit enemy dead",
+          "box": {
+            "x": 39.1875,
+            "y": 203.53125,
+            "w": 69.828125,
+            "h": 91.875,
+            "right": 109.015625,
+            "bottom": 295.40625
+          },
+          "image": {
+            "x": 42.9375,
+            "y": 203.53125,
+            "w": 62.34375,
+            "h": 91.875,
+            "right": 105.28125,
+            "bottom": 295.40625
+          },
+          "hp": {
+            "x": 51.40625,
+            "y": 193.53125,
+            "w": 45.375,
+            "h": 5,
+            "right": 96.78125,
+            "bottom": 198.53125
+          },
+          "head": {
+            "x": 60.39375,
+            "y": 203.53125,
+            "w": 27.43125,
+            "h": 22.05,
+            "right": 87.82499999999999,
+            "bottom": 225.58125
+          },
+          "footY": 295.40625,
+          "groundFraction": 0.3500074052132701,
+          "actorHeight": 91.875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 2) * .1)",
+          "zIndex": "3",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c28/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 380,
+            "height": 560
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e3",
+          "side": "enemy",
+          "slot": 4,
+          "parentSlot": 4,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 148.390625,
+            "y": 203.53125,
+            "w": 69.828125,
+            "h": 91.875,
+            "right": 218.21875,
+            "bottom": 295.40625
+          },
+          "image": {
+            "x": 152.6875,
+            "y": 202.72132873535156,
+            "w": 61.25,
+            "h": 91.87498474121094,
+            "right": 213.9375,
+            "bottom": 294.5963134765625
+          },
+          "hp": {
+            "x": 160.609375,
+            "y": 193.53125,
+            "w": 45.375,
+            "h": 5,
+            "right": 205.984375,
+            "bottom": 198.53125
+          },
+          "head": {
+            "x": 169.8375,
+            "y": 202.72132873535156,
+            "w": 26.95,
+            "h": 22.049996337890626,
+            "right": 196.7875,
+            "bottom": 224.7713250732422
+          },
+          "footY": 295.40625,
+          "groundFraction": 0.3500074052132701,
+          "actorHeight": 91.875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 2) * .1)",
+          "zIndex": "3",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c16/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 1024,
+            "height": 1536
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e1",
+          "side": "enemy",
+          "slot": 5,
+          "parentSlot": 5,
+          "boss": false,
+          "classes": "unit enemy",
+          "box": {
+            "x": 257.59375,
+            "y": 203.53125,
+            "w": 69.828125,
+            "h": 91.875,
+            "right": 327.421875,
+            "bottom": 295.40625
+          },
+          "image": {
+            "x": 260.140625,
+            "y": 202.34117126464844,
+            "w": 64.734375,
+            "h": 91.87501525878906,
+            "right": 324.875,
+            "bottom": 294.2161865234375
+          },
+          "hp": {
+            "x": 269.8125,
+            "y": 193.53125,
+            "w": 45.375,
+            "h": 5,
+            "right": 315.1875,
+            "bottom": 198.53125
+          },
+          "head": {
+            "x": 278.26625,
+            "y": 202.34117126464844,
+            "w": 28.483125,
+            "h": 22.050003662109376,
+            "right": 306.749375,
+            "bottom": 224.3911749267578
+          },
+          "footY": 295.40625,
+          "groundFraction": 0.3500074052132701,
+          "actorHeight": 91.875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 2) * .1)",
+          "zIndex": "3",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c03/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 451,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        }
+      ],
+      "overlaps": [],
+      "occlusions": [],
+      "depthGroups": [
+        {
+          "footY": 295.40625,
+          "heights": [
+            91.875,
+            91.875,
+            91.875
+          ],
+          "uids": [
+            "e5",
+            "e3",
+            "e1"
+          ],
+          "meanHeight": 91.875
+        },
+        {
+          "footY": 430.453125,
+          "heights": [
+            103.96875,
+            103.96875,
+            103.96875
+          ],
+          "uids": [
+            "e2",
+            "e4",
+            "e0"
+          ],
+          "meanHeight": 103.96875
+        },
+        {
+          "footY": 573.921875,
+          "heights": [
+            113.640625,
+            113.640625,
+            113.640625
+          ],
+          "uids": [
+            "a2",
+            "a4",
+            "a0"
+          ],
+          "meanHeight": 113.640625
+        },
+        {
+          "footY": 742.734375,
+          "heights": [
+            120.890625,
+            120.890625,
+            120.890625
+          ],
+          "uids": [
+            "a5",
+            "a3",
+            "a1"
+          ],
+          "meanHeight": 120.890625
+        }
+      ],
+      "slotMapping": [
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "matches": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "matches": true
+        },
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "matches": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "matches": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "matches": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "matches": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 2,
+          "matches": true
+        },
+        {
+          "uid": "e1",
+          "side": "enemy",
+          "slot": 5,
+          "matches": true
+        },
+        {
+          "uid": "e2",
+          "side": "enemy",
+          "slot": 0,
+          "matches": true
+        },
+        {
+          "uid": "e3",
+          "side": "enemy",
+          "slot": 4,
+          "matches": true
+        },
+        {
+          "uid": "e4",
+          "side": "enemy",
+          "slot": 1,
+          "matches": true
+        },
+        {
+          "uid": "e5",
+          "side": "enemy",
+          "slot": 3,
+          "matches": true
+        }
+      ],
+      "background": "url(\"assets/d06-observatory.webp\")",
+      "checks": {
+        "sceneFillsViewport": true,
+        "noHorizontalOverflow": true,
+        "legacyUIHidden": true,
+        "controlsVisible": true,
+        "controlsInsideScene": true,
+        "controlsAtLowerLeft": true,
+        "trackVisible": true,
+        "trackInsideScene": true,
+        "trackInsideViewport": true,
+        "trackImagesLoaded": true,
+        "feetOnGround": true,
+        "depthScaleIncreases": true,
+        "allImagesLoaded": true,
+        "allArtInScene": true,
+        "allHPInScene": true,
+        "hpAtLeast3px": true,
+        "transparentUnitAndSlot": true,
+        "borderlessUnitAndSlot": true,
+        "originalSlotMapping": true,
+        "localToolsHidden": true
+      },
+      "menu": {
+        "screenshot": "immersive-menu-390x844.png",
+        "opening": {
+          "visible": true,
+          "role": "dialog",
+          "modal": "true",
+          "paused": true,
+          "focus": "battle-menu-resume",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "right": 390,
+            "bottom": 844
+          }
+        },
+        "frozen": {
+          "clock": 0,
+          "before": 0,
+          "deadlineUnchanged": true
+        },
+        "closed": {
+          "hidden": true,
+          "menuPaused": false,
+          "oldPauseRestored": true,
+          "speedUnchanged": true,
+          "deadlineUnchanged": true,
+          "focus": "battle-menu-open"
+        },
+        "speedCycle": [
+          2,
+          4,
+          1
+        ],
+        "checks": {
+          "dialogOpens": true,
+          "dialogInsideViewport": true,
+          "focusInDialog": true,
+          "presentationClockFrozen": true,
+          "closesAndRestores": true,
+          "focusRestored": true,
+          "speedCycles124": true
+        }
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "kind": "boss",
+      "screenshot": "immersive-boss-390x844.png",
+      "fixture": {
+        "count": 7,
+        "bossImage": "content/bosses/abyss-lord/assets/portrait-cut.webp"
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "portrait": true,
+      "groundRatio": 0.32,
+      "scene": {
+        "x": 0,
+        "y": 0,
+        "w": 390,
+        "h": 844,
+        "right": 390,
+        "bottom": 844
+      },
+      "controls": {
+        "x": 12,
+        "y": 704,
+        "w": 38,
+        "h": 84,
+        "right": 50,
+        "bottom": 788
+      },
+      "track": {
+        "x": 64,
+        "y": 787,
+        "w": 316,
+        "h": 48,
+        "right": 380,
+        "bottom": 835
+      },
+      "trackImages": [
+        {
+          "path": "/gacha/content/cards/c08/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/bosses/abyss-lord/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c04/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c07/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c01/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c06/assets/portrait.webp",
+          "loaded": true
+        },
+        {
+          "path": "/gacha/content/cards/c12/assets/portrait.webp",
+          "loaded": true
+        }
+      ],
+      "legacy": [
+        {
+          "id": "battle-hud",
+          "visible": false
+        },
+        {
+          "id": "battle-transport",
+          "visible": false
+        },
+        {
+          "id": "battle-log",
+          "visible": false
+        }
+      ],
+      "all": [
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "parentSlot": 0,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 42.625,
+            "y": 460.28125,
+            "w": 86.359375,
+            "h": 113.640625,
+            "right": 128.984375,
+            "bottom": 573.921875
+          },
+          "image": {
+            "x": 42.10820770263672,
+            "y": 459.873291015625,
+            "w": 87.39295196533203,
+            "h": 112.0538330078125,
+            "right": 129.50115966796875,
+            "bottom": 571.9271240234375
+          },
+          "hp": {
+            "x": 57.734375,
+            "y": 450.28125,
+            "w": 56.125,
+            "h": 5,
+            "right": 113.859375,
+            "bottom": 455.28125
+          },
+          "head": {
+            "x": 66.57823425292969,
+            "y": 459.873291015625,
+            "w": 38.452898864746096,
+            "h": 26.892919921875,
+            "right": 105.03113311767578,
+            "bottom": 486.7662109375
+          },
+          "footY": 573.921875,
+          "groundFraction": 0.680002221563981,
+          "actorHeight": 113.640625,
+          "depthScaleCSS": "calc(1 - calc(2 - 1) * .06)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c07/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 497,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 159.625,
+            "y": 460.28125,
+            "w": 86.359375,
+            "h": 113.640625,
+            "right": 245.984375,
+            "bottom": 573.921875
+          },
+          "image": {
+            "x": 160.5455322265625,
+            "y": 460.2801818847656,
+            "w": 84.518310546875,
+            "h": 113.63644409179688,
+            "right": 245.0638427734375,
+            "bottom": 573.9166259765625
+          },
+          "hp": {
+            "x": 174.734375,
+            "y": 450.28125,
+            "w": 56.125,
+            "h": 5,
+            "right": 230.859375,
+            "bottom": 455.28125
+          },
+          "head": {
+            "x": 184.2106591796875,
+            "y": 460.2801818847656,
+            "w": 37.188056640625,
+            "h": 27.27274658203125,
+            "right": 221.3987158203125,
+            "bottom": 487.55292846679686
+          },
+          "footY": 573.921875,
+          "groundFraction": 0.680002221563981,
+          "actorHeight": 113.640625,
+          "depthScaleCSS": "calc(1 - calc(2 - 1) * .06)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c06/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 476,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "parentSlot": 2,
+          "boss": false,
+          "classes": "unit acting",
+          "box": {
+            "x": 276.625,
+            "y": 460.28125,
+            "w": 86.359375,
+            "h": 113.640625,
+            "right": 362.984375,
+            "bottom": 573.921875
+          },
+          "image": {
+            "x": 283.8426208496094,
+            "y": 460.2801818847656,
+            "w": 71.90850830078125,
+            "h": 113.63644409179688,
+            "right": 355.7511291503906,
+            "bottom": 573.9166259765625
+          },
+          "hp": {
+            "x": 291.734375,
+            "y": 450.28125,
+            "w": 56.125,
+            "h": 5,
+            "right": 347.859375,
+            "bottom": 455.28125
+          },
+          "head": {
+            "x": 303.9770031738281,
+            "y": 460.2801818847656,
+            "w": 31.63974365234375,
+            "h": 27.27274658203125,
+            "right": 335.61674682617183,
+            "bottom": 487.55292846679686
+          },
+          "footY": 573.921875,
+          "groundFraction": 0.680002221563981,
+          "actorHeight": 113.640625,
+          "depthScaleCSS": "calc(1 - calc(2 - 1) * .06)",
+          "zIndex": "7",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c08/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 405,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "parentSlot": 3,
+          "boss": false,
+          "classes": "unit dead",
+          "box": {
+            "x": 24.25,
+            "y": 621.84375,
+            "w": 91.875,
+            "h": 120.890625,
+            "right": 116.125,
+            "bottom": 742.734375
+          },
+          "image": {
+            "x": 27.40625,
+            "y": 621.84375,
+            "w": 85.5625,
+            "h": 120.890625,
+            "right": 112.96875,
+            "bottom": 742.734375
+          },
+          "hp": {
+            "x": 40.328125,
+            "y": 611.84375,
+            "w": 59.71875,
+            "h": 5,
+            "right": 100.046875,
+            "bottom": 616.84375
+          },
+          "head": {
+            "x": 51.36375,
+            "y": 621.84375,
+            "w": 37.6475,
+            "h": 29.013749999999998,
+            "right": 89.01125,
+            "bottom": 650.8575
+          },
+          "footY": 742.734375,
+          "groundFraction": 0.8800170319905213,
+          "actorHeight": 120.890625,
+          "depthScaleCSS": "calc(1 - calc(1 - 1) * .06)",
+          "zIndex": "8",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c12/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 453,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "parentSlot": 4,
+          "boss": false,
+          "classes": "unit",
+          "box": {
+            "x": 141.25,
+            "y": 621.84375,
+            "w": 91.875,
+            "h": 120.890625,
+            "right": 233.125,
+            "bottom": 742.734375
+          },
+          "image": {
+            "x": 150.16653442382812,
+            "y": 621.7095947265625,
+            "w": 74.04193115234375,
+            "h": 120.152099609375,
+            "right": 224.20846557617188,
+            "bottom": 741.8616943359375
+          },
+          "hp": {
+            "x": 157.328125,
+            "y": 611.84375,
+            "w": 59.71875,
+            "h": 5,
+            "right": 217.046875,
+            "bottom": 616.84375
+          },
+          "head": {
+            "x": 170.89827514648437,
+            "y": 621.7095947265625,
+            "w": 32.57844970703125,
+            "h": 28.836503906249998,
+            "right": 203.4767248535156,
+            "bottom": 650.5460986328125
+          },
+          "footY": 742.734375,
+          "groundFraction": 0.8800170319905213,
+          "actorHeight": 120.890625,
+          "depthScaleCSS": "calc(1 - calc(1 - 1) * .06)",
+          "zIndex": "8",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c01/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 390,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "parentSlot": 5,
+          "boss": false,
+          "classes": "unit has-shield",
+          "box": {
+            "x": 258.25,
+            "y": 621.84375,
+            "w": 91.875,
+            "h": 120.890625,
+            "right": 350.125,
+            "bottom": 742.734375
+          },
+          "image": {
+            "x": 259.9685363769531,
+            "y": 621.67041015625,
+            "w": 88.42221069335938,
+            "h": 119.9366455078125,
+            "right": 348.3907470703125,
+            "bottom": 741.6070556640625
+          },
+          "hp": {
+            "x": 274.328125,
+            "y": 611.84375,
+            "w": 59.71875,
+            "h": 5,
+            "right": 334.046875,
+            "bottom": 616.84375
+          },
+          "head": {
+            "x": 284.72675537109376,
+            "y": 621.67041015625,
+            "w": 38.90577270507813,
+            "h": 28.784794921874997,
+            "right": 323.63252807617187,
+            "bottom": 650.455205078125
+          },
+          "footY": 742.734375,
+          "groundFraction": 0.8800170319905213,
+          "actorHeight": 120.890625,
+          "depthScaleCSS": "calc(1 - calc(1 - 1) * .06)",
+          "zIndex": "8",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/cards/c04/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 465,
+            "height": 640
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 1,
+          "parentSlot": 1,
+          "boss": true,
+          "classes": "unit enemy boss has-shield",
+          "box": {
+            "x": 101.796875,
+            "y": 197.09375,
+            "w": 217.609375,
+            "h": 241.796875,
+            "right": 319.40625,
+            "bottom": 438.890625
+          },
+          "image": {
+            "x": 132.03125,
+            "y": 197.08847045898438,
+            "w": 157.15625,
+            "h": 241.796875,
+            "right": 289.1875,
+            "bottom": 438.8853454589844
+          },
+          "hp": {
+            "x": 139.875,
+            "y": 187.09375,
+            "w": 141.4375,
+            "h": 5,
+            "right": 281.3125,
+            "bottom": 192.09375
+          },
+          "head": {
+            "x": 176.035,
+            "y": 197.08847045898438,
+            "w": 69.14875,
+            "h": 58.03125,
+            "right": 245.18375,
+            "bottom": 255.11972045898438
+          },
+          "footY": 438.890625,
+          "groundFraction": 0.5200125888625592,
+          "actorHeight": 241.796875,
+          "depthScaleCSS": "calc(.76 + calc(2 - 1) * .1)",
+          "zIndex": "5",
+          "topUnitAtHP": null,
+          "topUnitAtHead": null,
+          "imagePath": "/gacha/content/bosses/abyss-lord/assets/portrait-cut.webp",
+          "imageLoaded": true,
+          "originalImage": {
+            "width": 468,
+            "height": 720
+          },
+          "imageFit": "contain",
+          "transparent": true,
+          "borderless": true,
+          "imageInScene": true,
+          "hpInScene": true,
+          "unitInScene": true
+        }
+      ],
+      "overlaps": [],
+      "occlusions": [],
+      "depthGroups": [
+        {
+          "footY": 573.921875,
+          "heights": [
+            113.640625,
+            113.640625,
+            113.640625
+          ],
+          "uids": [
+            "a2",
+            "a4",
+            "a0"
+          ],
+          "meanHeight": 113.640625
+        },
+        {
+          "footY": 742.734375,
+          "heights": [
+            120.890625,
+            120.890625,
+            120.890625
+          ],
+          "uids": [
+            "a5",
+            "a3",
+            "a1"
+          ],
+          "meanHeight": 120.890625
+        }
+      ],
+      "slotMapping": [
+        {
+          "uid": "a0",
+          "side": "ally",
+          "slot": 2,
+          "matches": true
+        },
+        {
+          "uid": "a1",
+          "side": "ally",
+          "slot": 5,
+          "matches": true
+        },
+        {
+          "uid": "a2",
+          "side": "ally",
+          "slot": 0,
+          "matches": true
+        },
+        {
+          "uid": "a3",
+          "side": "ally",
+          "slot": 4,
+          "matches": true
+        },
+        {
+          "uid": "a4",
+          "side": "ally",
+          "slot": 1,
+          "matches": true
+        },
+        {
+          "uid": "a5",
+          "side": "ally",
+          "slot": 3,
+          "matches": true
+        },
+        {
+          "uid": "e0",
+          "side": "enemy",
+          "slot": 1,
+          "matches": true
+        }
+      ],
+      "background": "url(\"assets/d06-observatory.webp\")",
+      "checks": {
+        "sceneFillsViewport": true,
+        "noHorizontalOverflow": true,
+        "legacyUIHidden": true,
+        "controlsVisible": true,
+        "controlsInsideScene": true,
+        "controlsAtLowerLeft": true,
+        "trackVisible": true,
+        "trackInsideScene": true,
+        "trackInsideViewport": true,
+        "trackImagesLoaded": true,
+        "feetOnGround": true,
+        "depthScaleIncreases": true,
+        "allImagesLoaded": true,
+        "allArtInScene": true,
+        "allHPInScene": true,
+        "hpAtLeast3px": true,
+        "transparentUnitAndSlot": true,
+        "borderlessUnitAndSlot": true,
+        "originalSlotMapping": true,
+        "localToolsHidden": true
+      }
+    }
+  ],
+  "errors": [],
+  "blockedAPI": [
+    {
+      "path": "/api/user/auth/refresh",
+      "method": "POST"
+    }
+  ],
+  "runtimeErrors": []
+}

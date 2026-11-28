@@ -1,0 +1,128 @@
+{
+  "captured_on": "2026-11-28",
+  "context": "本地浏览器加载真实项目界面与虚构账号回包。不同功能验收阶段的截图；强者世界使用虚构开放周。不是生产账号或真实 Go 数据库验收。",
+  "screenshots": [
+    {
+      "file": "world-desktop.png",
+      "caption": "强者世界：限定角色、积分排行和积分宝箱",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "e88439bda143b791dea82b1d279d3b77cdde0ec4410a78c40ca837f276a14b02",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/world-desktop.png"
+    },
+    {
+      "file": "world-phone-awards.png",
+      "caption": "手机：强者世界排名奖励",
+      "width": 390,
+      "height": 844,
+      "sha256": "1c7b6e2e7bdb1a4122d0bd4a3b5670d77d8203650b804350ca3093da685d5ac0",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/world-phone-awards.png"
+    },
+    {
+      "file": "codex-wide.png",
+      "caption": "1920 宽屏：人物名录与详情填满两侧",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "3449b8da6d08d28cba090824e377e27903794b4d9c917777106e9b82abc2650c",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/codex-wide.png"
+    },
+    {
+      "file": "codex-skills.png",
+      "caption": "卡牌技能、演出描述与星阶设定",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "1e0d1dec00a683ef4e04da0431ecac97dabf3b24e358264c9eea97d88a37132b",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/codex-skills.png"
+    },
+    {
+      "file": "codex-dossier.png",
+      "caption": "人物档案：六维、传记和人物事迹",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "de5efc89fb708c65d8d0ab226edfcfc689b0a6e20d8dfb9316e931a949cd8dc5",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/codex-dossier.png"
+    },
+    {
+      "file": "codex-sources.png",
+      "caption": "收录与获取：合法来源与读一页百骸洲纪事",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "304662f19e4c13153dd1c239eb3cd420d58842f789c3f7271ac4d35f8fa65c33",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/codex-sources.png"
+    },
+    {
+      "file": "codex-phone-preview.png",
+      "caption": "手机：可暂停、重播、调速的技能演示",
+      "width": 390,
+      "height": 844,
+      "sha256": "80b7e71b834610c2c1db4f691743b2423e41d829ccb6f3f026046bc2ace76686",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/codex-phone-preview.png"
+    },
+    {
+      "file": "codex-phone-chronicle.png",
+      "caption": "手机：百骸洲纪事阅读弹窗",
+      "width": 390,
+      "height": 844,
+      "sha256": "98e51890e8f7a0789b896a48ff9a7f5f6170af1e24899e38bcc4b7e91222f21a",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/codex-phone-chronicle.png"
+    },
+    {
+      "file": "daily-all-claimed.png",
+      "caption": "每日任务达到 100 积分，四档宝箱领取后同步状态",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "96b54b32ec7328f7ae9ff0a9de8a8c5aff93796748c3ba8f486a5ed53ce934dd",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/daily-all-claimed.png"
+    },
+    {
+      "file": "daily-phone-chests.png",
+      "caption": "手机：横向滚动的每日任务宝箱",
+      "width": 390,
+      "height": 844,
+      "sha256": "eedf7010f680219d0af346e30f165ee60fb795cc068146a2e05ba24208c43a9d",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/daily-phone-chests.png"
+    },
+    {
+      "file": "daily-phone-tasks.png",
+      "caption": "手机：每日任务进度与操作入口",
+      "width": 390,
+      "height": 844,
+      "sha256": "732d2b54daa4768d0e7786b5cdb92fcaf6fb4a6ec7e0ea6c97154f076180713a",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/daily-phone-tasks.png"
+    },
+    {
+      "file": "daily-phone-equipment.png",
+      "caption": "点击去强化后直达可培养角色的装备页",
+      "width": 390,
+      "height": 844,
+      "sha256": "d9106cde8b6a0d11d295e6ea67f59cde3765983dbb9b65384aaf2de875bc42e3",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/daily-phone-equipment.png"
+    },
+    {
+      "file": "daily-phone-skill.png",
+      "caption": "点击技能培养后直达技能学习页",
+      "width": 390,
+      "height": 844,
+      "sha256": "2b07e18a1b3b6f37225d686ff1e19e36c3e1d42d3be33bb409f65e95cdb47058",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/daily-phone-skill.png"
+    },
+    {
+      "file": "festival-phone-chests.png",
+      "caption": "港口活动周印册复用宝箱展示",
+      "width": 390,
+      "height": 844,
+      "sha256": "df09aef5844d168065c1415c24ce2940991dcba8073bd8ca6e6fc6db441217dc",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/festival-phone-chests.png"
+    },
+    {
+      "file": "guild-phone-chests.png",
+      "caption": "公会港务里程复用宝箱展示",
+      "width": 390,
+      "height": 844,
+      "sha256": "ea87876e4b47190cd78cb0a18fe435d6822df688a362a71018473782a0851573",
+      "url": "https://raw.githubusercontent.com/1810551251/ultrarouter-card-game-screenshots/d38cfd58b70efdc071219357d553db46db706117/codex-daily-world-ui-20261128/guild-phone-chests.png"
+    }
+  ],
+  "repository": "https://github.com/1810551251/ultrarouter-card-game-screenshots",
+  "commit": "d38cfd58b70efdc071219357d553db46db706117"
+}

@@ -10,6 +10,11 @@ import (
 	"strconv"
 )
 
+// Squad order is authoritative: slots 0..2 are the front row and 3..5 the back row.
+const GachaSquadLimit = 6
+const gachaFormationColumns = 3
+const gachaBattleReportVersion = 2
+
 type GachaBattleSnapshot struct {
 	UID        string `json:"uid"`
 	HP         int    `json:"hp"`
@@ -35,6 +40,7 @@ type GachaBattleSnapshot struct {
 
 type GachaBattleUnit struct {
 	GachaBattleSnapshot
+	Slot      int    `json:"slot"`
 	Side      string `json:"side"`
 	GirlID    string `json:"girlId"`
 	Elem      string `json:"elem,omitempty"`
@@ -69,6 +75,8 @@ type GachaBattleTarget struct {
 }
 
 type GachaBattleEvent struct {
+	Seq        int                   `json:"seq"`
+	Order      []string              `json:"order,omitempty"`
 	Kind       string                `json:"kind"`
 	Wave       int                   `json:"wave"`
 	Round      int                   `json:"round"`
@@ -82,6 +90,7 @@ type GachaBattleEvent struct {
 }
 
 type GachaBattleReport struct {
+	Version       int                 `json:"version"`
 	Allies        []GachaBattleUnit   `json:"allies"`
 	Waves         [][]GachaBattleUnit `json:"waves"`
 	Events        []GachaBattleEvent  `json:"events"`
@@ -114,15 +123,16 @@ type gachaCombatUnit struct {
 }
 
 type gachaCombat struct {
-	allies   []*gachaCombatUnit
-	waves    [][]*gachaCombatUnit
-	wave     int
-	rounds   int
-	rng      *rand.Rand
-	formula  GachaFormula
-	report   *GachaBattleReport
-	pvp      bool
-	mechanic string
+	allies     []*gachaCombatUnit
+	waves      [][]*gachaCombatUnit
+	wave       int
+	rounds     int
+	roundLimit int
+	rng        *rand.Rand
+	formula    GachaFormula
+	report     *GachaBattleReport
+	pvp        bool
+	mechanic   string
 }
 
 // The production entry point never accepts a client seed or combat result.
@@ -139,10 +149,10 @@ func simulateGachaCombat(state *GachaGameState, stage GachaStage, rng *rand.Rand
 	if gachaCatalog == nil || state == nil || rng == nil {
 		return nil, errors.New("gacha combat is not initialized")
 	}
-	if len(state.Squad) == 0 || len(state.Squad) > 4 {
+	if len(state.Squad) == 0 || len(state.Squad) > GachaSquadLimit {
 		return nil, errors.New("invalid gacha squad")
 	}
-	if stage.Waves < 1 || stage.Waves > 8 || stage.EnemyCount < 1 || stage.EnemyCount > 8 || stage.EnemyLv < 1 || stage.EnemyLv > 200 || len(gachaCatalog.Enemies) < 4 {
+	if stage.Waves < 1 || stage.Waves > 8 || stage.EnemyCount < 1 || stage.EnemyCount > GachaSquadLimit || stage.EnemyLv < 1 || stage.EnemyLv > 200 || len(gachaCatalog.Enemies) < 4 {
 		return nil, errors.New("invalid gacha stage")
 	}
 	formula := gachaCatalog.Formula
@@ -176,6 +186,7 @@ func simulateGachaCombat(state *GachaGameState, stage GachaStage, rng *rand.Rand
 			level := float64(stage.EnemyLv)
 			u := &gachaCombatUnit{GachaBattleUnit: GachaBattleUnit{
 				GachaBattleSnapshot: GachaBattleSnapshot{UID: "e" + strconv.Itoa(i), Alive: true},
+				Slot:                i,
 				Side:                "enemy", Name: template.Name, Img: template.Img, AtkType: template.AtkType,
 				Elem: template.Elem,
 				Boss: bossWave, Level: stage.EnemyLv,
@@ -209,7 +220,7 @@ func simulateGachaCombat(state *GachaGameState, stage GachaStage, rng *rand.Rand
 }
 
 func gachaSquadUnits(state *GachaGameState, side, prefix string) ([]*gachaCombatUnit, error) {
-	if state == nil || len(state.Squad) == 0 || len(state.Squad) > 4 {
+	if state == nil || len(state.Squad) == 0 || len(state.Squad) > GachaSquadLimit {
 		return nil, ErrGachaTeam
 	}
 	units := make([]*gachaCombatUnit, 0, len(state.Squad))
@@ -278,7 +289,7 @@ func gachaSquadUnits(state *GachaGameState, side, prefix string) ([]*gachaCombat
 				if !ok {
 					return nil, ErrGachaRunState
 				}
-				bonus.addCultivationStat(item.Stat, item.Value)
+				bonus.addCultivationStat(item.Stat, item.Value+gachaCarryLevel(own.CarryXP)-1)
 			}
 			hp *= 1 + float64(bonus.HP)/100
 			atk *= 1 + float64(bonus.Atk)/100
@@ -347,7 +358,7 @@ func gachaSquadUnits(state *GachaGameState, side, prefix string) ([]*gachaCombat
 		if roleCounts[girl.Role] >= 3 {
 			hp *= 1.07
 		}
-		if len(state.Squad) == 4 && len(elemCounts) == 4 {
+		if len(elemCounts) >= 4 {
 			def *= 1.05
 		}
 		if !state.legacyArenaStats {
@@ -368,6 +379,7 @@ func gachaSquadUnits(state *GachaGameState, side, prefix string) ([]*gachaCombat
 		combatGirl.Skills.Skill = gachaAwakeningSkill(girl, own)
 		u := &gachaCombatUnit{girl: &combatGirl, GachaBattleUnit: GachaBattleUnit{
 			GachaBattleSnapshot: GachaBattleSnapshot{UID: prefix + strconv.Itoa(i), Alive: true},
+			Slot:                i,
 			Side:                side, GirlID: id, Elem: girl.Elem, Name: girl.Name, Img: girl.Img, AtkType: girl.AtkType, Level: own.Level,
 			MaxHP: int(math.Round(hp)), Atk: int(math.Round(atk)), Def: int(math.Round(def)), Spd: int(math.Round(spd)),
 			CR: min(cr, 100), CD: cd, EHR: min(100, ehr), Res: min(100, max(0, res)),
@@ -432,12 +444,17 @@ func gachaSquadUnits(state *GachaGameState, side, prefix string) ([]*gachaCombat
 
 func (b *gachaCombat) fight(starRound int) *GachaBattleReport {
 	report := b.report
+	report.Version = gachaBattleReportVersion
+	roundLimit := b.roundLimit
+	if roundLimit <= 0 || roundLimit > 60 {
+		roundLimit = 60
+	}
 battle:
 	for b.wave = 0; b.wave < len(b.waves); b.wave++ {
 		b.record(GachaBattleEvent{Kind: "wave", Wave: b.wave, Round: b.rounds, DurationMS: 600, Targets: []GachaBattleTarget{}})
 		for len(gachaLivingUnits(b.waves[b.wave])) > 0 && len(gachaLivingUnits(b.allies)) > 0 {
 			// A healing/shield stalemate cannot generate an unbounded saved report.
-			if b.rounds >= 60 {
+			if b.rounds >= roundLimit {
 				report.TimedOut = true
 				break battle
 			}
@@ -457,6 +474,12 @@ battle:
 				}
 				return 0
 			})
+			turnOrder := make([]string, 0, len(order))
+			for _, u := range order {
+				turnOrder = append(turnOrder, u.UID)
+			}
+			// The browser replays this order; speed controls never recalculate it.
+			b.record(GachaBattleEvent{Kind: "round", Wave: b.wave, Round: b.rounds, Order: turnOrder, Targets: []GachaBattleTarget{}})
 			for _, u := range order {
 				if !u.Alive {
 					continue
@@ -502,7 +525,31 @@ func gachaLivingUnits(units []*gachaCombatUnit) []*gachaCombatUnit {
 	return living
 }
 
+// Normal attacks meet the opposing front row first. A matching column wins
+// ties; a defeated front row exposes its rear row without moving any slots.
+// Taunt is selected by act before this fallback. Skills retain their own targets.
+func gachaFormationTarget(actor *gachaCombatUnit, foes []*gachaCombatUnit) *gachaCombatUnit {
+	var target *gachaCombatUnit
+	priority := func(unit *gachaCombatUnit) int {
+		rank := unit.Slot
+		if unit.Slot%gachaFormationColumns == actor.Slot%gachaFormationColumns {
+			rank -= gachaFormationColumns
+		}
+		if unit.Slot >= gachaFormationColumns {
+			rank += GachaSquadLimit
+		}
+		return rank
+	}
+	for _, unit := range foes {
+		if unit.Alive && (target == nil || priority(unit) < priority(target)) {
+			target = unit
+		}
+	}
+	return target
+}
+
 func (b *gachaCombat) record(event GachaBattleEvent) {
+	event.Seq = len(b.report.Events) + 1
 	event.Units = make([]GachaBattleSnapshot, 0, len(b.allies)+len(b.waves[b.wave]))
 	for _, u := range b.allies {
 		event.Units = append(event.Units, u.GachaBattleSnapshot)
@@ -835,7 +882,7 @@ func (b *gachaCombat) act(u *gachaCombatUnit) {
 		u.Rage = min(b.formula.RageMax, u.Rage+b.formula.RagePerNormal+u.rageBonus)
 		target := taunter
 		if target == nil {
-			target = foes[b.rng.IntN(len(foes))]
+			target = gachaFormationTarget(u, foes)
 		}
 		mult := 1.0
 		if u.girl != nil {

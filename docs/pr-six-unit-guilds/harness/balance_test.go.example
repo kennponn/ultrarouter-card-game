@@ -1,0 +1,152 @@
+package model
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/stretchr/testify/require"
+	"math/rand/v2"
+	"os"
+	"slices"
+	"testing"
+)
+
+type reviewGrowth struct{ Level, Star, Weapon, Grade, Effort, Skill, Awake, Members int }
+
+var reviewGrowthTiers = []reviewGrowth{{20, 2, 0, 1, 80, 5, 0, 8}, {40, 3, 3, 2, 400, 15, 0, 15}, {65, 5, 6, 3, 800, 35, 1, 22}, {95, 7, 8, 4, 2300, 65, 2, 30}, {125, 9, 10, 5, 5600, 95, 3, 38}}
+
+type reviewBattleSample struct {
+	Stage    int      `json:"stage"`
+	Tier     int      `json:"tier"`
+	Strength string   `json:"strength"`
+	Seed     int      `json:"seed"`
+	Damage   int      `json:"damage"`
+	Rounds   int      `json:"rounds"`
+	Alive    int      `json:"alive"`
+	Events   int      `json:"events"`
+	Squad    []string `json:"squad"`
+	HP       int      `json:"hp"`
+	Members  int      `json:"members"`
+	Week     string   `json:"week"`
+}
+
+func reviewBuildSquad(t *testing.T, tier int, strength string, seed int) *GachaGameState {
+	p := reviewGrowthTiers[tier]
+	if strength == "weak" {
+		p.Level = p.Level * 8 / 10
+		p.Star = max(1, p.Star-1)
+		p.Skill = p.Skill * 65 / 100
+		p.Effort = p.Effort * 6 / 10
+		p.Weapon = max(0, p.Weapon-2)
+		p.Awake = max(0, p.Awake-1)
+	}
+	if strength == "strong" {
+		p.Level = min(150, p.Level*115/100)
+		p.Star++
+		p.Skill = min(p.Level, p.Skill*12/10)
+		p.Weapon = min(12, p.Weapon+2)
+		if tier > 0 {
+			p.Awake = min(3, p.Awake+1)
+		}
+	}
+	pool := []GachaGirl{}
+	for _, g := range gachaCatalog.Girls {
+		if tier == 0 && g.Rarity != "R" || tier == 1 && g.Rarity == "SSR" {
+			continue
+		}
+		pool = append(pool, g)
+	}
+	rng := rand.New(rand.NewPCG(uint64(seed+100), uint64(tier+40)))
+	squad := []string{}
+	for _, role := range []string{"tank", "heal", "dps", "dps", "any", "any"} {
+		options := []string{}
+		for _, g := range pool {
+			if slices.Contains(squad, g.ID) {
+				continue
+			}
+			if role == "any" || g.Role == role || role == "dps" && (g.Role == "sdps" || g.Role == "adps") {
+				options = append(options, g.ID)
+			}
+		}
+		require.NotEmpty(t, options)
+		squad = append(squad, options[rng.IntN(len(options))])
+	}
+	squad[0], squad[1] = squad[1], squad[0]
+	state := battleTestState(squad, p.Level, p.Star)
+	state.EffortVersion = 1
+	for _, g := range pool {
+		star := max(p.Star, gachaCatalog.Rarity[g.Rarity].BaseStar)
+		own := &GachaOwnedGirl{Level: p.Level, Star: star, WeaponLevel: p.Weapon}
+		own.Awakening = p.Awake
+		if star > 5 {
+			own.Awakening = max(own.Awakening, gachaCultivation.AdvancedAwakening[star-6])
+		}
+		if own.Awakening > 0 {
+			own.Branch = map[string]string{"tank": "guard", "heal": "purify", "sdps": "focus", "adps": "focus", "support": "rally", "sup": "rally"}[g.Role]
+			if own.Branch == "" {
+				own.Branch = GachaAwakeningBranches(g.ID)[0].ID
+			}
+		}
+		if star >= 3 {
+			own.Talent = map[string]string{"tank": "guardian", "heal": "oracle", "sdps": "power", "adps": "power"}[g.Role]
+			if own.Talent == "" {
+				own.Talent = "swift"
+			}
+		}
+		grade := p.Grade
+		for grade > 0 && gachaTraining.Grades[grade].Level > p.Level {
+			grade--
+		}
+		effortStage := 0
+		for effortStage+1 < len(gachaTraining.EffortStages) && p.Effort > gachaTraining.EffortStages[effortStage].Cap {
+			effortStage++
+		}
+		own.Training = &GachaCardTraining{Grade: grade, Stage: effortStage, Effort: map[string]int{}, Skills: map[string]int{"normal": p.Skill, "rage": p.Skill, "passive": p.Skill}}
+		for _, stat := range gachaTraining.EffortStats {
+			own.Training.Effort[stat.ID] = p.Effort
+		}
+		state.Girls[g.ID] = own
+	}
+	return state
+}
+func TestReviewActualGuildCombatCorpus(t *testing.T) {
+	samples := []reviewBattleSample{}
+	for tier := range reviewGrowthTiers {
+		for _, strength := range []string{"weak", "medium", "strong"} {
+			stages := []int{tier}
+			if tier == 4 {
+				stages = []int{0, 1, 2, 3, 4}
+			}
+			for _, stage := range stages {
+				for seed := 0; seed < 96; seed++ {
+					state := reviewBuildSquad(t, tier, strength, seed)
+					hp := guildRaids[stage].HP
+					if seed%2 == 1 {
+						hp = hp * 45 / 100
+					}
+					owner := &GachaGuildState{Week: fmt.Sprintf("2026-W%02d", 40+seed%6), BossHP: hp, BossMaxHP: guildRaids[stage].HP}
+					report, err := simulateGuildRaid(state, owner, stage, rand.New(rand.NewPCG(uint64(seed+1), uint64(tier*10+stage+100))))
+					require.NoError(t, err, "tier=%d stage=%d strength=%s seed=%d", tier, stage, strength, seed)
+					require.LessOrEqual(t, report.Rounds, 20)
+					require.Len(t, report.Allies, 6)
+					damage := guildRaidDamage(report)
+					require.GreaterOrEqual(t, damage, 0)
+					require.LessOrEqual(t, damage, hp)
+					for i, event := range report.Events {
+						require.Equal(t, i+1, event.Seq)
+						for _, u := range event.Units {
+							require.GreaterOrEqual(t, u.HP, 0)
+							require.GreaterOrEqual(t, u.Shield, 0)
+							require.GreaterOrEqual(t, u.Rage, 0)
+							require.LessOrEqual(t, u.Rage, 100)
+						}
+					}
+					samples = append(samples, reviewBattleSample{stage + 1, tier + 1, strength, seed, damage, report.Rounds, report.AliveN, len(report.Events), slices.Clone(state.Squad), hp, reviewGrowthTiers[tier].Members, owner.Week})
+				}
+			}
+		}
+	}
+	data, err := json.MarshalIndent(samples, "", "  ")
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile("/out/actual-guild-combat.json", data, 0600))
+	t.Logf("actual Go combat: %d reports checked, 96 seeds for each tier/strength/stage cell", len(samples))
+}

@@ -65,10 +65,12 @@ def preview_handler(root=ROOT):
             if not parts or '..' in parts or '\\' in relative or ':' in relative or any(ord(character) < 32 for character in relative):
                 self.send_error(404, 'Invalid game asset path.')
                 return
-            allowed = relative in {'index.html', 'style.css', 'mobile.css', 'harbor.css', 'voyage.css', 'voyage-map.css', 'voyage-screen.css', 'fleet.css', 'harbor-mail.css'} or (
+            allowed = relative in {'index.html', 'style.css', 'battle.css', 'battle-motion.css', 'battle-menu.css', 'arena-ladder.css', 'world.css', 'codex.css', 'reward-chests.css', 'mobile.css', 'harbor.css', 'voyage.css', 'voyage-map.css', 'voyage-screen.css', 'fleet.css', 'harbor-mail.css'} or (
                 parts[0] == 'js' and relative.endswith('.js')
             ) or (
                 parts[0] == 'assets' and relative.endswith('.webp')
+            ) or (
+                len(parts) == 5 and parts[0] == 'content' and parts[1] in {'cards', 'enemies', 'bosses'} and parts[3] == 'assets' and relative.endswith('.webp')
             )
             if not allowed:
                 self.send_error(404, 'Only game preview assets are served.')

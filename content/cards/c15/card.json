@@ -1,0 +1,45 @@
+{
+  "id": "c15",
+  "sources": ["world"],
+  "name": "月璃",
+  "rarity": "SSR",
+  "elem": "dark",
+  "role": "adps",
+  "atkType": "magic",
+  "img": "content/cards/c15/assets/portrait.webp",
+  "base": {
+    "hp": 1340,
+    "atk": 325,
+    "def": 96,
+    "spd": 111,
+    "cr": 10,
+    "cd": 165,
+    "ehr": 15,
+    "res": 25
+  },
+  "matBonus": 0,
+  "dupGain": 25,
+  "skills": {
+    "normal": {
+      "name": "月弧",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "胧月千灯",
+      "mult": 2.6,
+      "target": "allEnemies",
+      "slow": 20,
+      "slowTurns": 2,
+      "desc": "对全体造成260%攻击伤害，并使目标速度降低20%，持续2回合"
+    }
+  },
+  "desc": "渡月伞姬，在河灯亮起时踏过古桥。伞影中的月色，能让追逐者忘记脚步。",
+  "battleImg": "content/cards/c15/assets/portrait-cut.webp",
+  "fxColor": "#8a93a8",
+  "legacyImages": {
+    "assets/c15-yueli.webp": "content/cards/c15/assets/portrait.webp",
+    "assets/c15-yueli-cut.webp": "content/cards/c15/assets/portrait-cut.webp"
+  }
+}

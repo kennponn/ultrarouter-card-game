@@ -1,0 +1,43 @@
+{
+  "id": "c02",
+  "name": "小满",
+  "rarity": "R",
+  "elem": "plant",
+  "role": "support",
+  "atkType": "ranged",
+  "img": "content/cards/c02/assets/portrait.webp",
+  "base": {
+    "hp": 900,
+    "atk": 120,
+    "def": 70,
+    "spd": 98,
+    "cr": 5,
+    "cd": 150,
+    "ehr": 0,
+    "res": 15
+  },
+  "matBonus": 0.05,
+  "dupGain": 8,
+  "skills": {
+    "normal": {
+      "name": "篮击",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "丰收祝福",
+      "mult": 0,
+      "target": "team",
+      "healMult": 0.8,
+      "desc": "治疗全队（80%攻击），并提升本次副本材料掉落"
+    }
+  },
+  "desc": "菜园少女，上阵时副本材料掉落+5%。",
+  "battleImg": "content/cards/c02/assets/portrait-cut.webp",
+  "fxColor": "#9adf6e",
+  "legacyImages": {
+    "assets/c02-xiaoman.webp": "content/cards/c02/assets/portrait.webp",
+    "assets/c02-xiaoman-cut.webp": "content/cards/c02/assets/portrait-cut.webp"
+  }
+}

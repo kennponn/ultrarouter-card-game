@@ -1,0 +1,57 @@
+/* Shared milestone chests. Reward state and eligibility come from each server view. */
+.reward-chest-grid,.fest-album > .reward-chest-grid {
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); grid-template-columns:none;
+  gap:12px; width:100%; max-width:100%; min-width:0; padding:5px 4px 10px; box-sizing:border-box;
+  overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:thin; scrollbar-color:#8c7850 #172d40;
+  scroll-padding-inline:4px; scroll-snap-type:x proximity;
+}
+.reward-chest-card {
+  --chest-gold:#e8c17a; position:relative; isolation:isolate; min-width:0; display:flex; flex-direction:column;
+  align-items:stretch; padding:15px 12px 12px; overflow:hidden; scroll-snap-align:start; box-sizing:border-box;
+  color:#e2e8ed; border:1px solid #66717b; border-radius:12px;
+  background:radial-gradient(ellipse at 50% 34%,#3e4e6059,transparent 65%),linear-gradient(155deg,#253b50,#152738);
+  box-shadow:inset 0 1px #ffffff0c,0 3px 8px #14243818; text-align:center;
+}
+.reward-chest-card::before { content:""; position:absolute; inset:0 19% auto; height:2px; background:linear-gradient(90deg,transparent,#a59a7d,transparent); }
+.reward-chest-card * { box-sizing:border-box; }
+.reward-chest-card .reward-chest-title { margin:0; color:#f4e4c3; font-size:14px; line-height:1.5; font-weight:700; overflow-wrap:anywhere; }
+.reward-chest-card .reward-chest-threshold { margin:5px 0 0; color:#b9c9d7; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.reward-chest-button {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px;
+  width:100%; min-width:0; min-height:132px; margin:3px 0 10px; padding:5px 3px 7px;
+  border:1px solid transparent; border-radius:8px; background:transparent; color:inherit;
+  font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+.reward-chest-art { position:relative; display:inline-flex; align-items:center; justify-content:center; flex:none; width:84px; height:84px; isolation:isolate; }
+.reward-chest-art::before { content:""; position:absolute; z-index:-1; inset:9%; border-radius:50%; background:radial-gradient(ellipse,#e2b4562e,transparent 70%); }
+.reward-chest-art img { display:block; width:100%; height:100%; max-width:100%; object-fit:contain; pointer-events:none; filter:drop-shadow(0 5px 3px #0006); transition:transform .18s ease,filter .18s ease; }
+.reward-chest-card .reward-chest-status { display:block; width:100%; min-height:30px; padding:6px 3px; border:1px solid #637080; border-radius:5px; background:#2e4050; color:#d3dde7; font-size:12px; font-weight:700; line-height:1.4; overflow-wrap:anywhere; }
+.reward-chest-card .reward-chest-rewards { display:grid; gap:5px; margin:auto 0 0; padding:10px 0 0; border-top:1px solid #aab3b52e; list-style:none; font-size:11px; line-height:1.5; }
+.reward-chest-rewards li { display:flex; justify-content:space-between; align-items:baseline; gap:7px; min-width:0; text-align:left; }
+.reward-chest-rewards li > span { color:#c5d2de; overflow-wrap:anywhere; }
+.reward-chest-rewards li > b { flex:none; color:#f3dfb4; font-weight:600; font-variant-numeric:tabular-nums; }
+.reward-chest-card[data-chest-state="ready"] { border-color:#c6a263; background:radial-gradient(ellipse at 50% 33%,#d9b3652b,transparent 62%),linear-gradient(155deg,#2e4254,#172a3c); }
+.reward-chest-card[data-chest-state="ready"]::before { background:linear-gradient(90deg,transparent,#f1d594,transparent); }
+.reward-chest-art[data-chest-state="ready"]::before { inset:-5%; background:radial-gradient(ellipse,#efd38b40,transparent 68%); }
+.reward-chest-card[data-chest-state="ready"] .reward-chest-status { color:#352617; border-color:#ecd097; background:linear-gradient(#efd6a4,#cda667); text-shadow:0 1px #fff5; }
+.reward-chest-card[data-chest-state="claimed"] { border-color:#5e827f; }
+.reward-chest-card[data-chest-state="claimed"] .reward-chest-status { color:#c0ded3; border-color:#617f7a; background:#294347; }
+.reward-chest-art[data-chest-state="locked"] img { filter:saturate(.38) brightness(.78) drop-shadow(0 5px 3px #0005); }
+.reward-chest-button:disabled { cursor:default; opacity:1; }
+.reward-chest-button:focus-visible,.reward-chest-grid:focus-visible { outline:3px solid #e6c47e; outline-offset:2px; }
+@media (hover:hover) {
+  .reward-chest-button:not(:disabled):hover { background:#f3d5940d; border-color:#d2b57b55; }
+  .reward-chest-button:not(:disabled):hover .reward-chest-art img { transform:translateY(-3px); filter:drop-shadow(0 7px 5px #e1b65045); }
+}
+@media (max-width:700px) {
+  .reward-chest-grid,.fest-album > .reward-chest-grid { grid-auto-columns:minmax(144px,1fr); gap:9px; }
+  .reward-chest-card { padding:12px 10px 10px; border-radius:10px; }
+  .reward-chest-card .reward-chest-title { font-size:13px; }
+  .reward-chest-button { min-height:122px; }
+  .reward-chest-button .reward-chest-art { width:78px; height:78px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .reward-chest-grid { scroll-behavior:auto; }
+  .reward-chest-art img { transition:none; }
+  .reward-chest-button:not(:disabled):hover .reward-chest-art img { transform:none; }
+}

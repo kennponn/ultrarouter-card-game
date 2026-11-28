@@ -55,7 +55,7 @@ var festivalEvents = func() []GachaFestivalEvent {
 	return events
 }()
 
-var festivalAlbum = map[int]map[string]int{3: {"forge_ore": 10}, 7: {"gem_ticket": 2, "chip_ticket": 2}, 11: {"astral_treatise": 2, "break_seal": 3}}
+var festivalAlbum = gachaCatalog.ActivityPayouts.FestivalAlbum
 
 func syncGachaFestival(state *GachaGameState, now time.Time) error {
 	week := gachaWeekKey(now)
@@ -242,5 +242,6 @@ func applyGachaFestival(state *GachaGameState, intent GachaActionIntent, receipt
 		log.Stamps[id] = true
 	}
 	log.Tries[id] = count
+	reconcileGachaCaptainDay(state)
 	return nil
 }

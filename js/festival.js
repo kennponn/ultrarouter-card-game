@@ -65,6 +65,18 @@ async function refreshFestival() {
   if (epoch === Store.sessionEpoch && Store.ready() && document.body.dataset.page === "page-festival") { renderFestival(); renderTopbar(); }
 }
 
+function openFestivalToday() {
+  if (!requireGame()) return;
+  if (festivalView?.epoch === Store.sessionEpoch && festivalView.date === SAVE?.daily?.date && SAVE?.festival) {
+    festivalView.day = SAVE.festival.day;
+    festivalView.note = "";
+  }
+  nav("page-festival");
+  const control = document.querySelector("#festival-body form[data-fest-id] input:not(:disabled), #festival-body form[data-fest-id] select:not(:disabled)");
+  control?.closest("form")?.scrollIntoView?.({block:"center", behavior:"auto"});
+  control?.focus({preventScroll:true});
+}
+
 async function submitFestival(action, fields, id) {
   const view = festivalView;
   if (!view || view.busy || !Store.ready()) return;
@@ -93,7 +105,14 @@ function renderFestival() {
   }
   if (festivalView?.epoch !== Store.sessionEpoch || festivalView.date !== SAVE.daily.date) festivalView = {epoch:Store.sessionEpoch, date:SAVE.daily.date, day:log.day, busy:false, note:""};
   const view = festivalView, live = view.day === log.day, events = rules.events.slice(view.day * 2, view.day * 2 + 2), stamps = Object.keys(log.stamps).length;
-  body.innerHTML = `<div class="fest-date"><strong>${esc(log.week)} 航务日历</strong><span>北京时间 · 每日两场</span><button class="harbor-link" type="button" onclick="refreshFestival()">同步</button></div><nav class="fest-week" aria-label="活动星期">${festivalDays.map((label, index) => `<button type="button" data-day="${index}" aria-pressed="${view.day === index}">${label}<small>${index === log.day ? "今日" : index < log.day ? "已结束" : "预告"}</small></button>`).join("")}</nav><div class="fest-events">${events.map(event => festivalEventCard(event, log, live)).join("")}</div><p role="status" class="fest-notice">${esc(view.note)}</p><section class="fest-album"><h3>航务集章册 <small>${stamps} / 14</small></h3><div>${Object.entries(rules.album).map(([threshold, reward]) => `<div><b>${threshold} 枚航章</b><span>${festivalPrizes(reward)}</span><button class="harbor-link" type="button" data-album="${threshold}" ${log.claimed[threshold] || stamps < Number(threshold) ? "disabled" : ""}>${log.claimed[threshold] ? "已领取" : stamps >= threshold ? "领取" : `还差 ${Number(threshold) - stamps} 枚`}</button></div>`).join("")}</div></section>`;
+  const album = Object.entries(rules.album).map(([threshold, reward], index) => rewardChestCard({
+    title:`${threshold} 枚航章宝箱`, threshold:`已收集 ${stamps} / ${threshold} 枚`, tier:index + 1,
+    state:log.claimed[threshold] ? "claimed" : stamps >= Number(threshold) ? "ready" : "locked",
+    status:log.claimed[threshold] ? "已领取" : stamps >= Number(threshold) ? "领取宝箱" : `还差 ${Number(threshold) - stamps} 枚`,
+    rewards:Object.entries(reward).map(([id,count]) => ({name:Store.profile.items?.items?.[id]?.name || id, count})),
+    attributes:{"data-album":threshold}
+  })).join("");
+  body.innerHTML = `<div class="fest-date"><strong>${esc(log.week)} 航务日历</strong><span>北京时间 · 每日两场</span><button class="harbor-link" type="button" onclick="refreshFestival()">同步</button></div><nav class="fest-week" aria-label="活动星期">${festivalDays.map((label, index) => `<button type="button" data-day="${index}" aria-pressed="${view.day === index}">${label}<small>${index === log.day ? "今日" : index < log.day ? "已结束" : "预告"}</small></button>`).join("")}</nav><div class="fest-events">${events.map(event => festivalEventCard(event, log, live)).join("")}</div><p role="status" class="fest-notice">${esc(view.note)}</p><section class="fest-album"><h3>航务集章册 <small>${stamps} / 14</small></h3><div class="reward-chest-grid" tabindex="0" role="group" aria-label="航章宝箱奖励">${album}</div></section>`;
   body.querySelectorAll("[data-day]").forEach(button => button.onclick = () => { view.day = Number(button.dataset.day); view.note = ""; renderFestival(); body.querySelector(`[data-day="${view.day}"]`).focus(); });
   body.querySelectorAll("[data-album]").forEach(button => button.onclick = () => submitFestival("festival_album", {item_id:log.week, count:Number(button.dataset.album)}));
   body.querySelectorAll("form[data-fest-id]").forEach(form => {

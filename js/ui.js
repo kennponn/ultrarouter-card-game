@@ -11,6 +11,7 @@ function esc(value) {
 /* ---------- 页面路由 ---------- */
 function nav(pageId) {
   if (!requireGame()) return;
+  if (pageId !== "page-codex" && typeof closeCodexDialogs === "function") closeCodexDialogs(false);
   if (typeof discardArtifactReturn === "function") discardArtifactReturn();
   stopArenaPolling();
   if (typeof stopGrowthRestTimer === "function") stopGrowthRestTimer();
@@ -26,7 +27,7 @@ function nav(pageId) {
   document.body.classList.toggle("in-battle", pageId === "page-battle");  // 横屏战斗全屏态
   document.body.dataset.page = pageId;                                    // 供样式按页面微调
   const R = { "page-home": renderHome, "page-gacha": renderGacha,
-              "page-squad": renderSquad, "page-stage": renderStage,
+              "page-squad": renderSquad, "page-codex": typeof renderCodex === "function" ? renderCodex : null, "page-stage": renderStage,
               "page-modes": renderModes, "page-growth": typeof renderGrowth === "function" ? renderGrowth : null,
               "page-bag": renderBag, "page-shop": renderShop, "page-arena": renderArena,
               "page-captain": typeof renderCaptain === "function" ? renderCaptain : null,
@@ -47,8 +48,7 @@ function renderTopbar() {
   document.getElementById("res-token").textContent = SAVE.token;
   document.getElementById("res-gold").textContent = SAVE.gold;
   document.getElementById("res-multi").textContent = "x" + SAVE.multi + (SAVE.multiOn ? "（使用中）" : "");
-  document.getElementById("res-budget").textContent =
-    Math.max(0, TOKEN_BUDGET - SAVE.daily.tokenGained);
+  document.getElementById("res-budget").textContent = SAVE.daily.tokenGained || 0;
   const site = document.getElementById("res-site");
   if (site) site.textContent = (Store.serverOK && SITE_ACCOUNT)
     ? quotaToE(SITE_ACCOUNT.quota || 0) + " E"
@@ -108,7 +108,14 @@ async function retryGameAction() {
   else if (result.queue) { await refreshArenaQueue(); }
   if (result.queue) { await Store.refresh(); renderTopbar(); }
   if (result.arena) showArenaResult(result.arena);
-  if (result.ladder) showArenaResult(result.ladder);
+  if (result.ladder) {
+    lastArenaResult = result.ladder; lastArenaEpoch = Store.sessionEpoch;
+    watchArenaResult();
+  }
+  if (result.guild_battle?.report && !battleRunning) {
+    const receipt = result.guild_battle;
+    resumeBattle({id:"guild-retry-"+Date.now(),stage:"guild_raid",guild_battle:receipt,result:receipt.report,ready_at:Store.serverNow()+receipt.report.duration_ms});
+  }
   toast("原操作已由数据库确认");
 }
 
@@ -130,9 +137,8 @@ function renderHome() {
   if (!requireGame()) return;
   const pityLeft = GACHA.pitySSR - (SAVE.pity % GACHA.pitySSR);
   const owned = Object.values(SAVE.girls).filter(g => g.star > 0).length;
-  const budgetLeft = Math.max(0, TOKEN_BUDGET - SAVE.daily.tokenGained);
   document.getElementById("home-info").innerHTML = `
-    <div class="info-card"><div class="k">今日代币池剩余</div><div class="v">${budgetLeft}/${TOKEN_BUDGET}</div></div>
+    <div class="info-card"><div class="k">今日战斗代币（无日上限）</div><div class="v">${SAVE.daily.tokenGained || 0}</div></div>
     <div class="info-card"><div class="k">SSR 保底</div><div class="v">还差 ${pityLeft} 抽</div></div>
     <div class="info-card"><div class="k">已解锁少女</div><div class="v">${owned}/${GIRLS.length}</div></div>
     <div class="info-card"><div class="k">双倍卡</div>
@@ -345,7 +351,7 @@ function renderGacha() {
         ${hist.length ? hist.map(h => `<span class="hchip r-${h.r}">${h.n}</span>`).join("")
                       : `<span class="gx-empty">暂无记录</span>`}
       </span>
-    </div><div class="growth-gacha-link"><span>招募券来自日常、周常和主线里程碑，不能用金币无限抽取。</span><button type="button" class="gbtn gbtn-sm" onclick="nav('page-growth')"><span>领取招募券</span></button></div>`;
+    </div><details><summary>查看常驻奖池</summary>${["SSR","SR","R"].map(rarity => `<p><b>${rarity}</b> · ${GIRLS.filter(girl => girl.rarity === rarity && cardSources(girl).includes("summon")).map(girl => esc(girl.name)).join("、")}</p>`).join("")}</details><div class="growth-gacha-link"><span>招募券来自日常、周常和主线里程碑，不能用金币无限抽取。</span><button type="button" class="gbtn gbtn-sm" onclick="nav('page-growth')"><span>领取招募券</span></button></div>`;
 }
 
 async function doGacha(times) {
@@ -391,7 +397,7 @@ function squadBondLabels(ids) {
   const labels = [];
   Object.entries(elems).filter(([, n]) => n >= 2).forEach(([id, n]) => labels.push(`${ELEM[id].name}系${n}人 · 攻击 +6%`));
   Object.entries(roles).filter(([, n]) => n >= 3).forEach(([role, n]) => labels.push(`${{tank:"守护",sdps:"单攻",adps:"群攻",heal:"治疗",support:"辅助"}[role] || role}${n}人 · 生命 +7%`));
-  if (selected.length === 4 && new Set(selected.map(g => g.elem)).size === 4) labels.push("四象协奏 · 防御 +5%");
+  if (new Set(selected.map(g => g.elem)).size >= 4) labels.push("四象协奏 · 防御 +5%");
   return labels.length ? labels : ["编队两名同元素少女触发元素共鸣；三名同定位触发职能协奏"];
 }
 
@@ -419,30 +425,45 @@ function collectionAlbumMarkup() {
     return `<button type="button" class="collection-partner" onclick="${typeof openWorkshop === "function" && workshopRules() ? `openWorkshop('${id}','bonds')` : `openGirl('${id}')`}"><img src="${girl.img}" alt="" loading="lazy"><span><b>${esc(girl.name)}</b><small>羁绊 ${bonds.filter(bond => bond.percent).length}/${bonds.length}</small></span></button>`;
   }).join("")}</div></details>`;
 }
+const SQUAD_LIMIT = 6;
+let squadSelectedId = null;
+let squadSelectionEpoch = null;
+let squadMutation = null;
+let squadDrag = null;
+let squadClickBlockedUntil = 0;
 function renderSquad() {
   if (!requireGame()) return;
+  cancelSquadDrag();
+  if (squadSelectionEpoch !== Store.sessionEpoch) { squadSelectedId = null; squadSelectionEpoch = Store.sessionEpoch; }
+  if (!SAVE.squad.includes(squadSelectedId)) squadSelectedId = null;
   const slots = document.getElementById("squad-slots");
   let power = 0;
   const agg = { hp: 0, atk: 0, def: 0, spd: 0 };
-  slots.innerHTML = [0, 1, 2, 3].map(i => {
+  slots.innerHTML = Array.from({ length: SQUAD_LIMIT }, (_, i) => {
+    const rank = i < 3 ? "前排" : "后排";
     const id = SAVE.squad[i];
-    if (!id) return `<div class="team-slot empty" onclick="toast('从下方列表点角标补位')">
+    if (!id) return `<button type="button" class="team-slot empty" data-squad-slot="${i}" onclick="selectSquadSlot(${i})" aria-label="${rank}空位 ${i + 1}，将已选队员移至队尾">
         <img class="slot-add" src="assets/ui/slot-add.webp" alt="">
-        <span class="slot-lb">空位 ${i + 1}</span></div>`;
+        <span class="slot-lb">${rank} ${i + 1}</span></button>`;
     const g = GIRLS.find(x => x.id === id);
     const own = SAVE.girls[id];
     power += powerOf(id);
     const s = finalStats(id, true);
     agg.hp += s.hp; agg.atk += s.atk; agg.def += s.def; agg.spd += s.spd;
-    return `<div class="team-slot filled r-${g.rarity}" ${typeof trainingFrame === "function" ? trainingFrame(own) : ""} onclick="unslot(${i})" title="点击移出队伍">
-      <span class="ts-idx">${i + 1}</span>
-      <span class="ts-x">×</span>
-      <img src="${g.img}" loading="lazy" alt="">
+    return `<div class="team-slot filled r-${g.rarity} ${squadSelectedId === id ? "slot-selected" : ""}" data-squad-slot="${i}" ${typeof trainingFrame === "function" ? trainingFrame(own) : ""}>
+      <button type="button" class="squad-pick" draggable="true" data-squad-id="${id}" onclick="selectSquadSlot(${i})" aria-pressed="${squadSelectedId === id}" aria-label="${rank}${i + 1} ${esc(g.name)}，拖动或点击换位">
+      <span class="ts-idx">${rank} ${i + 1}</span>
+      <img src="${g.img}" loading="lazy" draggable="false" alt="">
       <div class="tn-name">${g.name}</div>
-      <div class="tn-sub">Lv${own.level} · ${own.star}星 ${typeof trainingGradeTag === "function" ? trainingGradeTag(own) : ""}</div>
+      <div class="tn-sub"><span>Lv${own.level} · ${own.star}星</span>${typeof trainingGradeTag === "function" ? trainingGradeTag(own) : ""}</div>
+      </button><button type="button" class="ts-x" onclick="unslot(${i})" aria-label="移出${esc(g.name)}">×</button>
     </div>`;
   }).join("");
-  document.getElementById("team-count").textContent = SAVE.squad.length + "/4";
+  bindSquadDrag(slots);
+  setSquadBusy(squadMutation?.epoch === Store.sessionEpoch);
+  document.getElementById("team-count").textContent = SAVE.squad.length + "/" + SQUAD_LIMIT;
+  const selection = document.getElementById("squad-selection");
+  if (selection) selection.textContent = squadSelectedId ? "已选中「" + GIRLS.find(g => g.id === squadSelectedId).name + "」，再点队友交换，点空位移至队尾；再点自身取消。" : "拖动队员交换站位，也可依次点击两位队员；拖到空位会移至队尾。";
   document.getElementById("team-power").textContent = "队伍战力 " + (Number.isSafeInteger(SAVE.power) ? SAVE.power : power).toLocaleString();
   const n = SAVE.squad.length || 1;
   document.getElementById("team-stats").innerHTML = `
@@ -452,9 +473,9 @@ function renderSquad() {
     <span>均速 <b>${Math.round(agg.spd / n)}</b></span>
     <div class="bond-line"><b>上阵羁绊</b>${squadBondLabels(SAVE.squad).map(x => `<span>${esc(x)}</span>`).join("")}</div>${collectionAlbumMarkup()}`;
 
-  // 列表：图鉴全量展示（未获得置灰），在队优先，其次已拥有、稀有度、等级
+  // 编队只列出已获得的整卡；未获得英雄与碎片进度在独立图鉴中查看。
   const order = { SSR: 0, SR: 1, R: 2 };
-  const ids = GIRLS.map(g => g.id).sort((a, b) => {
+  const ids = GIRLS.filter(g => SAVE.girls[g.id]?.star > 0).map(g => g.id).sort((a, b) => {
     const ia = SAVE.squad.indexOf(a), ib = SAVE.squad.indexOf(b);
     const ina = ia >= 0, inb = ib >= 0;
     if (ina !== inb) return ina ? -1 : 1;
@@ -466,16 +487,11 @@ function renderSquad() {
       || (SAVE.girls[b] ? SAVE.girls[b].level : 0) - (SAVE.girls[a] ? SAVE.girls[a].level : 0);
   });
   document.getElementById("owned-title").textContent =
-    "图鉴 " + Object.values(SAVE.girls).filter(g => g.star > 0).length + "/" + GIRLS.length +
+    "已拥有 " + ids.length + "/" + GIRLS.length +
     " · 在队 " + SAVE.squad.length + " 位";
   document.getElementById("owned-list").innerHTML = ids.map(id => {
     const g = GIRLS.find(x => x.id === id);
     const own = SAVE.girls[id];
-    if (!own || own.star <= 0) return `<div class="card r-${g.rarity} card-locked" data-id="${id}" title="尚未获得">
-      <img src="${g.img}" loading="lazy">
-      <span class="shard-n">${own?.shards > 0 ? "碎片 " + own.shards : ""}</span>
-      <div class="name">${g.name}<i>未获得</i></div>
-    </div>`;
     const slot = SAVE.squad.indexOf(id);          // -1 = 未上阵
     const inSquad = slot >= 0;
     return `<div class="card r-${g.rarity} ${inSquad ? "in-team" : ""}" data-id="${id}" ${typeof trainingFrame === "function" ? trainingFrame(own) : ""} data-prestige-card="${own.star >= 12 ? "crown" : own.star >= 9 ? "crimson" : own.star >= 6 ? "gold" : ""}">
@@ -486,7 +502,7 @@ function renderSquad() {
       <div class="name">${g.name} ${typeof trainingGradeTag === "function" ? trainingGradeTag(own) : ""}<i>Lv${own.level} · ${own.star}星${own.talent ? ` · ${TALENTS[own.talent]?.name || "天赋"}` : ""}</i></div>
       <span class="quick-toggle" title="${inSquad ? "移出队伍" : "加入队伍"}">${inSquad ? "−" : "+"}</span>
     </div>`;
-  }).join("");
+  }).join("") || '<p class="squad-empty">尚未获得伙伴，可前往图鉴查看获取途径。</p>';
 
   // 事件委托：点角标快速上下阵，点卡片打开详情
   document.querySelectorAll("#owned-list .card").forEach(card => {
@@ -496,23 +512,163 @@ function renderSquad() {
     });
   });
 }
+function setSquadBusy(busy) {
+  const slots = document.getElementById("squad-slots");
+  if (!slots) return;
+  slots.setAttribute("aria-busy", String(busy));
+  slots.querySelectorAll("button").forEach(button => { button.disabled = busy; });
+}
+async function persistSquad(squad, epoch = Store.sessionEpoch) {
+  if (!requireGame() || epoch !== Store.sessionEpoch || squadMutation?.epoch === epoch) return false;
+  if (squad.length > SQUAD_LIMIT || new Set(squad).size !== squad.length || squad.some(id => !SAVE.girls[id]?.star)) return false;
+  if (squad.join(",") === SAVE.squad.join(",")) return false;
+  const mutation = squadMutation = {epoch};
+  setSquadBusy(true);
+  try {
+    const result = await Store.mutate("squad", {squad});
+    if (!result || epoch !== Store.sessionEpoch || !Store.ready()) return false;
+    squadSelectedId = null;
+    renderSquad(); renderTopbar();
+    return true;
+  } finally {
+    if (squadMutation === mutation) { squadMutation = null; setSquadBusy(false); }
+  }
+}
+async function moveSquadCard(id, target, epoch = Store.sessionEpoch, original = SAVE.squad.join(",")) {
+  if (!requireGame() || epoch !== Store.sessionEpoch || original !== SAVE.squad.join(",") || !Number.isInteger(target) || target < 0 || target >= SQUAD_LIMIT) return;
+  const squad = [...SAVE.squad], from = squad.indexOf(id);
+  if (from < 0 || from === target) return;
+  if (target < squad.length) [squad[from], squad[target]] = [squad[target], squad[from]];
+  else { squad.splice(from, 1); squad.push(id); }
+  await persistSquad(squad, epoch);
+}
+function cancelSquadDrag() {
+  const drag = squadDrag;
+  squadDrag = null;
+  if (drag?.active) squadClickBlockedUntil = performance.now() + 400;
+  drag?.ghost?.remove();
+  document.querySelectorAll("#squad-slots .slot-dragging, #squad-slots .slot-drop-target").forEach(slot => slot.classList.remove("slot-dragging", "slot-drop-target"));
+  if (drag?.pointerId != null) {
+    try { if (drag.button.hasPointerCapture?.(drag.pointerId)) drag.button.releasePointerCapture(drag.pointerId); } catch (_) {}
+  }
+}
+function validSquadDrag() {
+  return squadDrag && Store.ready() && squadDrag.epoch === Store.sessionEpoch && squadDrag.original === SAVE.squad.join(",") && document.body.dataset.page === "page-squad" && squadMutation?.epoch !== Store.sessionEpoch;
+}
+function squadDropTarget(element) {
+  const slot = element?.closest?.("#squad-slots [data-squad-slot]");
+  return slot && Number.isInteger(Number(slot.dataset.squadSlot)) ? slot : null;
+}
+function markSquadDrop(slot) {
+  document.querySelectorAll("#squad-slots .slot-drop-target").forEach(item => item.classList.remove("slot-drop-target"));
+  if (slot && slot !== squadDrag?.button.parentElement) slot.classList.add("slot-drop-target");
+}
+function bindSquadDrag(slots) {
+  if (slots.dataset.dragBound) return;
+  slots.dataset.dragBound = "true";
+  const start = (button, kind, event) => {
+    if (!button || button.disabled || !Store.ready() || squadMutation?.epoch === Store.sessionEpoch || !SAVE.squad.includes(button.dataset.squadId)) return false;
+    cancelSquadDrag();
+    squadDrag = {kind, button, id:button.dataset.squadId, epoch:Store.sessionEpoch, original:SAVE.squad.join(","), active:kind === "native", x:event.clientX, y:event.clientY};
+    return true;
+  };
+  slots.addEventListener("click", event => {
+    if (performance.now() >= squadClickBlockedUntil) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+  }, true);
+  slots.addEventListener("dragstart", event => {
+    if (!start(event.target.closest(".squad-pick"), "native", event)) { event.preventDefault(); return; }
+    squadDrag.button.parentElement.classList.add("slot-dragging");
+    if (event.dataTransfer) { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", squadDrag.id); }
+  });
+  slots.addEventListener("dragover", event => {
+    if (!validSquadDrag() || squadDrag.kind !== "native") return;
+    const target = squadDropTarget(event.target);
+    if (!target) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+    markSquadDrop(target);
+  });
+  slots.addEventListener("dragleave", event => { if (!slots.contains(event.relatedTarget)) markSquadDrop(null); });
+  slots.addEventListener("drop", event => {
+    if (!validSquadDrag() || squadDrag.kind !== "native") { cancelSquadDrag(); return; }
+    event.preventDefault();
+    const drag = squadDrag, target = squadDropTarget(event.target);
+    cancelSquadDrag();
+    if (target) void moveSquadCard(drag.id, Number(target.dataset.squadSlot), drag.epoch, drag.original);
+  });
+  slots.addEventListener("dragend", cancelSquadDrag);
+  slots.addEventListener("pointerdown", event => {
+    if (!["touch", "pen"].includes(event.pointerType) || event.isPrimary === false || event.button !== 0) return;
+    if (!start(event.target.closest(".squad-pick"), "pointer", event)) return;
+    squadDrag.pointerId = event.pointerId;
+    try { squadDrag.button.setPointerCapture?.(event.pointerId); } catch (_) {}
+  });
+  document.addEventListener("pointermove", event => {
+    if (squadDrag?.kind !== "pointer" || squadDrag.pointerId !== event.pointerId) return;
+    if (!validSquadDrag()) { cancelSquadDrag(); return; }
+    const drag = squadDrag;
+    if (!drag.active && Math.hypot(event.clientX-drag.x, event.clientY-drag.y) < 8) return;
+    if (!drag.active) {
+      drag.active = true;
+      const source = drag.button.parentElement, rect = source.getBoundingClientRect();
+      drag.offsetX = drag.x-rect.left; drag.offsetY = drag.y-rect.top;
+      drag.ghost = source.cloneNode(true);
+      drag.ghost.classList.add("squad-drag-ghost");
+      drag.ghost.setAttribute("aria-hidden", "true");
+      drag.ghost.querySelectorAll("button").forEach(button => { button.disabled = true; button.removeAttribute("onclick"); button.draggable = false; });
+      drag.ghost.style.width = rect.width + "px"; drag.ghost.style.height = rect.height + "px";
+      document.body.append(drag.ghost);
+      source.classList.add("slot-dragging");
+    }
+    event.preventDefault();
+    drag.ghost.style.left = (event.clientX-drag.offsetX) + "px";
+    drag.ghost.style.top = (event.clientY-drag.offsetY) + "px";
+    markSquadDrop(squadDropTarget(document.elementFromPoint(event.clientX,event.clientY)));
+  }, {passive:false});
+  document.addEventListener("pointerup", event => {
+    if (squadDrag?.kind !== "pointer" || squadDrag.pointerId !== event.pointerId) return;
+    const drag = squadDrag, valid = validSquadDrag();
+    const target = valid && drag.active ? squadDropTarget(document.elementFromPoint(event.clientX,event.clientY)) : null;
+    if (drag.active) event.preventDefault();
+    cancelSquadDrag();
+    if (target) void moveSquadCard(drag.id, Number(target.dataset.squadSlot), drag.epoch, drag.original);
+  });
+  document.addEventListener("pointercancel", event => { if (squadDrag?.pointerId === event.pointerId) cancelSquadDrag(); });
+  slots.addEventListener("lostpointercapture", event => { if (squadDrag?.pointerId === event.pointerId) cancelSquadDrag(); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape") cancelSquadDrag(); });
+  window.addEventListener("blur", cancelSquadDrag);
+}
 async function toggleSquad(id) {
   if (!requireGame()) return;
   if (!SAVE.girls[id] || SAVE.girls[id].star <= 0) return toast("该少女尚未解锁");
   let squad;
   if (SAVE.squad.includes(id)) squad = SAVE.squad.filter(x => x !== id);
   else {
-    if (SAVE.squad.length >= 4) return toast("最多上阵 4 人，先移出一名");
+    if (SAVE.squad.length >= SQUAD_LIMIT) return toast("最多上阵 6 人，先移出一名");
     squad = [...SAVE.squad, id];
   }
-  if (!await Store.mutate("squad", { squad })) return;
+  await persistSquad(squad);
+}
+async function selectSquadSlot(index) {
+  if (!requireGame() || squadMutation?.epoch === Store.sessionEpoch || !Number.isInteger(index) || index < 0 || index >= SQUAD_LIMIT) return;
+  if (squadSelectionEpoch !== Store.sessionEpoch) { squadSelectedId = null; squadSelectionEpoch = Store.sessionEpoch; }
+  const id = SAVE.squad[index];
+  if (!id) {
+    if (squadSelectedId) return moveSquadCard(squadSelectedId, index);
+    return toast("从下方已拥有伙伴点 + 上阵，或拖动队员到这里移至队尾");
+  }
+  if (!squadSelectedId || !SAVE.squad.includes(squadSelectedId)) squadSelectedId = id;
+  else if (squadSelectedId === id) squadSelectedId = null;
+  else {
+    return moveSquadCard(squadSelectedId, index);
+  }
   renderSquad(); renderTopbar();
 }
 async function unslot(i) {
   if (!requireGame()) return;
   const squad = SAVE.squad.filter((_, index) => index !== i);
-  if (!await Store.mutate("squad", { squad })) return;
-  renderSquad(); renderTopbar();
+  await persistSquad(squad);
 }
 
 function shardReserve(g, own) {
@@ -816,6 +972,8 @@ function refreshCultivationViews(id) {
     }
   }
   if (page === "page-squad") renderSquad();
+  if (page === "page-codex" && typeof renderCodex === "function") renderCodex();
+  if (page === "page-captain" && typeof renderCaptain === "function") renderCaptain();
   if (page === "page-home") renderGrowthSummary();
   renderTopbar();
   if (document.querySelector("#modal-mask:not(.hidden) [data-cultivation-card]")?.dataset.cultivationCard === id) {
@@ -842,11 +1000,28 @@ async function cultivateGirl(action, id, choice) {
 }
 
 /* ---------- 少女详情 / 养成 ---------- */
+function openCardSource(id) {
+  if (!requireGame()) return;
+  const girl = GIRLS.find(entry => entry.id === id);
+  if (!girl) return;
+  const sources = cardSources(girl);
+  closeModal();
+  if (sources.includes("summon") || sources.includes("world")) {
+    nav("page-gacha");
+    if (typeof selectDrawPool === "function") selectDrawPool(sources.includes("summon") ? "heroes" : "world");
+  } else if (sources.includes("growth") || sources.includes("starter")) {
+    nav("page-growth");
+    const wish = document.getElementById("growth-wish");
+    if (wish && Array.from(wish.options).some(option => option.value === id)) { wish.value = id; wish.focus(); }
+  } else nav("page-stage");
+}
+
 function openGirl(id) {
   if (!requireGame()) return;
   const g = GIRLS.find(x => x.id === id);
   if (!g) return;
   const own = SAVE.girls[id];
+  if (!(own?.star > 0) && typeof openCodex === "function") return openCodex(id);
   if (own?.star && typeof openWorkshop === "function" && workshopRules()) return openWorkshop(id);
   const s = finalStats(id);
   const el = ELEM[g.elem], rar = RARITY[g.rarity];
@@ -865,7 +1040,7 @@ function openGirl(id) {
             <i class="gc-tag" style="color:${rar.color}">${rar.name}</i>
             <i class="gc-tag" style="color:${el.color}">${el.name}系</i></div>
           <div class="gc-desc">${g.desc}</div>
-          <div class="mat-line">尚未获得 · 碎片 ${own?.shards || 0}/${rar.shardToUnlock}<span>（可召唤获取，或攒副本碎片解锁）</span></div>
+          <div class="mat-line">尚未获得 · 同卡碎片 ${shards}/${rar.shardToUnlock}<span>来源：${esc(cardSourceDescription(g))}</span></div>
         </div>
       </div>
       <div class="gc-body">
@@ -882,8 +1057,8 @@ function openGirl(id) {
       ${typeof atelierMilestones === "function" ? atelierMilestones(id) : ""}
       <div class="modal-btns">
         <button class="gbtn gbtn-sm" onclick="closeModal()"><span>关闭</span></button>
-        <button class="gbtn gbtn-sm gbtn-primary" onclick="closeModal();nav('page-gacha')"><span>去召唤</span></button>
-        ${SAVE.progression ? `<button type="button" class="gbtn gbtn-sm" onclick="unlockShardGirl('${id}')" ${shards >= RARITY[g.rarity].shardToUnlock ? "" : "disabled"}><span>碎片解锁 · ${RARITY[g.rarity].shardToUnlock}枚</span></button>` : ""}
+        <button class="gbtn gbtn-sm" onclick="openCardSource('${id}')"><span>前往获取途径</span></button>
+        ${SAVE.progression ? `<button type="button" class="gbtn gbtn-sm gbtn-primary" onclick="unlockShardGirl('${id}')" ${shards >= rar.shardToUnlock ? "" : "disabled"}><span>合成召唤 · ${rar.shardToUnlock} 枚同卡碎片</span></button>` : ""}
       </div>`);
     if (decomposableShards > 0) {
       document.querySelector("#modal-box .mb-scroll")?.insertAdjacentHTML("beforeend", `
@@ -907,6 +1082,7 @@ function openGirl(id) {
           <i class="gc-tag" style="color:${el.color}">${el.name}系</i></div>
         <div class="gc-desc">${g.desc}</div>
         <div class="gc-lv">Lv${own.level} · ${own.star}星 · 碎片 ${own.shards}</div>
+        <div class="mat-line">获取来源：${esc(cardSourceDescription(g))}</div>
         <div class="mat-line"><span>${g.rarity}共鸣尘 ${SAVE.mats["shard_dust_" + g.rarity.toLowerCase()] || 0} · 旧通用共鸣尘 ${SAVE.mats.shard_dust || 0}</span></div>
       </div>
     </div>
@@ -972,7 +1148,7 @@ const LOCK_SVG = `<svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a2
 /* ---------- 副本页：章节 / 关卡节点 / 详情 ---------- */
 let stageView = { ch: 0, sel: null };
 
-const stageStars = id => (SAVE.stars && SAVE.stars[id]) || 0;
+const stageStars = id => SAVE.cleared?.[id] ? Math.max(0, Math.min(3, Number(SAVE.stars?.[id]) || 0)) : 0;
 const stageLocked = s => !!(s.unlockStage && !SAVE.cleared[s.unlockStage]);
 
 function pickChapter(i) { if (!requireGame()) return; stageView.ch = i; stageView.sel = null; renderStage(); }
@@ -1121,7 +1297,7 @@ function renderModes() {
   const bondLabels = squadBondLabels(SAVE.squad);
   body.innerHTML = `<div class="mode-grid">
     <article class="mode-card expedition-card"><div class="mode-card-head"><div><p class="social-kicker">每周 10 层 · 路线增益</p><h3>星穹远征</h3></div><span>${expedition.week || weekly.week || "本周"}</span></div>
-      <p class="mode-note">当前第 ${Math.min(expedition.floor,10)} / 10 层 · 本周最高 ${expedition.best || 0} 层 · 消耗 ${12 + Math.min(expedition.floor,10)} 体力。胜利奖励仅限游戏内资源。</p>
+      <p class="mode-note">当前第 ${Math.min(expedition.floor,10)} / 10 层 · 本周最高 ${expedition.best || 0} 层 · 消耗 ${12 + Math.min(expedition.floor,10)} 体力。${Store.profile?.market ? `逐层胜利可领远征币（本层 ${Store.profile.market.expedition_base + Store.profile.market.expedition_per_floor * Math.min(expedition.floor,10)}）。<button class="social-refresh" onclick="openGameMarket('expedition')">远征商店 ›</button>` : "胜利奖励仅限游戏内资源。"}</p>
       <div class="route-choices" role="group" aria-label="远征路线">${Object.entries(routeNames).map(([key,name]) => `<button type="button" class="route-choice ${expedition.route === key ? "selected" : ""}" aria-pressed="${expedition.route === key}" onclick="chooseExpeditionRoute('${key}')"><b>${name}</b><small>${routeEffects[key]}</small></button>`).join("")}</div>
       <button type="button" class="gbtn gbtn-primary mode-start" onclick="startModeRun('expedition')" ${expeditionDone || !expedition.route || stamina < 12 + Math.min(expedition.floor,10) ? "disabled" : ""}><span>${expeditionDone ? "本周已通关" : !expedition.route ? "先选择本层路线" : stamina < 12 + Math.min(expedition.floor,10) ? "体力不足" : `挑战第 ${expedition.floor} 层`}</span><span class="sub">${expeditionDone ? "下周重置" : expedition.route ? routeEffects[expedition.route] : "胜利后推进一层，失败可重试"}</span></button></article>
     <article class="mode-card weekly-card"><div class="mode-card-head"><div><p class="social-kicker">每周 3 次 · 元素轮换</p><h3>星蚀巨像</h3></div><span class="boss-element" style="--element:${elem?.color || "#999"}">${elem?.name || "元素"}系</span></div>
@@ -1130,7 +1306,7 @@ function renderModes() {
       <button type="button" class="gbtn gbtn-primary mode-start" onclick="startModeRun('weekly_boss')" ${weekly.cleared || (weekly.attempts || 0) >= 3 || stamina < 20 ? "disabled" : ""}><span>${weekly.cleared ? "本周首领已击败" : (weekly.attempts || 0) >= 3 ? "本周次数用完" : stamina < 20 ? "体力不足" : `挑战首领 · ${3 - (weekly.attempts || 0)} 次剩余`}</span><span class="sub">每次消耗 20 体力</span></button></article>
     ${guildMarkup}
     <article class="mode-card bond-card"><div class="mode-card-head"><div><p class="social-kicker">组合编队 · 实战生效</p><h3>队伍羁绊</h3></div><button class="gbtn gbtn-sm" onclick="nav('page-squad')"><span>调整阵容</span></button></div><div class="guild-members">${bondLabels.map(x => `<span>${esc(x)}</span>`).join("")}</div><p class="mode-note">同元素共鸣、相同定位协奏和四种元素齐备会分别强化属性；效果进入战斗与战力计算。</p></article>
-  </div><p class="mode-help">每周一北京时间零点刷新远征与首领。远征代币与普通副本共享每日代币池；新玩法产出为游戏内资源。</p><button type="button" class="gbtn gbtn-sm" onclick="refreshModes()"><span>刷新玩法与公会</span></button>`;
+  </div><p class="mode-help">每周一北京时间零点刷新远征与首领。远征与普通副本的战斗代币按实际奖励到账，不设每日上限。</p><button type="button" class="gbtn gbtn-sm" onclick="refreshModes()"><span>刷新玩法与公会</span></button>`;
 }
 
 async function startModeRun(id) {
@@ -1166,7 +1342,7 @@ function bagCultivationMarkup(includeStock = true) {
   const rules = cultivationRules();
   if (!rules) return "";
   const targets = GIRLS.filter(girl => SAVE.girls[girl.id]?.star > 0 && SAVE.girls[girl.id].level < cardLevelLimit());
-  return `<section class="bag-cultivation"><h3>${includeStock ? "培养道具" : "研读手记"}</h3>${includeStock ? `<div class="cultivation-stock">${Object.entries(CULTIVATION_ITEMS).map(([key, item]) => `<div><small>${item.use}</small><b>${item.name} <strong>×${SAVE.mats[key] || 0}</strong></b><span>${item.from}</span></div>`).join("")}</div>` : ""}
+  return `<section class="bag-cultivation"><h3>${includeStock ? "培养奇物" : "研读手记"}</h3>${includeStock ? `<div class="cultivation-stock">${Object.entries(CULTIVATION_ITEMS).map(([key, item]) => `<div><small>${item.use}</small><b>${item.name} <strong>×${SAVE.mats[key] || 0}</strong></b><span>${item.from}</span></div>`).join("")}</div>` : ""}
     <div class="manual-choice"><label class="growth-select">历练手记 · 研读角色<select id="manual-target" onchange="updateManualTarget()"><option value="">${targets.length ? "选择角色" : "没有未满级角色"}</option>${targets.map(girl => `<option value="${girl.id}">${esc(girl.name)} · Lv${SAVE.girls[girl.id].level}</option>`).join("")}</select></label><button type="button" class="gbtn gbtn-sm" data-cultivation-action="use_manual" id="bag-use-manual" onclick="cultivateGirl('use_manual',document.getElementById('manual-target').value)" disabled><span>消耗 1 份</span><span class="sub">经验 +${rules.manual_xp}</span></button></div></section>`;
 }
 
@@ -1208,7 +1384,7 @@ function renderBag() {
       <div class="bag-side">
         <div class="side-row"><span>双倍卡</span><b>x${SAVE.multi}</b></div>
         <div class="side-row"><span>代币余额</span><b>${SAVE.token}</b></div>
-        <button class="gbtn gbtn-sm gbtn-primary" onclick="nav('page-shop')"><span>代币商店</span><span class="sub">兑换金币、体力与材料</span></button>
+        <button class="gbtn gbtn-sm gbtn-primary" onclick="nav('page-shop')"><span>补给商店</span><span class="sub">竞技场、副本与远征物资</span></button>
         <button class="gbtn gbtn-sm gbtn-gold" onclick="openWarehouse()">
           <span>我的仓库</span><span class="sub">站点折扣卡在这里用</span>
         </button>
@@ -1260,81 +1436,7 @@ async function loadSocial(page, render) {
 
 function renderShop() {
   if (!requireGame()) return;
-  loadSocial("page-shop", paintShop);
-}
-function shopDailyRemaining() {
-  const bought = Object.values(SAVE.daily.shopBought || {}).reduce((sum, n) => sum + n, 0);
-  return Math.max(0, (socialData?.shop_daily_limit || 0) - bought);
-}
-function shopBlockReason(item) {
-  if (shopDailyRemaining() === 0) return "今日次数用完";
-  if (SAVE.token < item.price) return "代币不足";
-  if (item.resource === "stamina" && SAVE.stamina + item.amount > SAVE.staminaMax) return "体力空间不足";
-  return "";
-}
-function paintShop() {
-  const items = socialData.shop || [];
-  const exchange = socialData.token_exchange;
-  const maximum = tokenExchangeMax();
-  document.getElementById("shop-body").innerHTML = `
-    <div class="social-wallet"><span>我的代币 <b>${SAVE.token.toLocaleString()}</b></span><span id="shop-daily-remaining">今日兑换剩余 <strong>${shopDailyRemaining()} / ${socialData.shop_daily_limit}</strong> 次</span></div>
-    <section class="token-exchange" aria-labelledby="token-exchange-title">
-      <div><h3 id="token-exchange-title">余额兑换代币</h3><p>1 E = 1 代币 · 站点可用余额 <strong>${quotaToE(SITE_ACCOUNT?.quota || 0)} E</strong></p><p>不占商店兑换次数及副本代币产出额度</p></div>
-      <div class="token-exchange-controls"><label for="token-exchange-count">兑换数量（整数）</label><input id="token-exchange-count" type="number" inputmode="numeric" min="1" max="${maximum}" step="1" value="${Math.max(1, Math.min(10, maximum))}" oninput="updateTokenExchange()" ${exchange?.enabled && maximum > 0 ? "" : "disabled"} aria-describedby="token-exchange-cost"><p id="token-exchange-cost" aria-live="polite"></p><button id="token-exchange-submit" class="gbtn gbtn-sm gbtn-primary" onclick="confirmTokenExchange()"><span>兑换代币</span></button></div>
-    </section>
-    <div class="shop-grid">${items.map(item => {
-      const reason = shopBlockReason(item);
-      const bought = SAVE.daily.shopBought?.[item.id] || 0;
-      const detail = { gold: "用于召唤与升级", stamina: "恢复体力，上限 120", mat_r: "用于 R 少女升星", mat_sr: "用于 SR 少女升星", mat_ssr: "用于 SSR 少女升星", multi: "主页开启后用于下一次副本" }[item.resource] || "游戏补给";
-      const id = /^[a-z_]+$/.test(item.id) ? item.id : "";
-      return `<article class="shop-item shop-${esc(item.resource)}"><span class="shop-mark" aria-hidden="true">${item.resource === "gold" ? "G" : item.resource === "stamina" ? "+" : item.resource === "multi" ? "×2" : "◆"}</span><div><h3>${esc(item.name)} <b>×${item.amount}</b></h3><p>${detail}</p></div><div class="shop-stock">今日已兑换 ${bought} 次 · 全店共用 ${socialData.shop_daily_limit} 次</div><button class="gbtn gbtn-sm gbtn-primary" onclick="confirmShopItem('${id}')" ${reason ? "disabled" : ""}><span>${reason || item.price + " 代币兑换"}</span>${reason ? `<span class="sub">${item.price} 代币</span>` : ""}</button></article>`;
-    }).join("")}</div>
-    <p class="social-note">全店每天共可兑换 ${socialData.shop_daily_limit} 次，北京时间零点刷新。副本每日最多产出 ${TOKEN_BUDGET} 代币，余额兑换的代币另计；副本双倍卡与站点倍率折扣卡是不同道具。</p>`;
-  updateTokenExchange();
-}
-function tokenExchangeMax() {
-  const rules = socialData?.token_exchange;
-  if (!rules?.enabled || !(rules.quota_per_token > 0)) return 0;
-  return Math.max(0, Math.min(Math.floor((SITE_ACCOUNT?.quota || 0) / rules.quota_per_token), rules.max_count - SAVE.token));
-}
-function updateTokenExchange() {
-  const input = document.getElementById("token-exchange-count");
-  if (!input) return false;
-  const count = Number(input.value);
-  const maximum = tokenExchangeMax();
-  let message = "";
-  if (!socialData?.token_exchange?.enabled) message = "余额兑换暂不可用";
-  else if (maximum < 1) message = "余额不足 1 E 或代币已达上限";
-  else if (!Number.isSafeInteger(count) || count < 1 || count > maximum) message = `请输入 1–${maximum.toLocaleString()} 的整数`;
-  document.getElementById("token-exchange-submit").disabled = Boolean(message);
-  document.getElementById("token-exchange-cost").textContent = message || `消耗 ${count.toLocaleString()} E，获得 ${count.toLocaleString()} 代币`;
-  return !message;
-}
-function confirmTokenExchange() {
-  if (!requireGame() || !updateTokenExchange()) return;
-  const count = Number(document.getElementById("token-exchange-count").value);
-  showModal(`<h3>确认兑换代币</h3><div class="social-confirm"><h4>${count.toLocaleString()} E → ${count.toLocaleString()} 代币</h4><p>将从站点余额扣除 <b>${count.toLocaleString()} E</b>，获得 <b>${count.toLocaleString()} 代币</b>。</p><p>这是单向兑换，代币不能换回站点余额。</p></div><div class="modal-btns"><button class="gbtn gbtn-sm" onclick="closeModal()"><span>取消</span></button><button class="gbtn gbtn-sm gbtn-primary" onclick="exchangeTokens(${count})"><span>确认兑换</span></button></div>`);
-}
-async function exchangeTokens(count) {
-  if (!requireGame()) return;
-  const result = await Store.mutate("token_exchange", { count });
-  if (!result) return;
-  closeModal(); renderTopbar(); renderShop();
-  toast(`兑换成功，获得 ${result.exchange.count} 代币`);
-}
-function confirmShopItem(id) {
-  if (!requireGame()) return;
-  const item = socialData?.shop?.find(x => x.id === id);
-  if (!item) return;
-  const reason = shopBlockReason(item);
-  if (reason) return toast(reason);
-  showModal(`<h3>兑换补给</h3><div class="social-confirm"><h4>${esc(item.name)} ×${item.amount}</h4><p>消耗 <b>${item.price} 代币</b> · 当前拥有 ${SAVE.token}</p><p>全店每日共 ${socialData.shop_daily_limit} 次，今日剩余 ${shopDailyRemaining()} 次；本次占用 1 次。</p></div><div class="modal-btns"><button class="gbtn gbtn-sm" onclick="closeModal()"><span>取消</span></button><button class="gbtn gbtn-sm gbtn-primary" onclick="buyShopItem('${id}')"><span>确认兑换</span></button></div>`);
-}
-async function buyShopItem(id) {
-  if (!requireGame()) return;
-  const result = await Store.mutate("shop", { item_id: id });
-  if (!result) return;
-  closeModal(); renderTopbar(); renderShop(); toast("兑换成功，补给已放入背包");
+  return loadGameMarket();
 }
 
 let arenaQueue = null;

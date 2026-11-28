@@ -114,11 +114,11 @@ function harness(t, { signedIn = true, responder, url = "https://example.test/ga
   const files = [...w.document.querySelectorAll('script[src^="js/"]')].map(script => script.getAttribute("src").split("?")[0]);
   w.eval(files.map(file => fs.readFileSync(path.join(root, file), "utf8")).join("\n;\n") + `
     window.__authority = { Store, SITE, nav, doGacha, levelUp, starUp, toggleSquad, unslot, toggleMulti,
-      openGirl, pickChapter, pickStage, openWarehouse, startBattle, resumeBattle, exitBattle, recoverBattle,
+      openGirl, openCodex, unlockCodexHero, pickChapter, pickStage, openWarehouse, startBattle, resumeBattle, exitBattle, recoverBattle,
       closeModal, retryGameAction, onSiteSessionEvent, battleEnd, syncSiteAccount,
       get save(){return SAVE;}, setSave(s){SAVE=s;}, get battle(){return BAT;},
       get running(){return battleRunning;},
-      setSleep(fn){sleep=fn;}, setStrike(fn){playStrike=fn;},
+      setSleep(fn){sleep=fn;}, setStrike(fn){playStrike=fn; if (window.BattleMotion) window.BattleMotion = { ...window.BattleMotion, beginBattleAction: fn };},
       battleControl(...args){return battleControl(...args);},
       stopPlayback(){playServerBattle=async()=>{};} };
   `);
@@ -159,19 +159,21 @@ test("game home retains upstream attribution without linking a maintainer server
 });
 
 test("anonymous boot and deep links cannot render or use any game entry", async t => {
-  for (const hash of ["", "#gacha", "#squad", "#stage", "#modes", "#growth", "#bag", "#battle"]) await t.test(hash || "home", async t => {
+  for (const hash of ["", "#gacha", "#squad", "#codex", "#stage", "#modes", "#growth", "#bag", "#battle"]) await t.test(hash || "home", async t => {
     const h = harness(t, { signedIn: false, url: "https://example.test/gacha/" + hash });
     await until(() => !h.game.Store.connecting);
     assertLocked(h);
-    for (const page of ["home", "gacha", "squad", "stage", "modes", "growth", "bag", "battle"]) h.game.nav("page-" + page);
+    for (const page of ["home", "gacha", "squad", "codex", "stage", "modes", "growth", "bag", "battle"]) h.game.nav("page-" + page);
     for (const [fn, args] of [
       ["doGacha", [1]], ["startBattle", ["s1"]], ["levelUp", ["c08"]], ["starUp", ["c08"]],
       ["toggleSquad", ["c08"]], ["unslot", [0]], ["toggleMulti", []], ["openGirl", ["c08"]],
+      ["openCodex", ["c03"]], ["unlockCodexHero", ["c03"]],
       ["pickChapter", [0]], ["pickStage", ["s1"]], ["openWarehouse", []],
     ]) await assert.doesNotReject(async () => h.game[fn](...args), "Anonymous entry " + fn + " must fail closed");
     assert.equal(h.d.body.dataset.page, undefined);
     assert.equal(h.d.getElementById("home-info").innerHTML, "");
     assert.equal(h.d.getElementById("gacha-pity").innerHTML, "");
+    assert.equal(h.d.getElementById("codex-root").innerHTML, "");
     assert.equal(h.d.getElementById("modal-box").innerHTML, "");
     assert.ok(h.calls.every(call => call.path === ep.auth));
     assertPrivateStorage(h);
@@ -829,7 +831,7 @@ test("late profile snapshots cannot overwrite a newly settled wallet receipt", a
   assert.match(h.d.getElementById("res-site").textContent, /1\.9000 E/);
 });
 
-test("lost token-exchange reply retries one intent and preserves its wallet receipt", async t => {
+test("retrying a game currency reward cannot change the separate site wallet", async t => {
   const h = harness(t); await until(() => h.game.Store.ready());
   let receipt;
   const oldProfile = h.profile();
@@ -837,25 +839,27 @@ test("lost token-exchange reply retries one intent and preserves its wallet rece
     if (call.path === ep.action) {
       if (!receipt) {
         h.database.state.token += 1; h.database.revision++;
-        receipt = {save:copy(h.database.state), revision:h.database.revision, exchange:{count:1,cost_quota:500000,wallet_quota:200000}};
+        receipt = {save:copy(h.database.state), revision:h.database.revision};
         throw new TypeError("REPLY_LOST_AFTER_COMMIT");
       }
       return ok(receipt);
     }
     return next(call);
   });
-  assert.equal(await h.game.Store.mutate("token_exchange", {count:1}), null);
+  h.w.eval("renderTopbar()");
+  const balance = h.d.getElementById("res-site").textContent;
+  assert.equal(await h.game.Store.mutate("captain_chest", {item_id:"2026-11-28:25"}), null);
   assert.equal(h.game.save.token, 0, "no optimistic currency change");
   await h.game.Store.retryPendingAction();
   const intents = h.calls.filter(call => call.path === ep.action).map(call => call.body);
   assert.deepEqual(intents[0], intents[1]);
   assert.equal(h.game.save.token, 1);
   h.w.eval("renderTopbar()");
-  assert.match(h.d.getElementById("res-site").textContent, /0\.4000 E/);
+  assert.equal(h.d.getElementById("res-site").textContent, balance);
   h.respond((call, next) => call.path === ep.profile ? ok(oldProfile) : next(call));
   await h.game.Store.refresh();
   h.w.eval("renderTopbar()");
-  assert.match(h.d.getElementById("res-site").textContent, /0\.4000 E/);
+  assert.equal(h.d.getElementById("res-site").textContent, balance);
   assert.equal(h.game.save.token, 1);
   assertPrivateStorage(h);
 });

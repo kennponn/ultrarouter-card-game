@@ -7,11 +7,14 @@
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --v8-pool-size=1 tests/server-ui-check.js && node --v8-pool-size=1 --test --test-concurrency=1 tests/server-authority-check.js tests/detail-contrast-check.js tests/cultivation-check.js tests/refinement-check.js tests/training-check.js tests/artifact-grades-check.js tests/cases-check.js tests/vigil-check.js tests/dispatch-check.js tests/cipher-check.js tests/captain-check.js tests/voyage-check.js tests/fleet-check.js tests/festival-check.js tests/mail-check.js",
+    "test": "node --v8-pool-size=1 tests/server-ui-check.js && node --v8-pool-size=1 --test --test-concurrency=1 tests/server-authority-check.js tests/detail-contrast-check.js tests/cultivation-check.js tests/refinement-check.js tests/training-check.js tests/artifact-grades-check.js tests/cases-check.js tests/vigil-check.js tests/dispatch-check.js tests/cipher-check.js tests/captain-check.js tests/voyage-check.js tests/fleet-check.js tests/festival-check.js tests/mail-check.js tests/unit-catalog-check.js tests/battle-formation-check.js tests/battle-motion-check.js tests/battle-menu-check.js tests/ladder-rewards-check.js tests/squad-drag-check.js tests/guild-growth-check.js tests/world-check.js tests/economy-check.js tests/codex-check.js",
+    "economy:simulate": "node --v8-pool-size=1 scripts/simulate-economy.js",
     "test:release": "python -m unittest discover -s tests -p test_*.py",
     "audit:release": "python scripts/audit-release.py",
     "package:release": "python scripts/package-release.py --name starfrost-game",
-    "preview": "python scripts/preview.py"
+    "preview": "python scripts/preview.py",
+    "catalog:sync": "python scripts/sync-catalog.py",
+    "catalog:check": "python scripts/sync-catalog.py --check"
   },
   "dependencies": {
     "jsdom": "^31.0.1"

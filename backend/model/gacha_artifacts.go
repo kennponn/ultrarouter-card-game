@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -9,6 +10,16 @@ import (
 )
 
 const gachaArtifactLootVersion = 4
+
+var (
+	ErrGachaArtifactFree      = errors.New("daily free draw already used or day changed")
+	ErrGachaArtifactFreeFirst = errors.New("daily free single draw must be taken before a paid draw")
+)
+
+type GachaArtifactPayment struct {
+	Resource string `json:"resource"`
+	Amount   int    `json:"amount"`
+}
 
 var gachaArtifactActions = []string{"chip_equip", "chip_remove", "chip_lock", "gem_refine", "chip_refine", "gem_level", "chip_level", "gem_rank", "chip_rank", "draw_gems", "draw_chips", "convert_tickets", "salvage_dust"}
 var gachaArtifactTicketNames = map[string]string{"gem_ticket": "宝石召唤券", "chip_ticket": "芯片召唤券"}
@@ -60,6 +71,11 @@ func validGachaArtifactCard(own *GachaOwnedGirl) bool {
 }
 
 func normalizeGachaArtifacts(state *GachaGameState) error {
+	for ticket, used := range state.Daily.ArtifactFree {
+		if !used || gachaArtifactTicketNames[ticket] == "" {
+			return ErrGachaRunState
+		}
+	}
 	if state.GemInventory == nil {
 		state.GemInventory = map[string]int{}
 	}
@@ -88,7 +104,8 @@ func normalizeGachaArtifacts(state *GachaGameState) error {
 }
 
 func validateGachaArtifactIntent(intent GachaActionIntent) error {
-	if intent.Squad != nil || intent.Config != nil || intent.Choice != nil || intent.RoomID != nil || intent.StakeE != nil || intent.QueueID != nil || intent.OpponentID != nil {
+	drawing := intent.Action == "draw_gems" || intent.Action == "draw_chips"
+	if intent.Squad != nil || intent.Config != nil || !drawing && intent.Choice != nil || intent.RoomID != nil || intent.StakeE != nil || intent.QueueID != nil || intent.OpponentID != nil {
 		return ErrGachaIntent
 	}
 	switch intent.Action {
@@ -98,7 +115,17 @@ func validateGachaArtifactIntent(intent GachaActionIntent) error {
 		}
 		return validateGachaRefinementIntent(intent)
 	case "draw_gems", "draw_chips":
-		if intent.GirlID != nil || intent.ItemID != nil || intent.Enabled != nil || intent.Count == nil || (*intent.Count != 1 && *intent.Count != 10) {
+		if intent.GirlID != nil || intent.Enabled != nil || intent.Count == nil || (*intent.Count != 1 && *intent.Count != 10) {
+			return ErrGachaIntent
+		}
+		if intent.Choice != nil && *intent.Choice == "free" {
+			if *intent.Count != 1 || intent.ItemID == nil {
+				return ErrGachaIntent
+			}
+			if _, err := gachaCalendarDay(*intent.ItemID); err != nil {
+				return ErrGachaIntent
+			}
+		} else if intent.ItemID != nil || intent.Choice != nil && *intent.Choice != "ticket" && *intent.Choice != "token" {
 			return ErrGachaIntent
 		}
 	case "convert_tickets":
@@ -154,7 +181,7 @@ func applyGachaArtifactAction(state *GachaGameState, intent GachaActionIntent, r
 		result.Drops = append(result.Drops, gachaArtifactTicketNames[ticket]+" x1")
 		return nil
 	case "draw_gems", "draw_chips":
-		return drawGachaArtifacts(state, intent.Action, *intent.Count, result)
+		return drawGachaArtifacts(state, intent, result)
 	}
 	own := state.Girls[*intent.GirlID]
 	index := *intent.Count - 1
@@ -211,10 +238,14 @@ func applyGachaArtifactAction(state *GachaGameState, intent GachaActionIntent, r
 	return nil
 }
 
-func drawGachaArtifacts(state *GachaGameState, action string, count int, result *GachaActionResult) error {
+func drawGachaArtifacts(state *GachaGameState, intent GachaActionIntent, result *GachaActionResult) error {
+	if err := validateGachaArtifactIntent(intent); err != nil {
+		return err
+	}
+	count := *intent.Count
 	ticket, inventory := "gem_ticket", state.GemInventory
 	var pool []string
-	if action == "draw_chips" {
+	if intent.Action == "draw_chips" {
 		ticket, inventory = "chip_ticket", state.ChipInventory
 		for _, family := range slices.Sorted(maps.Keys(gachaCultivation.Artifacts.ChipSets)) {
 			for index := range gachaCultivation.Artifacts.ChipStars {
@@ -224,8 +255,32 @@ func drawGachaArtifacts(state *GachaGameState, action string, count int, result 
 	} else {
 		pool = slices.Sorted(maps.Keys(gachaGemSpecs))
 	}
-	if state.Mats[ticket] < count {
-		return ErrGachaFunds
+	payment := GachaArtifactPayment{Resource: ticket, Amount: count}
+	freeUsed := state.Daily.ArtifactFree[ticket]
+	switch {
+	case intent.Choice != nil && *intent.Choice == "free":
+		if *intent.ItemID != state.Daily.Date || freeUsed {
+			return ErrGachaArtifactFree
+		}
+		payment.Resource, payment.Amount = "free", 0
+	case !freeUsed:
+		if intent.Choice != nil || count != 1 {
+			return ErrGachaArtifactFreeFirst
+		}
+		payment.Resource, payment.Amount = "free", 0
+	case intent.Choice != nil && *intent.Choice == "token":
+		price := gachaCultivation.Artifacts.DrawToken
+		if price < 1 || price > gachaMaxResource/count {
+			return ErrGachaRunState
+		}
+		payment.Resource, payment.Amount = "token", price*count
+		if state.Token < payment.Amount {
+			return ErrGachaFunds
+		}
+	default:
+		if state.Mats[ticket] < count {
+			return ErrGachaFunds
+		}
 	}
 	counts := map[string]int{}
 	for range count {
@@ -245,7 +300,18 @@ func drawGachaArtifacts(state *GachaGameState, action string, count int, result 
 			return ErrGachaCapacity
 		}
 	}
-	state.Mats[ticket] -= count
+	switch payment.Resource {
+	case "free":
+		if state.Daily.ArtifactFree == nil {
+			state.Daily.ArtifactFree = map[string]bool{}
+		}
+		state.Daily.ArtifactFree[ticket] = true
+	case "token":
+		state.Token -= payment.Amount
+	default:
+		state.Mats[ticket] -= payment.Amount
+	}
+	result.ArtifactPayment = &payment
 	for _, id := range slices.Sorted(maps.Keys(counts)) {
 		total := counts[id]
 		inventory[id] += total

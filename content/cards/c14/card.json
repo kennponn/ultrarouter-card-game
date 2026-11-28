@@ -1,0 +1,44 @@
+{
+  "id": "c14",
+  "name": "缚锁",
+  "rarity": "SR",
+  "elem": "dark",
+  "role": "support",
+  "atkType": "ranged",
+  "img": "content/cards/c14/assets/portrait.webp",
+  "base": {
+    "hp": 1100,
+    "atk": 220,
+    "def": 84,
+    "spd": 106,
+    "cr": 6,
+    "cd": 150,
+    "ehr": 35,
+    "res": 15
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "锁镰",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "禁锢之链",
+      "mult": 1.2,
+      "target": "enemy",
+      "stunChance": 0.6,
+      "stunTurns": 1,
+      "desc": "对单体造成120%攻击伤害，60%概率使其眩晕1回合（受效果命中影响）"
+    }
+  },
+  "desc": "锁链使，控制敌方关键单位。",
+  "battleImg": "content/cards/c14/assets/portrait-cut.webp",
+  "fxColor": "#9a7aff",
+  "legacyImages": {
+    "assets/c14-fusuo.webp": "content/cards/c14/assets/portrait.webp",
+    "assets/c14-fusuo-cut.webp": "content/cards/c14/assets/portrait-cut.webp"
+  }
+}

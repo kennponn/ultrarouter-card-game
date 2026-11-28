@@ -1,0 +1,19 @@
+{
+  "actual-combat-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "actual-combat-tests.jsonl": "4cc7d8d1c30c321b161271db7056cff1b8b977d688942aa9d53ed879984f5df1",
+  "actual-guild-combat.json": "a0ce59595274ea650d9195c6e05c6d7ab79498f5b12b88aa9715cbea1150c9de",
+  "baseline-build.txt": "e0a59debb365aeff28728528a5ca8b4a486998f54470e2b68307405dd0ab1046",
+  "baseline-source-hashes.json": "3bb9de79ee93d4a00b6df3671c3134c67d7e6835b2b68cff7eff8505e69c5493",
+  "baseline-tests.jsonl": "18a52425cbb4de8ff73f7029ff92cecd5e04e17a7e8321d0c790a6154352c66f",
+  "baseline-upgrade-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "baseline-upgrade-tests.jsonl": "b57dabc8efa1c7df32ef64ca6b54dd6dac63d85ed210412703c64974e6a2ba0c",
+  "candidate-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "candidate-source-hashes.json": "b92b8f065754ff497e003362d061a1c00c7d97019680925d1aa26ec1b1a9c412",
+  "candidate-tests.jsonl": "5327972b3652cbe01f5daeaa80b3ac7598bc180c475543ac49fee35d136220ac",
+  "candidate-upgrade-build.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "candidate-upgrade-tests.jsonl": "66caa14145e5e9aa9c4ad90424481463c7fe7bd7ec6791495445ad580bca9184",
+  "mysql-legacy-corpus.json": "3c739eab1fc7fca969503ff6c9d1329addcb2f7348a4436a67090d2a9550ecda",
+  "postgres-legacy-corpus.json": "ecb03786238114cc7bc32ad0c62183531dbb34ff8e1b34ed14175e21f45bb205",
+  "sqlite-legacy-corpus.json": "bf7dc43b4f5b6ed239eeb94bf39dccd3495218b951289f67ac5886b35cf66b25",
+  "summary.json": "dc24907c3f4c9114cbd41baf515607006cad2b6bf7482e313e7a3b3e73fbb5c6"
+}

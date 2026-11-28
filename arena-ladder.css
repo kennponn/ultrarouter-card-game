@@ -1,0 +1,75 @@
+/* Ranked arena cards and reward destinations. Shared social layouts stay intact. */
+#page-arena .ladder-opponents { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; align-items: stretch; }
+#page-arena .ladder-opponent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 15px;
+  overflow: hidden;
+  border: 1px solid #cfb183;
+  border-radius: 16px;
+  background: linear-gradient(155deg, #fffaf1, #f8eddb 68%, #eee0c9);
+  box-shadow: 0 8px 22px #68533a16, inset 0 1px #fff;
+}
+#page-arena .ladder-opponent .arena-opponent-top { align-items: center; margin-bottom: 5px; }
+#page-arena .ladder-rank { color: #8b602d; font-size: 23px; font-weight: 800; font-variant-numeric: tabular-nums; }
+#page-arena .ladder-opponent .arena-room-badge { border-color: #b9c8c4; background: #e5eee9; color: #3d625b; }
+#page-arena .ladder-portrait { width: 100%; height: 145px; margin: 0; border: 0; border-radius: 10px; background: radial-gradient(ellipse at 50% 95%, #cfb99342, transparent 67%); }
+#page-arena .ladder-portrait img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+#page-arena .ladder-opponent h4 { margin: 9px 0 4px; color: #28394e; font-size: 16px; }
+.ladder-guild { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6e655b; font-size: 11px; line-height: 1.8; }
+.ladder-guild.has-guild { color: #356b60; }
+.ladder-guild.has-guild::before { content: "✧ "; color: #377b6c; }
+#page-arena .arena-player .ladder-guild { display: block; }
+#page-arena .ladder-opponent > p { margin: 8px 0; color: #6d6052; font-size: 12px; }
+#page-arena .ladder-opponent > p b { color: #31425a; font-size: 17px; font-variant-numeric: tabular-nums; }
+#page-arena .ladder-opponent .arena-squad { margin: 0 0 14px; }
+#page-arena .ladder-challenge { width: 100%; min-height: 42px; margin-top: auto; padding: 10px 12px; border: 1px solid #b68a43; border-radius: 9px; background: linear-gradient(125deg, #efd7a3, #c89b55); color: #2a2417; box-shadow: 0 3px 10px #8e692126, inset 0 1px #fff5; text-indent: 0; letter-spacing: 0; text-shadow: none; filter: none; }
+#page-arena .ladder-challenge::before,
+#page-arena .ladder-challenge::after,
+#page-arena .ladder-challenge > span::before,
+#page-arena .ladder-challenge > span::after { content: none; display: none; border: 0; border-image: none; background: none; box-shadow: none; }
+#page-arena .ladder-challenge > span { display: flex; justify-content: center; align-items: center; gap: 18px; font-size: 14px; font-weight: 800; background: none; color: inherit; text-indent: 0; letter-spacing: 0; text-shadow: none; }
+#page-arena .ladder-challenge i { font-size: 25px; line-height: 1; font-style: normal; }
+#page-arena .ladder-challenge:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+#page-arena .ladder-challenge:disabled { opacity: .42; filter: saturate(.4); cursor: default; }
+#page-arena .ladder-opponent > small { margin-top: 9px; color: #6d6052; font-size: 11px; text-align: center; }
+.ladder-breakthrough-note, .ladder-mail-entry { display: flex; align-items: center; gap: 15px; margin: 18px 0; padding: 16px 18px; border: 1px solid #d9b578; border-radius: 12px; background: linear-gradient(110deg, #f5e7c9, #fff9ed); color: #3e3d36; }
+.ladder-breakthrough-note > span { color: #a7752f; font-size: 30px; }
+.ladder-breakthrough-note p, .ladder-mail-entry > div { flex: 1; margin: 0; min-width: 0; }
+.ladder-breakthrough-note p > span { display: block; margin-top: 5px; color: #675947; font-size: 12px; line-height: 1.6; }
+.ladder-mail-entry p { margin: 5px 0 0; color: #675947; font-size: 12px; }
+.ladder-token { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 9px; color: #705025; background: #f6e5b9; border: 1px solid #d7b56a; border-radius: 7px; font-size: 12px; line-height: 1.4; }
+.ladder-token i { color: #90651e; font-style: normal; }
+.ladder-token b { color: #69451d; font-size: 16px; font-variant-numeric: tabular-nums; }
+.ladder-reward-content { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 13px; }
+.ladder-best-tiers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.ladder-best-tier { display: flex; flex-direction: column; align-items: start; gap: 12px; padding: 17px; border: 1px solid #cdbb9f; border-radius: 12px; background: linear-gradient(145deg, #fffaf0, #f4eadb); }
+.ladder-best-tier > span { font-size: 13px; font-weight: 700; color: #35435a; }
+.ladder-best-tier > small { color: #756957; font-size: 11px; }
+.ladder-best-tier.is-reached { border-color: #bc934b; background: linear-gradient(145deg, #f5e0ad, #fff5dc); }
+.ladder-best-tier.is-reached > small { color: #775922; }
+.ladder-best-tier .ladder-token b { font-size: 21px; }
+.ladder-delivery-state { flex-shrink: 0; max-width: 160px; color: #416b57; font-size: 12px; line-height: 1.6; text-align: right; }
+#page-arena .ladder-reward-tier .ladder-reward-content { margin-top: 10px; }
+#page-arena .arena-podium-card .ladder-guild { min-height: 20px; }
+@media (min-width: 981px) {
+  #page-arena .arena-menu button { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-height: 46px; padding: 12px 14px; white-space: nowrap; }
+  #page-arena .arena-menu small { display: block; white-space: normal; line-height: 1.5; }
+}
+@media (max-width: 700px) {
+  #page-arena .ladder-opponents { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #page-arena .ladder-opponent { padding: 12px; }
+  #page-arena .ladder-portrait { height: 124px; }
+  #page-arena .ladder-opponent .arena-room-badge { font-size: 9px; }
+  .ladder-best-tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .ladder-best-tier { padding: 13px; }
+  .ladder-breakthrough-note, .ladder-mail-entry { flex-wrap: wrap; gap: 12px; padding: 14px; }
+  .ladder-breakthrough-note > span { display: none; }
+  .ladder-mail-entry > div { flex-basis: 100%; }
+  .ladder-delivery-state { max-width: 115px; }
+}
+@media (max-width: 360px) {
+  #page-arena .ladder-opponents { grid-template-columns: minmax(0, 1fr); }
+}

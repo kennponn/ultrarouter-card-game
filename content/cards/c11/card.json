@@ -1,0 +1,43 @@
+{
+  "id": "c11",
+  "name": "剑华",
+  "rarity": "SR",
+  "elem": "fire",
+  "role": "sdps",
+  "atkType": "melee",
+  "img": "content/cards/c11/assets/portrait.webp",
+  "base": {
+    "hp": 1150,
+    "atk": 265,
+    "def": 85,
+    "spd": 112,
+    "cr": 12,
+    "cd": 160,
+    "ehr": 0,
+    "res": 15
+  },
+  "matBonus": 0,
+  "dupGain": 15,
+  "skills": {
+    "normal": {
+      "name": "正拳",
+      "mult": 1,
+      "target": "enemy",
+      "desc": "对单体造成100%攻击伤害"
+    },
+    "skill": {
+      "name": "烈焰连击",
+      "mult": 4.2,
+      "target": "enemy",
+      "hits": 2,
+      "desc": "对单体造成两段210%攻击伤害"
+    }
+  },
+  "desc": "拳法少女，单体爆发。",
+  "battleImg": "content/cards/c11/assets/portrait-cut.webp",
+  "fxColor": "#ff9c5c",
+  "legacyImages": {
+    "assets/c11-jianhua.webp": "content/cards/c11/assets/portrait.webp",
+    "assets/c11-jianhua-cut.webp": "content/cards/c11/assets/portrait-cut.webp"
+  }
+}

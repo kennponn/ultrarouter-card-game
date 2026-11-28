@@ -130,7 +130,7 @@ function voyageGate(point) {
   if (!point) return "副本资料待同步";
   const reasons = [];
   if ((point.captain_min || 0) > (SAVE.captain?.level || 1)) reasons.push(`船长达到 Lv.${point.captain_min}`);
-  for (const id of point.requires || (point.unlockStage ? [point.unlockStage] : [])) {
+  for (const id of new Set([...(point.requires || []), ...(point.unlockStage ? [point.unlockStage] : [])])) {
     if (!SAVE.cleared[id]) reasons.push(`通关「${voyageStage(id)?.name || id}」`);
   }
   if (point.chapter_gate && !SAVE.voyage_passes?.[point.id] && !SAVE.cleared[point.id] && !SAVE.cleared[point.chapter_gate]) reasons.push(`完成前章「${voyageStage(point.chapter_gate)?.name || point.chapter_gate}」`);
@@ -170,7 +170,7 @@ function voyagePrizes(prizes) {
 }
 
 function voyageTotal(ids, state = SAVE) {
-  return ids.reduce((sum, id) => sum + Math.max(0, Math.min(3, Number(state.stars[id]) || 0)), 0);
+  return ids.reduce((sum, id) => sum + (state.cleared?.[id] ? Math.max(0, Math.min(3, Number(state.stars?.[id]) || 0)) : 0), 0);
 }
 
 function voyageIcon(id) {
@@ -182,7 +182,7 @@ function voyageChestPanel(chests,total,maximum) {
   return `<section id="starRewards" class="star-panel voy-chests" aria-label="副本星级宝箱"><div class="star-top"><h2>${voyageIcon("chest")}副本星级宝箱</h2><span aria-label="本章此难度 ${total} / ${maximum} 星">${voyageIcon("star")}<b>${total}</b><small> / ${maximum}</small></span></div><nav class="chest-grid" aria-label="三档星级奖励">${chests.map((chest,index) => {
     const claimed = !!SAVE.voyage_claims?.[chest.id], ready = !claimed && total >= chest.stars;
     const status = claimed ? "已领取" : ready ? "可领取" : `还差 ${chest.stars-total} 星`;
-    return `<button type="button" data-voy-chest="${esc(chest.id)}" data-tier="${index+1}" class="chest-button ${claimed ? "claimed" : ready ? "ready" : ""}" aria-label="${chest.stars} 星宝箱，${status}"><span class="chest-art">${voyageIcon(claimed ? "check" : "chest")}</span><span><b>${chest.stars} <span aria-hidden="true">★</span></b><small>${status}</small></span></button>`;
+    return `<button type="button" data-voy-chest="${esc(chest.id)}" data-tier="${index+1}" class="chest-button ${claimed ? "claimed" : ready ? "ready" : ""}" aria-label="${chest.stars} 星宝箱，${status}"><span class="chest-art">${rewardChestArt({tier:index + 1, state:claimed ? "claimed" : ready ? "ready" : "locked"})}</span><span><b>${chest.stars} <span aria-hidden="true">★</span></b><small>${status}</small></span></button>`;
   }).join("")}</nav><progress class="star-track" value="${total}" max="${maximum}" aria-label="章节星级进度"></progress></section>`;
 }
 
@@ -201,7 +201,7 @@ function renderVoyage() {
   const tabs = story ? Object.entries(VOYAGE_MODES).map(([id, label]) => {
     const gate = voyageGate(voyageStage(chapter.routes[id][0]));
     return `<button type="button" class="difficulty-tab ${{story:"gold",hard:"purple",nightmare:"red"}[id]} ${id === view.mode ? "active" : ""}" data-voy-mode="${id}" aria-pressed="${id === view.mode}" aria-label="${label}${gate ? "，未解锁" : ""}" title="${esc(gate ? `解锁条件：${gate}` : label)}">${voyageIcon(id)}<span>${label}</span>${gate ? `<span class="difficulty-lock">${voyageIcon("lock")}</span>` : ""}</button>`;
-  }).join("") : view.port === "rifts" ? ["普通裂隙","噩梦回响"].map((label, index) => `<button type="button" class="difficulty-tab ${view.rift === index ? "active" : ""}" data-voy-rift="${index}" aria-pressed="${view.rift === index}">${label}</button>`).join("") : '<span class="voy-port-label">定向补给 · 北京零点换日</span>';
+  }).join("") : view.port === "rifts" ? ["普通裂隙","噩梦回响"].map((label, index) => `<button type="button" class="difficulty-tab ${view.rift === index ? "active" : ""}" data-voy-rift="${index}" aria-pressed="${view.rift === index}">${label}</button>`).join("") : `<span class="voy-port-label">定向补给 · 北京零点换日</span>${Store.profile?.market ? '<button type="button" class="difficulty-tab" onclick="openGameMarket(\'dungeon\')">副本商店 ›</button>' : ""}`;
   const chestPanel = story ? voyageChestPanel(chests,total,maxStars) : `<section class="voy-legend"><strong>${view.port === "resources" ? "补给清单" : "裂隙图谱"}</strong><span>${view.port === "resources" ? "每港独立计次 · 胜利取得指定物资" : `已突破 ${ids.filter(id=>SAVE.cleared[id]).length} / ${ids.length} 道裂隙`}</span></section>`;
   const arrows = story ? `<nav class="map-chapter-controls" aria-label="切换章节">${view.chapter + 1 < book.chapters.length ? `<button type="button" class="chapter-step chapter-step-next" data-voy-step="1" title="下一章 · ${esc(book.chapters[view.chapter+1].name)}" aria-label="下一章">${voyageIcon("next")}</button>` : ""}${view.chapter ? `<button type="button" class="chapter-step chapter-step-prev" data-voy-step="-1" title="上一章" aria-label="上一章">${voyageIcon("back")}</button>` : ""}</nav>` : "";
   document.body.dataset.voyage = "open";
@@ -255,7 +255,7 @@ function voyageRemaining(point) {
 function voyageDetail(id) {
   const point = voyageStage(id), context = voyageContext();
   if (!point || !context?.ids.includes(id)) return;
-  const gate = voyageGate(point), left = voyageRemaining(point), best = SAVE.stars[id] || 0, date = SAVE.daily.date;
+  const gate = voyageGate(point), left = voyageRemaining(point), best = voyageTotal([id]), date = SAVE.daily.date;
   const milestones = context.view.port === "story" ? `<div class="voy-milestones"><p>首胜${SAVE.cleared[id] ? " · 已达成" : ""} ${voyagePrizes(context.book.first_clear)}</p><p>首次三星${best === 3 ? " · 已达成" : ""} ${voyagePrizes(context.book.first_three)}</p></div>` : "";
   const waves = Array.from({length: Math.min(point.waves, 8)}, (_, wave) => {
     const boss = point.hasBoss && wave === point.waves-1;
@@ -264,7 +264,7 @@ function voyageDetail(id) {
   const enemies = [...new Set(waves.flat())].map(enemy => `<figure><img src="${esc(enemy.img)}" alt=""><figcaption>${esc(enemy.name)}</figcaption></figure>`).join("");
   const mobs = waves.map((wave,index) => `<p>第 ${index+1} 波 · ${wave.map(enemy => esc(enemy.name)).join("、")}</p>`).join("");
   const rewards = point.prize ? `<div class="voy-drop-grid">${voyagePrizes(point.prize)}</div><p>出战伙伴经验 +${point.exp}</p>` : `<div class="voy-legacy-loot">${legacyStageDetailHTML(point, true)}</div>`;
-  const sweep = point.sweep_prize?.length ? `<section class="voy-sweep"><h4>三星扫荡</h4><div class="voy-drop-grid">${voyagePrizes(point.sweep_prize)}</div><p>每次将上述固定物资寄至邮箱，消耗 ${point.cost} 体力${point.daily_limit ? "及一次挑战次数" : ""}。不发站点额度、首胜、首次三星或战斗奖励，不计战斗任务。</p><div class="voy-sweep-buttons">${[1,3].map(count => `<button type="button" class="gbtn gbtn-sm" data-voy-sweep="${count}"><span>扫荡 ${count} 次 · ${point.cost*count} 体力</span></button>`).join("")}</div><small data-voy-sweep-status></small></section>` : "";
+  const sweep = point.sweep_prize?.length ? `<section class="voy-sweep"><h4>三星扫荡</h4><div class="voy-drop-grid">${voyagePrizes(point.sweep_prize)}</div><p>每次直接获得上述固定物资，消耗 ${point.cost} 体力${point.daily_limit ? "及一次挑战次数" : ""}，并计入每日“三程巡航”。不发站点额度、首胜、首次三星或额外战斗奖励。</p><div class="voy-sweep-buttons">${[1,3].map(count => `<button type="button" class="gbtn gbtn-sm" data-voy-sweep="${count}"><span>扫荡 ${count} 次 · ${point.cost*count} 体力</span></button>`).join("")}</div><small data-voy-sweep-status></small></section>` : "";
   const mechanic = DUNGEON_MECHANICS[point.mechanic];
   showModal(`<h3>${esc(point.name)}</h3><article class="voy-detail" data-voy-detail="${esc(id)}"><header><b>${esc(point.type)} · 敌人 Lv.${point.enemyLv}</b><span>历史最佳 ${starsHTML(best, 13)}</span></header><div class="voy-detail-grid"><figure class="voy-stage-art"><img src="${esc(point.img)}" alt=""><figcaption>${esc(point.desc)}</figcaption></figure><div><h4>三星挑战条件</h4><ul class="voy-star-rules"><li>战斗胜利</li><li>全员存活</li><li>${point.starRound} 回合内取胜</li></ul><h4>敌人阵容</h4><div class="voy-enemy-row">${enemies}</div></div></div><details class="voy-waves"><summary>波次情报 · ${point.waves} 波</summary>${mobs}${mechanic ? `<p>${esc(mechanic)}</p>` : ""}</details><h4>胜利奖励</h4>${rewards}${milestones}${sweep}<div class="voy-meta"><b>体力 ${point.cost}</b>${left !== null ? `<b data-voy-left>今日余 ${left}/${point.daily_limit} 次</b>` : ""}<span>当前 ${SAVE.stamina} 体力</span></div><p class="voy-gate" role="status">${gate ? `解锁条件：${esc(gate)}` : ""}</p><div class="modal-btns"><button class="gbtn gbtn-sm" type="button" data-voy-formation><span>布阵</span></button><button class="gbtn gbtn-primary" type="button" data-voy-start="${esc(id)}"><span>挑战 · ${point.cost} 体力</span></button></div></article>`);
   const detail = document.querySelector("[data-voy-detail]");
@@ -300,7 +300,7 @@ function voyageUpdateRunButton(seconds, retry = false) {
   if (!dayStatus) gateNote.textContent = reason;
   const sweepStatus = detail.querySelector("[data-voy-sweep-status]");
   if (sweepStatus) {
-    const deny = dayStatus || ((SAVE.stars[point.id] || 0) < 3 ? "本航点取得三星后可扫荡" : Store.activeRun ? "请先结算进行中的战斗" : reason);
+    const deny = dayStatus || (voyageTotal([point.id]) < 3 ? "本航点取得三星后可扫荡" : Store.activeRun ? "请先结算进行中的战斗" : reason);
     detail.querySelectorAll("[data-voy-sweep]").forEach(control => {
       const count = Number(control.dataset.voySweep);
       control.disabled = !!deny || Store.mutationBusy || SAVE.stamina < point.cost * count || left !== null && left < count;
@@ -329,10 +329,8 @@ function voyageChest(id) {
   const context = voyageContext(), chest = context?.chests.find(candidate => candidate.id === id);
   if (!chest) return;
   const stars = voyageTotal(context.ids), claimed = !!SAVE.voyage_claims?.[id], epoch = Store.sessionEpoch;
-  showModal(`<h3>${esc(context.title)} · ${chest.stars} 星宝箱</h3><article class="voy-detail" data-voy-chest-detail="${esc(id)}"><p>${esc(VOYAGE_MODES[context.view.mode])} · 本章已收集 ${stars} / ${context.ids.length*3} 星</p><div class="voy-drop-grid">${voyagePrizes(chest.prize)}</div><p>各关只计历史最高星。每章、每个难度的宝箱独立计星，每档限领一次，物资寄至邮箱。</p><div class="modal-btns">${claimed ? '<button class="gbtn gbtn-sm" type="button" data-voy-mail><span>前往邮箱</span></button>' : ""}<button class="gbtn gbtn-primary" type="button" data-voy-claim ${claimed || stars < chest.stars ? "disabled" : ""}><span>${claimed ? "已领取" : stars < chest.stars ? `还差 ${chest.stars - stars} 星` : "领取奖励"}</span></button></div></article>`);
+  showModal(`<h3>${esc(context.title)} · ${chest.stars} 星宝箱</h3><article class="voy-detail" data-voy-chest-detail="${esc(id)}"><p>${esc(VOYAGE_MODES[context.view.mode])} · 本章已收集 ${stars} / ${context.ids.length*3} 星</p><div class="voy-drop-grid">${voyagePrizes(chest.prize)}</div><p>各关只计历史最高星。每章、每个难度的宝箱独立计星，每档限领一次，领取后物资立即到账。</p><div class="modal-btns"><button class="gbtn gbtn-primary" type="button" data-voy-claim ${claimed || stars < chest.stars ? "disabled" : ""}><span>${claimed ? "已领取" : stars < chest.stars ? `还差 ${chest.stars - stars} 星` : "领取奖励"}</span></button></div></article>`);
   const button = document.querySelector("[data-voy-claim]");
-  const mail = document.querySelector("[data-voy-mail]");
-  if (mail) mail.onclick = () => { if (epoch === Store.sessionEpoch && Store.ready()) openHarborMail("inbox"); };
   button.onclick = async () => {
     if (button.disabled || !Store.ready() || epoch !== Store.sessionEpoch || document.body.dataset.page !== "page-stage" || button !== document.querySelector("#modal-mask:not(.hidden) [data-voy-claim]")) return;
     button.disabled = true;
@@ -341,7 +339,7 @@ function voyageChest(id) {
     if (result) {
       if (button.isConnected) closeModal();
       if (document.body.dataset.page === "page-stage") renderStage();
-      renderTopbar(); toast((result.drops || []).join(" · ") || "副本星级奖励已寄至邮箱");
+      renderTopbar(); toast((result.drops || []).join(" · ") || "副本星级奖励已到账");
     } else if (button.isConnected) button.disabled = false;
   };
   document.querySelector("#modal-box .mb-close")?.focus();

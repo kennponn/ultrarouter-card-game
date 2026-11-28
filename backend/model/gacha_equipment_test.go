@@ -262,14 +262,6 @@ func runGachaEquipmentMatrix(t *testing.T, now time.Time) {
 			out, err = model.FinishGachaRun(user.Id, runID, false, clock)
 			require.NoError(t, err)
 			saved := out.Save
-			if test.rules == issued.RulesVersion {
-				letter := requireGachaTestMail(t, out.Save, "battle:"+runID)
-				for index, id := range ids {
-					assert.Equal(t, before[id], out.Save.Mats[id])
-					assert.Equal(t, test.delta[index], letter.Resources[id])
-				}
-				saved = claimGachaTestMail(t, user.Id, letter, clock)
-			}
 			for index, id := range ids {
 				assert.Equal(t, before[id]+test.delta[index], saved.Mats[id])
 			}

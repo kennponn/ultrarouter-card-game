@@ -10,6 +10,7 @@ import (
 // Game handlers also verify that identity; never accept request-body user IDs.
 func RegisterGachaRoutes(selfRoute *gin.RouterGroup) {
 	selfRoute.GET("/gacha/profile", middleware.DisableCache(), controller.GetGachaProfile)
+	selfRoute.GET("/gacha/world", middleware.DisableCache(), middleware.UserBurstRateLimit("gacha-world", 60, 60), controller.GetGachaWorld)
 	selfRoute.GET("/gacha/social", middleware.DisableCache(), controller.GetGachaSocial)
 	selfRoute.GET("/gacha/fleet", middleware.DisableCache(), middleware.UserBurstRateLimit("gacha-fleet", 60, 60), controller.GetGachaFleet)
 	selfRoute.GET("/gacha/arena/replay", middleware.DisableCache(), controller.GetGachaArenaReplay)
