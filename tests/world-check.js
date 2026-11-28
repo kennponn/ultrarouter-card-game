@@ -34,7 +34,6 @@ test("player sees the featured pool, can only spend tickets, and receives confir
   const find = (action, count) => body.querySelector(`[data-world-action="${action}"]${count ? `[data-count="${count}"]` : ""}`);
   assert.equal(document.querySelector('[data-draw-pool="world"]').getAttribute("aria-pressed"),"true");
   assert.match(body.textContent,/限定 SSR/);
-  assert.match(body.textContent,/79\/80/);
   assert.match(body.textContent,/55%/);
   assert.match(body.textContent,/<b>玩家昵称<\/b>/);
   assert(![...body.querySelectorAll("b")].some(node => node.textContent === "玩家昵称"));
@@ -46,7 +45,7 @@ test("player sees the featured pool, can only spend tickets, and receives confir
   find("world_pull",1).click(); assert.equal(calls.length,1);
   save.mats.limited_ticket=0; save.girls.c03.shards=80; view.me.points=4;
   pending.shift()({drops:["本周英雄碎片 ×1"]}); await tick();
-  assert.match(body.textContent,/80\/80/); assert.match(body.textContent,/我的本期积分：4/);
+  assert.equal(save.girls.c03.shards,80); assert.match(body.textContent,/我的本期积分：4/);
   assert.equal(find("world_pull",1).disabled,true);
   assert.equal(find("world_chest",8).disabled,true);
   find("world_chest",3).click();

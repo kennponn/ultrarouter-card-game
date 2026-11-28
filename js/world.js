@@ -110,7 +110,7 @@ function renderWorldPool(body) {
   const reload = `<button type="button" id="sw-refresh" class="sw-refresh" data-world-action="refresh"${state.pending || state.busy ? " disabled" : ""}><span aria-hidden="true">↻</span>${state.pending ? "同步中" : "刷新榜单"}</button>`;
   const status = state.error ? `<div class="sw-status" role="status">${esc(state.error)} · 请重新同步。${view ? "" : reload}</div>` : "";
   if (!view) { body.innerHTML = `<section class="sw-loading"><img src="assets/world/title_shenshou.webp" alt="强者世界">${status || '<p role="status">正在读取本周英雄与榜单…</p>'}${state.error ? "" : reload}</section>`; return; }
-  const hero = GIRLS.find(girl => girl.id === view.hero), own = SAVE.girls[hero.id], tickets = SAVE.mats.limited_ticket || 0;
+  const hero = GIRLS.find(girl => girl.id === view.hero), tickets = SAVE.mats.limited_ticket || 0;
   const busy = state.busy || Boolean(state.pending) || Boolean(state.error), open = view.open && now < view.closes_at;
   const next = new Intl.DateTimeFormat("zh-CN", {timeZone:"Asia/Shanghai", month:"numeric", day:"numeric"}).format(view.next_open);
   const rank = view.settled ? view.me.final_rank : view.board.find(entry => entry.self)?.rank;
@@ -123,10 +123,9 @@ function renderWorldPool(body) {
     ${status}
     <div class="sw-main"><section class="sw-showcase" aria-label="本周限定英雄">
       <button type="button" id="sw-rules" class="sw-icon-button sw-rules-button" data-world-action="rules"><img src="assets/world/btn_gz_icon.webp" alt=""><span>规则</span></button>
-      <div class="sw-hero-caption"><span>本周限定 SSR</span><h2>${esc(hero.name)}</h2><span class="sw-hero-stars" aria-label="SSR">★★★★★</span></div>
+      <div class="sw-hero-caption"><span>本周限定 SSR</span><h2>${esc(hero.name)}</h2></div>
       <img class="sw-hero-art" src="${esc(hero.battleImg || hero.img)}" alt="${esc(hero.name)}立绘" fetchpriority="high">
       <button type="button" class="sw-icon-button sw-handbook" data-world-action="card"><img src="assets/world/icon_tj@.webp" alt=""><span>图鉴</span></button>
-      <div class="sw-hero-shards">同卡碎片 <b>${own?.shards || 0}/${RARITY.SSR.shardToUnlock}</b><span>${own?.star ? "已拥有" : "集齐可合成"}</span></div>
       <div class="sw-summon-controls"><div class="sw-summon-tip">每次召唤必得 R 整卡或本期英雄碎片</div><div class="sw-draw-buttons">${[1,10].map(amount => `<button type="button" id="sw-pull-${amount}" class="sw-draw-button sw-draw-${amount}" data-world-action="world_pull" data-week="${esc(view.week)}" data-count="${amount}"${busy || !open || tickets < amount ? " disabled" : ""}><b>抽取${amount}次</b><span>消耗 <strong>${amount}</strong> 张限定券</span></button>`).join("")}</div><div class="sw-pull-note">${open ? `每抽积 1 分 · ${view.shard_percent}% 获得限定碎片` : `周末休息 · 下期 ${next} 周一 00:00 开放`}</div></div>
     </section>
     <section class="sw-board" aria-label="强者榜"><div class="sw-deadline"><span>${open ? "召唤倒计时" : "下期开放倒计时"}</span><strong data-world-countdown="${open ? view.closes_at : view.next_open}">${worldRemaining(open ? view.closes_at : view.next_open,now)}</strong><button type="button" id="sw-prizes" class="sw-icon-button sw-gift" data-world-action="prizes" aria-label="奖励一览"><img src="assets/world/btn_gift.webp" alt=""></button></div>
